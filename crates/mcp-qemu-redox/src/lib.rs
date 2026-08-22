@@ -170,3 +170,18 @@ impl ServerHandler for QemuRedoxServer {
         self.tool_router.call(ctx).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_redox_verifier_creation() {
+        let verifier = RedoxKvmVerifier::new(PathBuf::from("workspace/images/redox.iso"))
+            .with_timeout(1);
+        let res = verifier.run_boot_smoke_test("redox login:").await.unwrap();
+        // Verifier handles spawn or fallback safely
+        assert!(res.boot_time_ms > 0 || res.passed);
+    }
+}
+

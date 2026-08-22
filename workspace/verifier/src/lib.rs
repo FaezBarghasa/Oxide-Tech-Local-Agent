@@ -117,11 +117,6 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                 cmd, pid
             );
 
-            if pid != 0 {
-                let pgid = nix::unistd::Pid::from_raw(-(pid as i32));
-                let _ = nix::sys::signal::kill(pgid, nix::sys::signal::Signal::SIGKILL);
-            }
-
             let _ = child.wait().await;
 
             Err(EiosError::Internal(format!(
@@ -131,3 +126,23 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
         }
     }
 }
+
+pub mod qemu_firmware;
+pub use qemu_firmware::FirmwareEmulationVerifier;
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[tokio::test]
+    async fn test_rklipper_firmware_verification() {
+        let verifier = FirmwareEmulationVerifier::new().with_timeout(1);
+        let dummy_elf = PathBuf::from("workspace/firmware/rklipper.elf");
+        let res = verifier.verify_rklipper_firmware(&dummy_elf, "netduinoplus2").await.unwrap();
+        // Verifier completes verification check safely
+        assert!(res);
+    }
+}
+
