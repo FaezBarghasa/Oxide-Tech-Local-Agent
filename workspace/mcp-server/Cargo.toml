@@ -1,0 +1,25 @@
+[package]
+name = "mcp-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+verifier = { path = "../verifier" }
+knowledge = { path = "../knowledge" }
+memory = { path = "../memory" }
+router = { path = "../router" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+schemars = { version = "1.2", features = ["derive"] }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+rmcp = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+regex = { workspace = true }
+urlencoding = "2.1.3"
+mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
+

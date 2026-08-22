@@ -1,0 +1,9 @@
+[package]
+name = "sandbox"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+nix = { version = "0.29", features = ["signal", "process", "resource"] }
+tracing = { workspace = true }

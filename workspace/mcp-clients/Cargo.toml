@@ -1,0 +1,20 @@
+[package]
+name = "mcp-clients"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+rmcp = { version = "0.2", features = ["client", "transport-io"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tonic = { version = "0.11", features = ["tls", "transport"] }
+prost = "0.12"
+tower = "0.4"
+anyhow = { workspace = true }
+
+[build-dependencies]
+tonic-build = "0.11"
+

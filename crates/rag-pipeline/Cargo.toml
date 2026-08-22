@@ -1,0 +1,27 @@
+[package]
+name = "rag-pipeline"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+config-loader = { path = "../config-loader" }
+surrealdb-service = { path = "../surrealdb-service" }
+qdrant-service = { path = "../qdrant-service" }
+tree-sitter-service = { path = "../tree-sitter-service" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+reqwest = { workspace = true }
+fastembed = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+select = { workspace = true }
+notify = { workspace = true }
+uuid = { version = "1.23", features = ["v4", "v5"] }
+chrono = { workspace = true }
+qdrant-client = { workspace = true }
+surrealdb-types = { workspace = true }
+surrealdb = { workspace = true }

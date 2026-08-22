@@ -1,0 +1,278 @@
+# Oxide-Tech Local Agent OS — Central Configuration
+# All model URLs, thresholds, and routing parameters live here.
+
+[gateway]
+# Milliseconds of round-trip latency before the router considers the online
+# coder "too slow" and falls back to the local coder.
+latency_threshold_ms = 2000
+# cargo-check quality score [0.0 – 1.0] below which the current coder backend
+# is marked "unsatisfying" and the other backend is tried instead.
+quality_threshold = 0.85
+# Maximum auto-healing retry attempts before returning FAILED.
+max_retries = 5
+host = "127.0.0.1"
+port = 8080
+udp_port = 8080
+
+# ---------------------------------------------------------------------------
+# THINKER MODEL
+# Uses Gemma 4 (27B instruction-tuned) via the Google AI Studio free-tier API.
+# The Gemini API exposes an OpenAI-compatible shim, so no extra code is needed.
+#
+# Free tier: 1,500 requests/day, 32k context window.
+# Set GEMINI_API_KEY in your environment (get one at aistudio.google.com).
+#
+# OFFLINE FALLBACK: if you want a fully local thinker with no API key, change
+# provider to "ollama" and model to "gemma3:27b" or "qwen2.5-coder:32b-instruct-q4_K_M".
+# ---------------------------------------------------------------------------
+[thinker]
+provider = "google"
+model = "gemma-4-27b-it"
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+# ---------------------------------------------------------------------------
+# ONLINE CODER — PRIMARY
+# Groq free tier: 30 RPM / 14,400 tokens-per-minute on llama-3.3-70b-versatile.
+# Set GROQ_API_KEY in your environment.
+# ---------------------------------------------------------------------------
+[coder.online.primary]
+provider = "groq"
+model = "llama-3.3-70b-versatile"
+base_url = "https://api.groq.com/openai/v1"
+
+# ---------------------------------------------------------------------------
+# OTHER COMPATIBLE FREE-TIER API PROVIDERS (Commented-out Examples)
+# You can use any of these as your thinker or online coders:
+#
+# -- CEREBRAS --
+# [coder.online.primary]
+# provider = "cerebras"
+# model = "llama3.1-70b"   # or llama3.1-8b
+# base_url = "https://api.cerebras.ai/v1"
+# env API key: CEREBRAS_API_KEY
+#
+# -- OPENROUTER --
+# [coder.online.primary]
+# provider = "openrouter"
+# model = "meta-llama/llama-3.3-70b-instruct:free"
+# base_url = "https://openrouter.ai/api/v1"
+# env API key: OPENROUTER_API_KEY
+#
+# -- DEEPSEEK --
+# [coder.online.primary]
+# provider = "deepseek"
+# model = "deepseek-coder"
+# base_url = "https://api.deepseek.com/v1"
+# env API key: DEEPSEEK_API_KEY
+#
+# -- GITHUB MODELS --
+# [coder.online.primary]
+# provider = "github-models"
+# model = "gpt-4o-mini"
+# base_url = "https://models.inference.ai.azure.com"
+# env API key: GITHUB_TOKEN or GITHUB_API_KEY
+#
+# -- SAMBANOVA --
+# [coder.online.primary]
+# provider = "sambanova"
+# model = "Meta-Llama-3.1-70B-Instruct"
+# base_url = "https://api.sambanova.ai/v1"
+# env API key: SAMBANOVA_API_KEY
+#
+# -- NVIDIA NIM --
+# [coder.online.primary]
+# provider = "nvidia-nim"
+# model = "meta/llama-3-70b-instruct"
+# base_url = "https://integrate.api.nvidia.com/v1"
+# env API key: NVIDIA_API_KEY
+#
+# -- CLOUDFLARE WORKERS AI --
+# [coder.online.primary]
+# provider = "cloudflare"
+# model = "@cf/meta/llama-3-8b-instruct"
+# base_url = "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/v1"
+# env API key: CLOUDFLARE_API_KEY or CLOUDFLARE_API_TOKEN
+#
+# -- COHERE --
+# [coder.online.primary]
+# provider = "cohere"
+# model = "command-r"
+# base_url = "https://api.cohere.com/v2"
+# env API key: COHERE_API_KEY
+#
+# -- POLLINATIONS AI -- (Free, no API key required)
+# [coder.online.primary]
+# provider = "pollinations-ai"
+# model = "openai"  # maps to GPT-4o-mini, etc.
+# base_url = "https://text.pollinations.ai/openai"
+#
+# -- ZHIPU (Z.AI) --
+# [coder.online.primary]
+# provider = "z.ai"
+# model = "glm-4-flash"
+# base_url = "https://open.bigmodel.cn/api/paas/v4"
+# env API key: ZHIPU_API_KEY
+#
+# -- AGNES AI --
+# [coder.online.primary]
+# provider = "agnes-ai"
+# model = "agnes-text"
+# base_url = "https://api.agnes.ai/v1"
+# env API key: AGNES_API_KEY
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# ONLINE CODER — SECONDARY FALLBACK
+# Mistral Le Chat free tier (codestral-latest).
+# Set MISTRAL_API_KEY in your environment.
+# ---------------------------------------------------------------------------
+[coder.online.secondary]
+provider = "mistral"
+model = "codestral-latest"
+base_url = "https://api.mistral.ai/v1"
+
+# ---------------------------------------------------------------------------
+# LOCAL CODER
+# Ollama-served local model. Used when offline or when online quality is poor.
+# ---------------------------------------------------------------------------
+[coder.local]
+provider = "ollama"
+model = "qwen2.5-coder:7b-instruct-q4_K_M"
+base_url = "http://localhost:11434"
+
+# ---------------------------------------------------------------------------
+# RAG PIPELINE
+# ---------------------------------------------------------------------------
+[rag]
+# Qdrant collection that stores embedded Rust crate docs + AST chunks.
+collection = "rust_rag"
+# Number of top-k chunks retrieved per query.
+top_k = 8
+# Automatically re-ingest updated crate docs on startup.
+auto_update_on_startup = true
+# Crates whose docs.rs pages are monitored for version bumps and re-indexed.
+watchlist = [
+    "embedded-hal",
+    "embassy-executor",
+    "embassy-time",
+    "embassy-stm32",
+    "embassy-nrf",
+    "rtic",
+    "cortex-m",
+    "cortex-m-rt",
+    "defmt",
+    "probe-rs",
+    "heapless",
+    "nb",
+    "stm32-hal2",
+    "nrf-hal-common",
+    "esp-hal",
+    "rp2040-hal",
+]
+
+# ---------------------------------------------------------------------------
+# MCP SERVER
+# ---------------------------------------------------------------------------
+[mcp]
+# Transport used by the MCP server binary (stdio | tcp).
+transport = "stdio"
+# Port used when transport = "tcp".
+tcp_port = 9090
+
+[mcp.cargo_gatekeeper]
+medical_device_mode = true
+forbid_unsafe_in_workspace = true
+whitelisted_unsafe_crates = ["cortex-m", "cortex-m-rt", "stm32f4xx-hal", "nix"]
+
+[mcp.probe_rs]
+default_chip = "STM32F411CE"
+hitl_socket_path = "/tmp/oxide-hitl.sock"
+hitl_timeout_secs = 120
+
+[mcp.qemu_redox]
+qemu_binary = "qemu-system-x86_64"
+default_memory_mb = 512
+images_dir = "target/qemu"
+serial_capture_timeout_secs = 30
+
+[mcp.live_docs]
+cache_ttl_minutes = 60
+max_concurrent_fetches = 4
+rate_limit_delay_ms = 1000
+
+# ---------------------------------------------------------------------------
+# AUTHENTICATION
+# ---------------------------------------------------------------------------
+[auth]
+jwt_secret = "eios_secret_key_change_me_in_production"
+jwt_expiration_hours = 24
+
+# ---------------------------------------------------------------------------
+# KNOWLEDGE BASE SCRAPER CONFIGURATION
+# ---------------------------------------------------------------------------
+[knowledge]
+update_interval_hours = 24
+max_pages_per_crate = 50
+request_delay_ms = 1000
+watchlist = [
+    "tokio", "tokio-macros", "tokio-util", "futures", "futures-core", "futures-util",
+    "futures-channel", "futures-io", "futures-sink", "async-trait", "async-std", "smol",
+    "pin-project", "pin-utils", "embassy-executor", "embassy-stm32", "embassy-time",
+    "embassy-sync", "embassy-nrf", "embassy-rp", "rtic", "cortex-m", "cortex-m-rt",
+    "stm32f1xx-hal", "stm32f4xx-hal", "stm32-hal2", "nrf-hal-common", "rp2040-hal",
+    "embedded-hal", "embedded-hal-async", "embedded-io", "embedded-io-async",
+    "embedded-storage", "embedded-dma", "defmt", "defmt-rtt", "panic-probe", "probe-rs",
+    "heapless", "nb", "bxcan", "usb-device", "stm32-usbd", "esp-hal", "esp-idf-hal",
+    "esp-idf-svc", "linux-embedded-hal", "rppal", "embedded-graphics",
+    "embedded-graphics-simulator", "gc9a01-rs", "smt160", "actix-web", "actix-http",
+    "actix-rt", "axum", "tonic", "tower", "hyper", "warp", "reqwest", "quinn", "h3",
+    "rumqttc", "rumqttd", "prost", "tungstenite", "mio-serial", "serialport", "rustls",
+    "boring", "boring-rustls-provider", "aws-lc-rs", "ring", "rcgen", "webpki-roots",
+    "rustls-pki-types", "sha2", "wasm-bindgen", "web-sys", "js-sys", "wasm-bindgen-futures",
+    "wasmer", "wasmparser", "wasm-encoder", "wit-bindgen", "wit-component", "uniffi",
+    "cbindgen", "serde", "serde_json", "serde_urlencoded", "postcard", "ciborium", "toml",
+    "nom", "regex", "url", "mime", "encoding_rs", "clap", "nix", "libc", "winapi",
+    "windows-sys", "redox_syscall", "log", "tracing", "tracing-subscriber", "tempfile",
+    "fs_extra", "surrealdb", "diesel", "sqlx", "sea-orm", "ndarray", "nalgebra", "glam",
+    "num-traits", "num-bigint", "fixed", "typenum", "rustfft", "rhai", "slint", "tauri",
+    "dioxus", "manganis", "iced", "egui", "leptos", "yew", "symphonia", "rodio", "cpal",
+    "ffmpeg-next", "midir", "alsa", "coremidi", "zstd", "brotli", "flate2", "lz4",
+    "miniz_oxide", "jni", "ndk", "cargo-ndk", "candle-core", "llama-cpp-rs", "ort"
+]
+github_repos = [
+    "https://github.com/cloudflare/quiche",
+    "https://github.com/stm32-rs",
+    "https://github.com/esp-rs",
+    "https://github.com/rp-rs",
+    "https://github.com/rtic-rs",
+    "https://github.com/redox-os",
+    "https://github.com/embedded-graphics/embedded-graphics",
+    "https://github.com/seanmonstar/reqwest",
+    "https://github.com/FaezBarghasa",
+    "https://github.com/FaezBarghasa/mqtt-async-embedded",
+    "https://github.com/FaezBarghasa/omid",
+    "https://github.com/FaezBarghasa/mm-dlp"
+]
+custom_urls = [
+    "https://docs.rs/rppal/latest/rppal/",
+    "https://www.redox-os.org/",
+    "https://crates.io/crates/ffmpeg-next",
+    "https://crates.io/crates/embedded-graphics-simulator"
+]
+
+[knowledge.news_sources]
+this_week_in_rust = "https://this-week-in-rust.org/atom.xml"
+rust_blog = "https://blog.rust-lang.org/feed.xml"
+embedded_rust_blog = "https://blog.rust-embedded.org/feed.xml"
+inside_rust = "https://blog.rust-lang.org/inside-rust/feed.xml"
+
+# ---------------------------------------------------------------------------
+# BLOG (RUST IRAN COMMUNITY) CONFIGURATION
+# ---------------------------------------------------------------------------
+[blog]
+site_name = "انجمن راست ایران"
+site_name_en = "Rust Iran Community"
+description = "اخبار و آموزش‌های راست به فارسی"
+posts_per_page = 10
+auto_publish = true
+base_path = "/blog"

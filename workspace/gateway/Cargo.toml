@@ -1,0 +1,36 @@
+[package]
+name = "gateway"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+memory = { path = "../memory" }
+knowledge = { path = "../knowledge" }
+thinker = { path = "../thinker" }
+router = { path = "../router" }
+verifier = { path = "../verifier" }
+skills = { path = "../skills" }
+mcp-clients = { path = "../mcp-clients" }
+blog = { path = "../blog" }
+scheduler = { path = "../scheduler" }
+
+actix-web = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
+jsonwebtoken = "10.4.0"
+sha2 = "0.10"
+futures-util = { workspace = true }
+tracing-subscriber = { workspace = true }
+quinn = { workspace = true }
+h3 = { workspace = true }
+h3-quinn = { workspace = true }
+rustls = { workspace = true }
+rustls-pemfile = "2.2.0"
+http = "1"
+bytes = "1"
+mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }

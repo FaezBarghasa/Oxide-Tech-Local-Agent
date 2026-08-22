@@ -1,0 +1,21 @@
+[package]
+name = "scheduler"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+knowledge = { path = "../knowledge" }
+blog = { path = "../blog" }
+thinker = { path = "../thinker" }
+memory = { path = "../memory" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+surrealdb = { workspace = true }
+surrealdb-types = { workspace = true }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+tokio-cron-scheduler = "0.13"

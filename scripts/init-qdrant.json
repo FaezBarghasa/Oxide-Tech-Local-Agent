@@ -1,0 +1,25 @@
+{
+  "collections": [
+    {
+      "name": "datasheets",
+      "vectors": {
+        "size": 768,
+        "distance": "Cosine"
+      }
+    },
+    {
+      "name": "code_snippets",
+      "vectors": {
+        "size": 768,
+        "distance": "Cosine"
+      }
+    },
+    {
+      "name": "component_library",
+      "vectors": {
+        "size": 768,
+        "distance": "Cosine"
+      }
+    }
+  ]
+}

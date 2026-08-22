@@ -1,0 +1,15 @@
+[package]
+name = "tree-sitter-service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
+serde = { workspace = true }
+surrealdb = { workspace = true }
+surrealdb-types = { workspace = true }
+bincode = "1.3.3"
+anyhow = { workspace = true }
+
+

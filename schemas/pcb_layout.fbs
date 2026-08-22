@@ -1,0 +1,27 @@
+namespace Oxide.FB;
+
+struct Vec3D {
+  x: float;
+  y: float;
+  z: float;
+}
+
+table Pin {
+  id: string;
+  NetName: string;
+  position: Vec3D;
+}
+
+table Component {
+  designator: string;
+  value: string;
+  footprint: string;
+  pins: [Pin];
+}
+
+table Layout {
+  project_name: string;
+  components: [Component];
+}
+
+root_type Layout;

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml">
+      <package file="$PROJECT_DIR$">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/api">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/blog">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/common">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/config-loader">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/gateway">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/gateway-router">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/knowledge">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/mcp-clients">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/mcp-server">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/memory">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/qdrant-service">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/rag-pipeline">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/router">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/sandbox">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/scheduler">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/skills">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/surrealdb-service">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/thinker">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/tree-sitter-service">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/workspace/verifier">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/vllm-client">
+        <feature name="default" enabled="true" />
+      </package>
+    </cargoProject>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dad71bbd-09f5-4737-a7a3-e37186a13b29" name="Changes" comment="init" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="185" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:dev" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;FaezBarghasa&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent.git&quot;,
+    &quot;accountId&quot;: &quot;3015c40c-bf8c-4961-bef1-7afbd3d7414d&quot;
+  }
+}</component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="YX1hlXGu" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3FRcAEZd0Anqtzmj7RXosH2TMaU" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;CidrDebugProfileConversion&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;stardust.markdown.MarkdownSplitEditorSuppressor:keyList&quot;: []
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package Oxide-Tech-Local-Agent --bin Oxide-Tech-Local-Agent" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <option name="emulateTerminal" value="true" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
+      <option name="backtrace" value="SHORT" />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dad71bbd-09f5-4737-a7a3-e37186a13b29" name="Changes" comment="" />
+      <created>1782041176968</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1782041176968</updated>
+      <workItem from="1782041178218" duration="3478000" />
+      <workItem from="1782048396842" duration="144000" />
+      <workItem from="1782716516559" duration="93000" />
+      <workItem from="1782723545679" duration="49000" />
+      <workItem from="1783886356266" duration="638000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="init" />
+    <option name="LAST_COMMIT_MESSAGE" value="init" />
+  </component>
+</project>

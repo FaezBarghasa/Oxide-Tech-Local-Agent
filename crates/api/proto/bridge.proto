@@ -1,0 +1,28 @@
+syntax = "proto3";
+package oxide.bridge;
+
+service BridgeService {
+  rpc AnalyzeNetlist (NetlistRequest) returns (NetlistResponse);
+  rpc RunThermalSimulation (ThermalRequest) returns (ThermalResponse);
+}
+
+message NetlistRequest {
+  string project_id = 1;
+  bytes flatbuffer_data = 2; // FlatBuffer payload passed directly
+}
+
+message NetlistResponse {
+  bool success = 1;
+  string report = 2;
+  repeated string warnings = 3;
+}
+
+message ThermalRequest {
+  string pcb_model_path = 1;
+  float power_dissipation_watts = 2;
+}
+
+message ThermalResponse {
+  repeated float heat_matrix = 1;
+  float peak_temp_celsius = 2;
+}

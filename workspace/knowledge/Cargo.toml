@@ -1,0 +1,21 @@
+[package]
+name = "knowledge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+memory = { path = "../memory" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+qdrant-client = { workspace = true }
+fastembed = { workspace = true }
+select = { workspace = true }
+reqwest = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"

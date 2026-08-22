@@ -1,0 +1,15 @@
+torch
+unsloth
+transformers
+blender
+fastapi
+uvicorn
+python-multipart
+kicad-api
+pydantic
+sentence-transformers
+qdrant-client
+surrealdb
+grpcio==1.62.0
+grpcio-tools==1.62.0
+protobuf==4.25.3

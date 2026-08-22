@@ -1,0 +1,95 @@
+[workspace]
+members = [
+    "workspace/gateway",
+    "workspace/thinker",
+    "workspace/memory",
+    "workspace/router",
+    "workspace/verifier",
+    "workspace/knowledge",
+    "workspace/skills",
+    "workspace/mcp-clients",
+    "workspace/common",
+    "workspace/mcp-server",
+    "workspace/blog",
+    "workspace/scheduler",
+    "crates/api",
+    "crates/config-loader",
+    "crates/gateway-router",
+    "crates/qdrant-service",
+    "crates/rag-pipeline",
+    "crates/sandbox",
+    "crates/surrealdb-service",
+    "crates/tree-sitter-service",
+    "crates/vllm-client",
+    "crates/mcp-cargo-gatekeeper",
+    "crates/mcp-probe-rs",
+    "crates/mcp-qemu-redox",
+    "crates/mcp-live-docs",
+]
+
+
+resolver = "2"
+
+[workspace.dependencies]
+rmcp = { version = "1.7.0", features = ["server", "transport-io"] }
+reqwest = { version = "0.13.4", features = ["json", "stream", "rustls-tls"] }
+tokio = { version = "1.52", features = ["full"] }
+tokio-stream = "0.1"
+anyhow = "1.0"
+actix-web = { version = "4.13", default-features = false, features = [
+    "macros",
+    "compress-gzip",
+    "compress-zstd",
+    "http2",
+    "cookies",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# reqwest dependency moved to workspace.dependencies
+syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
+quote = "1.0"
+fastembed = "5.16"
+notify = "8.0"
+uuid = { version = "1.23", features = ["v4", "v5"] }
+futures-util = "0.3"
+select = "0.6"
+surrealdb = { version = "3", features = [
+    "kv-surrealkv",
+    "kv-mem",
+    "protocol-ws",
+] }
+surrealdb-types = "3.1.5"
+regex = "1"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["json"] }
+qdrant-client = "1.13"
+chrono = { version = "0.4.39", features = ["serde"] }
+prometheus = "0.14.0"
+quinn = "0.11"
+h3 = "0.0.8"
+h3-quinn = "0.0.10"
+rustls = { version = "0.23", features = ["ring"] }
+toml = "1.1.2"
+thiserror = "2.0"
+nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
+
+ndarray = "0.15"
+
+
+[package]
+name = "Oxide-Tech-Local-Agent"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3            # Enable maximum performance optimizations
+lto = "fat"              # Perform full Link-Time Optimization across all workspace crates
+codegen-units = 1        # Restrict compilation to a single unit for deeper global optimization
+panic = "abort"          # Strip stack-unwinding code, reducing binary size and call-site overhead
+strip = "symbols"        # Strip all debug symbols and tables from the target binary
+incremental = false      # Disable incremental compilation in release to allow broader optimizations

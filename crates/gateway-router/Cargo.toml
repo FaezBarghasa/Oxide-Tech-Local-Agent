@@ -1,0 +1,14 @@
+[package]
+name = "gateway-router"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+config-loader = { path = "../config-loader" }
+vllm-client   = { path = "../vllm-client" }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
