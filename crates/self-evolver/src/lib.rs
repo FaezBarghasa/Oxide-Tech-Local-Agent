@@ -52,7 +52,7 @@ if __name__ == "__main__":
         let tools_dir = tmp.path().join("mojo_tools");
         tokio::fs::create_dir_all(&tools_dir).await.unwrap();
 
-        let tool_maker = ToolMaker::new(tools_dir.clone(), "http://localhost:8080");
+        let _tool_maker = ToolMaker::new(tools_dir.clone(), "http://localhost:8080");
 
         let mojo_spec = MojoToolSpecification {
             name: "fast_parser".to_string(),
@@ -80,6 +80,7 @@ if __name__ == "__main__":
 
         let db = Surreal::new::<Mem>(()).await.unwrap();
         db.use_ns("test").use_db("test").await.unwrap();
+        db.query("DEFINE TABLE IF NOT EXISTS agent_skill SCHEMALESS;").await.unwrap();
         let db_arc = Arc::new(db);
 
         let curator = SkillCurator::new(db_arc.clone(), "http://localhost:8080", skills_dir.clone());
@@ -90,7 +91,7 @@ if __name__ == "__main__":
 
         // Query performance from SurrealDB
         let mut resp = db_arc.query("SELECT * FROM agent_skill WHERE skill_name = $name;")
-            .bind(("name", "spi_clock_check"))
+            .bind(("name", "spi_clock_check".to_string()))
             .await
             .unwrap();
         let perf: Option<SkillPerformance> = resp.take(0).unwrap();
@@ -101,3 +102,4 @@ if __name__ == "__main__":
         assert!(p.error_logs[0].contains("Clock timeout"));
     }
 }
+

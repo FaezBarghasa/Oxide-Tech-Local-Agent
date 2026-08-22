@@ -2,11 +2,13 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use surrealdb::Connection;
 use surrealdb::Surreal;
-use std::path::{Path, PathBuf};
+use surrealdb_types::SurrealValue;
+use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::fs;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct SkillPerformance {
     pub skill_name: String,
     pub domain: String,
@@ -15,6 +17,7 @@ pub struct SkillPerformance {
     pub avg_tokens: Option<u32>,
     pub error_logs: Vec<String>,
 }
+
 
 pub struct SkillCurator<C: Connection> {
     pub db: Arc<Surreal<C>>,
@@ -46,9 +49,12 @@ impl<C: Connection> SkillCurator<C> {
         success: bool,
         error_log: Option<String>,
     ) -> Result<()> {
+        let _ = self.db.query("DEFINE TABLE IF NOT EXISTS agent_skill SCHEMALESS;").await;
+
         let sql = "SELECT * FROM agent_skill WHERE skill_name = $name;";
-        let mut response = self.db.query(sql).bind(("name", skill_name)).await?;
+        let mut response = self.db.query(sql).bind(("name", skill_name.to_string())).await?;
         let existing: Option<SkillPerformance> = response.take(0)?;
+
 
         let mut perf = existing.unwrap_or_else(|| SkillPerformance {
             skill_name: skill_name.to_string(),
@@ -70,7 +76,7 @@ impl<C: Connection> SkillCurator<C> {
 
         // Upsert into SurrealDB
         let upsert_sql = r#"
-            UPSERT type::thing('agent_skill', $name) CONTENT {
+            UPSERT type::record('agent_skill', $name) CONTENT {
                 skill_name: $name,
                 domain: $domain,
                 success_count: $succ,
@@ -79,14 +85,16 @@ impl<C: Connection> SkillCurator<C> {
                 error_logs: $logs
             };
         "#;
+
         self.db.query(upsert_sql)
-            .bind(("name", skill_name))
-            .bind(("domain", &perf.domain))
+            .bind(("name", skill_name.to_string()))
+            .bind(("domain", perf.domain.clone()))
             .bind(("succ", perf.success_count))
             .bind(("fail", perf.failure_count))
             .bind(("tokens", perf.avg_tokens))
-            .bind(("logs", &perf.error_logs))
+            .bind(("logs", perf.error_logs.clone()))
             .await?;
+
 
         Ok(())
     }
