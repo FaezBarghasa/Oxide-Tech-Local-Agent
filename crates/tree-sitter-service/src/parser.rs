@@ -314,3 +314,87 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
         }
     }
 }
+
+pub struct AstCompactor {
+    parser: Parser,
+}
+
+impl AstCompactor {
+    pub fn new() -> Self {
+        let mut parser = Parser::new();
+        parser.set_language(language()).expect("Error loading Rust grammar");
+        Self { parser }
+    }
+
+    pub fn extract_signatures(&mut self, code: &str) -> String {
+        if let Some(tree) = self.parser.parse(code, None) {
+            let root = tree.root_node();
+            let mut compacted = String::new();
+            let mut cursor = root.walk();
+            for child in root.children(&mut cursor) {
+                let kind = child.kind();
+                match kind {
+                    "struct_item" | "enum_item" | "trait_item" | "type_item" => {
+                        let text = code.get(child.start_byte()..child.end_byte()).unwrap_or("");
+                        compacted.push_str(text);
+                        compacted.push_str("\n\n");
+                    }
+                    "function_item" => {
+                        if let Some(body) = child.child_by_field_name("body") {
+                            let sig = code.get(child.start_byte()..body.start_byte()).unwrap_or("").trim();
+                            compacted.push_str(sig);
+                            compacted.push_str(" { /* ... */ }\n\n");
+                        } else {
+                            let text = code.get(child.start_byte()..child.end_byte()).unwrap_or("");
+                            compacted.push_str(text);
+                            compacted.push_str("\n\n");
+                        }
+                    }
+                    "impl_item" => {
+                        // Include impl header and inner function signatures
+                        let mut impl_str = String::new();
+                        if let Some(body) = child.child_by_field_name("body") {
+                            let header = code.get(child.start_byte()..body.start_byte()).unwrap_or("").trim();
+                            impl_str.push_str(header);
+                            impl_str.push_str(" {\n");
+                            let mut body_cursor = body.walk();
+                            for inner in body.children(&mut body_cursor) {
+                                if inner.kind() == "function_item" {
+                                    if let Some(inner_body) = inner.child_by_field_name("body") {
+                                        let sig = code.get(inner.start_byte()..inner_body.start_byte()).unwrap_or("").trim();
+                                        impl_str.push_str("    ");
+                                        impl_str.push_str(sig);
+                                        impl_str.push_str(" { /* ... */ }\n");
+                                    }
+                                }
+                            }
+                            impl_str.push_str("}\n\n");
+                            compacted.push_str(&impl_str);
+                        } else {
+                            let text = code.get(child.start_byte()..child.end_byte()).unwrap_or("");
+                            compacted.push_str(text);
+                            compacted.push_str("\n\n");
+                        }
+                    }
+                    "use_declaration" => {
+                        let text = code.get(child.start_byte()..child.end_byte()).unwrap_or("");
+                        compacted.push_str(text);
+                        compacted.push_str("\n");
+                    }
+                    _ => {}
+                }
+            }
+            if !compacted.trim().is_empty() {
+                return compacted;
+            }
+        }
+        code.to_string()
+    }
+}
+
+impl Default for AstCompactor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+

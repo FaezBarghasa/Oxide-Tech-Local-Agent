@@ -25,7 +25,10 @@ members = [
     "crates/mcp-probe-rs",
     "crates/mcp-qemu-redox",
     "crates/mcp-live-docs",
+    "crates/self-evolver",
+    "crates/optio",
 ]
+
 
 
 resolver = "2"

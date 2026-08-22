@@ -4437,6 +4437,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "optio"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "option-ext"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6340,6 +6352,22 @@ dependencies = [
  "bit-set",
  "html5ever 0.26.0",
  "markup5ever_rcdom",
+]
+
+[[package]]
+name = "self-evolver"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "reqwest 0.12.28",
+ "sandbox",
+ "serde",
+ "serde_json",
+ "surrealdb",
+ "tempfile",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

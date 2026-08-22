@@ -152,3 +152,29 @@ pub async fn execute_in_sandbox(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_mcp_security() {
+        // Test that execution inside non-existent or invalid working directories is rejected
+        let invalid_workdir = "/root/forbidden_directory_xyz_123";
+        let res = execute_in_sandbox(&["echo", "pwned"], invalid_workdir).await;
+        assert!(res.is_err(), "Sandbox must reject execution in nonexistent/forbidden directory");
+
+        // Test that empty commands are rejected
+        let empty_cmd: Vec<&str> = vec![];
+        let empty_res = execute_in_sandbox(&empty_cmd, ".").await;
+        assert!(empty_res.is_err(), "Sandbox must reject empty commands");
+
+        // Test normal safe execution in current directory
+        let safe_res = execute_in_sandbox(&["echo", "sandbox_secure"], ".").await;
+        assert!(safe_res.is_ok());
+        let out = safe_res.unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert!(out.stdout.contains("sandbox_secure"));
+    }
+}
+
