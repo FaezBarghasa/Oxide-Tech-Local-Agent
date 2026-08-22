@@ -1,4 +1,7 @@
 // QEMU Redox MCP server
+pub mod redox_verifier;
+pub use redox_verifier::{RedoxKvmVerifier, RedoxTestResult};
+
 
 use std::process::Stdio;
 use std::sync::Arc;

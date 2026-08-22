@@ -3867,6 +3867,7 @@ dependencies = [
 name = "mcp-qemu-redox"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "config-loader",
  "regex",
  "rmcp 1.7.0",
