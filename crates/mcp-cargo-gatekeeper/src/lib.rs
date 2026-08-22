@@ -1,11 +1,19 @@
 // CargoGatekeeper MCP server
 
-use std::path::{PathBuf, Path};
-use std::sync::Arc;
+use std::path::PathBuf;
 use serde::Deserialize;
 use schemars::JsonSchema;
-use tracing::{info, warn};
-use rmcp::{tool, tool_router, ServerHandler, Error as McpError, model::{CallToolResult, Content, CallToolRequestParam, ListToolsResult, PaginatedRequestParam, ServerInfo}, service::RequestContext, handler::server::tool::{ToolRouter, ToolCallContext}};
+use rmcp::{
+    ErrorData as McpError, RoleServer, ServerHandler,
+    handler::server::tool::{ToolCallContext, ToolRouter},
+    handler::server::wrapper::Parameters,
+    model::{
+        CallToolRequestParams, CallToolResult, Content, ListToolsResult, PaginatedRequestParams,
+        ServerInfo,
+    },
+    service::RequestContext,
+    tool, tool_router,
+};
 use sandbox::execute_in_sandbox;
 use tokio::fs;
 use regex::Regex;
@@ -32,16 +40,20 @@ pub struct UnsafeAuditInput {
 #[derive(Clone)]
 pub struct CargoGatekeeperServer {
     workspace_root: PathBuf,
+    tool_router: ToolRouter<Self>,
 }
 
 #[tool_router]
 impl CargoGatekeeperServer {
     pub fn new(workspace_root: PathBuf) -> Self {
-        Self { workspace_root }
+        Self {
+            workspace_root,
+            tool_router: Self::tool_router(),
+        }
     }
 
     #[tool(description = "Run cargo clippy with -D warnings inside the sandbox")]
-    async fn clippy_gate(&self, input: ClippyInput) -> Result<CallToolResult, McpError> {
+    async fn clippy_gate(&self, Parameters(input): Parameters<ClippyInput>) -> Result<CallToolResult, McpError> {
         let dir = input
             .workspace
             .as_ref()
@@ -62,14 +74,13 @@ impl CargoGatekeeperServer {
     }
 
     #[tool(description = "Run cargo geiger to report unsafe usage")]
-    async fn geiger_report(&self, input: GeigerInput) -> Result<CallToolResult, McpError> {
+    async fn geiger_report(&self, Parameters(input): Parameters<GeigerInput>) -> Result<CallToolResult, McpError> {
         let dir = input
             .workspace
             .as_ref()
             .map(|w| self.workspace_root.join(w))
             .unwrap_or_else(|| self.workspace_root.clone());
         let dir_str = dir.to_string_lossy().to_string();
-        // Ensure cargo-geiger is installed; let it fail naturally if missing
         match execute_in_sandbox(&["cargo", "geiger", "--output-format", "Ascii"], &dir_str).await {
             Ok(res) => {
                 let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
@@ -84,14 +95,13 @@ impl CargoGatekeeperServer {
     }
 
     #[tool(description = "Audit unsafe blocks for // SAFETY: justification. Fails in medical_device_mode.")]
-    async fn unsafe_audit(&self, input: UnsafeAuditInput) -> Result<CallToolResult, McpError> {
+    async fn unsafe_audit(&self, Parameters(input): Parameters<UnsafeAuditInput>) -> Result<CallToolResult, McpError> {
         let base_dir = input
             .workspace
             .as_ref()
             .map(|w| self.workspace_root.join(w))
             .unwrap_or_else(|| self.workspace_root.clone());
         let mut violations = Vec::new();
-        // Recursively walk .rs files
         let mut dirs = vec![base_dir.clone()];
         while let Some(dir) = dirs.pop() {
             let mut entries = match fs::read_dir(&dir).await {
@@ -110,9 +120,7 @@ impl CargoGatekeeperServer {
                         };
                         let re = Regex::new(r"(?m)^\s*unsafe\s+(fn\s|\{)").unwrap();
                         for mat in re.find_iter(&content) {
-                            // Determine line number
                             let line_num = content[..mat.start()].matches('\n').count() + 1;
-                            // Look back up to 3 lines for SAFETY comment
                             let start_slice = if mat.start() >= 200 { &content[mat.start() - 200..mat.start()] } else { &content[..mat.start()] };
                             let has_comment = start_slice.lines().rev().take(3).any(|l| l.trim_start().starts_with("// SAFETY:"));
                             if !has_comment || input.medical_device_mode {
@@ -134,12 +142,26 @@ impl CargoGatekeeperServer {
 
 impl ServerHandler for CargoGatekeeperServer {
     fn get_info(&self) -> ServerInfo {
-        ServerInfo { name: "Oxide-Tech-mcp-cargo-gatekeeper".to_string(), version: "0.1.0".to_string() }
+        ServerInfo::default()
     }
-    async fn list_tools(&self, _request: Option<PaginatedRequestParam>, _context: RequestContext<rmcp::RoleServer>) -> Result<ListToolsResult, McpError> {
-        Ok(ListToolsResult { tools: self.tool_router.list_all(), next_cursor: None })
+
+    async fn list_tools(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListToolsResult, McpError> {
+        Ok(ListToolsResult {
+            tools: self.tool_router.list_all(),
+            next_cursor: None,
+            meta: None,
+        })
     }
-    async fn call_tool(&self, request: CallToolRequestParam, context: RequestContext<rmcp::RoleServer>) -> Result<CallToolResult, McpError> {
+
+    async fn call_tool(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
         let call_ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(call_ctx).await
     }

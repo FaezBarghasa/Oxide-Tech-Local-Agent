@@ -4,15 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rmcp = { version = "1.7.0", features = ["server", "transport-io"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+rmcp = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 serde_yaml = "0.9"
 reqwest = { workspace = true }
 select = "0.6.1"
-regex = "1.10"
-tokio = { version = "1.28", features = ["full"] }
-tracing = "0.1"
-schemars = "1.2.1"
+regex = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+schemars = { version = "1.2.1", features = ["derive"] }
 config-loader = { path = "../config-loader" }
 sandbox = { path = "../sandbox" }
+anyhow = { workspace = true }
+

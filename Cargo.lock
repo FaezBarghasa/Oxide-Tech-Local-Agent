@@ -3803,6 +3803,7 @@ dependencies = [
 name = "mcp-cargo-gatekeeper"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "config-loader",
  "regex",
  "rmcp 1.7.0",
@@ -3835,6 +3836,7 @@ dependencies = [
 name = "mcp-live-docs"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "config-loader",
  "regex",
  "reqwest 0.12.28",
@@ -6189,7 +6191,9 @@ dependencies = [
 name = "sandbox"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "nix 0.29.0",
+ "tempfile",
  "tokio",
  "tracing",
 ]

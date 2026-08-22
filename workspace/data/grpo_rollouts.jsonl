@@ -1,2 +1,3 @@
-{"prompt": "Write STM32F4 SPI driver initialization over SWD", "completion": "pub fn init_spi1() -> Result<(), ()> { Ok(()) }", "domain": "embedded_rust"}
-{"prompt": "Calculate half-perimeter wire length for PCB netlist", "completion": "def calculate_hpwl(coords): return sum(max(c) - min(c) for c in coords)", "domain": "pcb_design"}
+{"prompt": "Write STM32F4 SPI driver initialization over SWD", "completion": "pub fn init_spi1() -> Result<(), ()> { Ok(()) }", "domain": "embedded_rust", "verifier_reward": 1.0}
+{"prompt": "Write Redox OS UART driver initialization with KVM bootloader", "completion": "pub fn init_uart() { println!(\"Redox OS UART Online\"); }", "domain": "os_kernel", "verifier_reward": 1.0}
+{"prompt": "Implement r-klipper stepper motor step loop in Rust", "completion": "pub fn step_loop() { loop { /* step motor */ } }", "domain": "firmware", "verifier_reward": 1.0}
