@@ -10,10 +10,12 @@ use tracing::{info, warn};
 /// The server creates a listener at the configured `socket_path`. When a gated
 /// operation is requested, `wait_for_confirmation` blocks until a client writes
 /// a line containing `CONFIRM` (case‑insensitive) or the timeout expires.
+#[derive(Clone)]
 pub struct HitlGate {
     socket_path: PathBuf,
     timeout_secs: u64,
 }
+
 
 impl HitlGate {
     pub fn new(socket_path: PathBuf, timeout_secs: u64) -> Self {

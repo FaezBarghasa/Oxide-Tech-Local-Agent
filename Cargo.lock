@@ -3855,6 +3855,7 @@ dependencies = [
 name = "mcp-probe-rs"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "config-loader",
  "rmcp 1.7.0",
  "sandbox",

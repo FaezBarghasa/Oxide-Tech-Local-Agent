@@ -1,7 +1,9 @@
 // Live Docs scraper implementation
 
 use std::time::{Duration, Instant};
+use std::sync::Arc;
 use tokio::sync::Mutex;
+
 use reqwest::Client;
 use select::document::Document;
 use select::predicate::{Class, Name, Attr, Predicate};
