@@ -14,4 +14,7 @@ reqwest = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 anyhow = { workspace = true }
+tokio = { workspace = true }
+surrealdb-service = { path = "../../crates/surrealdb-service" }
+
 

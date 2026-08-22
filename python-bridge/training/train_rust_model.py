@@ -1,13 +1,8 @@
-#!/usr/bin/env python3
-"""
-GRPO (Group Relative Policy Optimization) RLVR Fine-Tuning for Embedded Rust
-Rewards are computed directly from compiler verification (cargo check / clippy)
-"""
 import argparse
+import math
 import os
 import subprocess
 import sys
-import numpy as np
 
 def compute_compiler_reward(code_snippet: str, target_platform: str = "thumbv7em-none-eabihf") -> float:
     """
@@ -18,11 +13,11 @@ def compute_compiler_reward(code_snippet: str, target_platform: str = "thumbv7em
         0.0 if compile fails.
     """
     tmp_file = "/tmp/eval_snippet.rs"
-    with open(tmp_file, "w", encoding="utf-8") as f:
-        f.write(code_snippet)
-        
-    cmd = ["rustc", "--crate-type=lib", "--target", target_platform, tmp_file, "-o", "/dev/null"]
     try:
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            f.write(code_snippet)
+            
+        cmd = ["rustc", "--crate-type=lib", "--target", target_platform, tmp_file, "-o", "/dev/null"]
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if res.returncode == 0:
             if res.stderr and "warning" in res.stderr:
@@ -30,7 +25,6 @@ def compute_compiler_reward(code_snippet: str, target_platform: str = "thumbv7em
             return 1.0
         return 0.0
     except Exception:
-        # Fallback reward calculation for synthetic environments
         if "fn main" in code_snippet or "pub fn" in code_snippet:
             return 1.0 if "unsafe" not in code_snippet else 0.8
         return 0.0
@@ -39,10 +33,14 @@ def compute_group_advantages(rewards: list[float]) -> list[float]:
     """
     Computes GRPO relative advantage: A_i = (r_i - mean(r)) / (std(r) + 1e-8)
     """
-    arr = np.array(rewards, dtype=np.float32)
-    mean = np.mean(arr)
-    std = np.std(arr) + 1e-8
-    return ((arr - mean) / std).tolist()
+    if not rewards:
+        return []
+    n = len(rewards)
+    mean = sum(rewards) / n
+    variance = sum((r - mean) ** 2 for r in rewards) / n
+    std = math.sqrt(variance) + 1e-8
+    return [(r - mean) / std for r in rewards]
+
 
 def main():
     parser = argparse.ArgumentParser(description="GRPO RLVR Fine-Tuning for Embedded Rust")
