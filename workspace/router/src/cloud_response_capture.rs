@@ -46,11 +46,13 @@ impl CloudResponseCapture {
         };
 
         if let Some(ref client) = self.db {
+            let sample_val = serde_json::to_value(&sample)?;
             let _: Option<serde_json::Value> = client.db
                 .create(("cloud_training_sample", id.to_string()))
-                .content(sample)
+                .content(sample_val)
                 .await?;
             info!("Captured cloud training sample with ID: {}", id);
+
         } else {
             warn!("SurrealDB not initialized; skipping capture storage.");
         }
