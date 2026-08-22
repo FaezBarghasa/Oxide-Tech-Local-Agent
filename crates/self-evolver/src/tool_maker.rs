@@ -8,10 +8,12 @@ use tokio::fs;
 pub struct ToolSpecification {
     pub name: String,
     pub description: String,
-    pub language: String, // "python" | "typescript"
+    pub language: String, // "python" | "typescript" | "mojo"
     pub input_schema: serde_json::Value,
     pub source_code: String,
 }
+
+pub type JitToolSpec = ToolSpecification;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MojoToolSpecification {
@@ -27,6 +29,9 @@ pub struct TestResult {
     pub stdout: String,
     pub stderr: String,
 }
+
+pub type VerificationResult = TestResult;
+
 
 pub struct ToolMaker {
     pub tools_dir: PathBuf,
@@ -99,6 +104,20 @@ Output ONLY a JSON object with this exact structure:
         tracing::info!("Successfully synthesized and verified JIT MCP tool: {}", tool_spec.name);
         Ok(tool_spec)
     }
+
+    /// Alias for synthesize_and_verify_tool
+    pub async fn synthesize_and_register_tool(
+        &self,
+        task_gap: &str,
+        sample_inputs: serde_json::Value,
+    ) -> Result<JitToolSpec> {
+        self.synthesize_and_verify_tool(task_gap, sample_inputs).await
+    }
+
+    pub async fn verify_tool_in_sandbox(&self, script_path: &Path) -> Result<VerificationResult> {
+        self.test_generated_tool(script_path, &serde_json::json!({})).await
+    }
+
 
     /// Synthesize a native, ultra-fast Mojo v1 MCP Tool
     pub async fn synthesize_mojo_tool(

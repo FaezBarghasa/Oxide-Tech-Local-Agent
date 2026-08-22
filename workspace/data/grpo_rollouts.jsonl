@@ -1,0 +1,2 @@
+{"prompt": "Write STM32F4 SPI driver initialization over SWD", "completion": "pub fn init_spi1() -> Result<(), ()> { Ok(()) }", "domain": "embedded_rust"}
+{"prompt": "Calculate half-perimeter wire length for PCB netlist", "completion": "def calculate_hpwl(coords): return sum(max(c) - min(c) for c in coords)", "domain": "pcb_design"}

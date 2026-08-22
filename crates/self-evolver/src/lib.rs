@@ -1,8 +1,11 @@
 pub mod tool_maker;
 pub mod skill_curator;
+pub mod harness_evolver;
 
-pub use tool_maker::{ToolMaker, ToolSpecification, MojoToolSpecification, TestResult};
+pub use tool_maker::{ToolMaker, ToolSpecification, MojoToolSpecification, TestResult, JitToolSpec, VerificationResult};
 pub use skill_curator::{SkillCurator, SkillPerformance};
+pub use harness_evolver::{HarnessEvolver, HarnessRefinement};
+
 
 #[cfg(test)]
 mod tests {
@@ -101,5 +104,35 @@ if __name__ == "__main__":
         assert_eq!(p.error_logs.len(), 2);
         assert!(p.error_logs[0].contains("Clock timeout"));
     }
+
+    #[tokio::test]
+    async fn test_harness_refine() {
+        let tmp = tempdir().unwrap();
+        let prompt_notes = tmp.path().join("config").join("prompt_notes.md");
+
+        let evolver = HarnessEvolver::new(prompt_notes.clone(), "http://localhost:8080");
+
+        let refinement = HarnessRefinement {
+            rule_id: "RULE-001".to_string(),
+            domain: "embedded_rust".to_string(),
+            root_cause: "SPI Clock Prescaler mismatch causing transmission timeout".to_string(),
+            injection_rule: "NEVER configure SPI baud rate > 20MHz without checking APB1 clock divider.".to_string(),
+        };
+
+        evolver.append_refinement_to_disk(&refinement).await.unwrap();
+
+        assert!(prompt_notes.exists());
+        let content = tokio::fs::read_to_string(&prompt_notes).await.unwrap();
+        assert!(content.contains("<!-- REFINE_ID: RULE-001 -->"));
+        assert!(content.contains("NEVER configure SPI baud rate > 20MHz"));
+
+        // Test Revert-by-ID
+        let reverted = evolver.revert_refinement("RULE-001").await.unwrap();
+        assert!(reverted);
+        let reverted_content = tokio::fs::read_to_string(&prompt_notes).await.unwrap();
+        assert!(!reverted_content.contains("RULE-001"));
+        assert!(!reverted_content.contains("NEVER configure SPI baud rate > 20MHz"));
+    }
 }
+
 

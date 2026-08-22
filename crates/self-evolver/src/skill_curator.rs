@@ -102,7 +102,7 @@ impl<C: Connection> SkillCurator<C> {
     /// Evaluates a skill's historical performance in SurrealDB and mutates it if degraded (failures >= 2)
     pub async fn evaluate_and_refine_skill(&self, skill_name: &str) -> Result<bool> {
         let sql = "SELECT * FROM agent_skill WHERE skill_name = $name;";
-        let mut response = self.db.query(sql).bind(("name", skill_name)).await?;
+        let mut response = self.db.query(sql).bind(("name", skill_name.to_string())).await?;
         let performance: Option<SkillPerformance> = response.take(0)?;
 
         if let Some(perf) = performance {
@@ -121,6 +121,18 @@ impl<C: Connection> SkillCurator<C> {
 
         Ok(false)
     }
+
+    /// Alias for SkillOpt evaluation and mutation
+    pub async fn evaluate_and_mutate_skill(&self, skill_name: &str) -> Result<()> {
+        let _ = self.evaluate_and_refine_skill(skill_name).await?;
+        Ok(())
+    }
+
+    /// Alias for apply_skillopt_edit
+    pub async fn apply_skillopt_edit(&self, perf: &SkillPerformance) -> Result<String> {
+        self.mutate_skill_body(perf).await
+    }
+
 
     pub async fn mutate_skill_body(&self, perf: &SkillPerformance) -> Result<String> {
         let skill_file_name = if perf.skill_name.ends_with(".md") {
