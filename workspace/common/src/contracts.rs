@@ -1,6 +1,22 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::UniffiCustomTypeConverter;
+
+uniffi::custom_type!(Uuid, String);
+
+impl UniffiCustomTypeConverter for Uuid {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Uuid::parse_str(&val).map_err(|e| anyhow::anyhow!(e).into())
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
 
 #[derive(Debug, Serialize, Deserialize, Clone, uniffi::Enum)]
 pub enum TaskType {
@@ -70,3 +86,5 @@ pub struct InferenceRequest {
     pub tenant: String,
     pub local_failures: u32,
 }
+
+

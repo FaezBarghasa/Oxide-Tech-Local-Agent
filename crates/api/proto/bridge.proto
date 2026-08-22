@@ -1,14 +1,67 @@
 syntax = "proto3";
-package oxide.bridge;
+package bridge;
+
+service KiCadService {
+  rpc CreateSchematic (SchematicRequest) returns (SchematicResponse);
+  rpc RunDRC (DRCRequest) returns (DRCResponse);
+}
+
+service CADService {
+  rpc ConvertStepToGltf (StepConvertRequest) returns (StepConvertResponse);
+}
 
 service BridgeService {
   rpc AnalyzeNetlist (NetlistRequest) returns (NetlistResponse);
   rpc RunThermalSimulation (ThermalRequest) returns (ThermalResponse);
 }
 
+message ComponentSpec {
+  string symbol = 1;
+  string ref = 2;
+  string value = 3;
+}
+
+message NetSpec {
+  string from_pin = 1;
+  string to_pin = 2;
+  string net_name = 3;
+}
+
+message SchematicRequest {
+  string project_name = 1;
+  string output_dir = 2;
+  repeated ComponentSpec components = 3;
+  repeated NetSpec nets = 4;
+}
+
+message SchematicResponse {
+  bool success = 1;
+  string output_path = 2;
+  string error_message = 3;
+}
+
+message DRCRequest {
+  string pcb_path = 1;
+}
+
+message DRCResponse {
+  bool passed = 1;
+  repeated string violations = 2;
+}
+
+message StepConvertRequest {
+  string step_path = 1;
+  string gltf_path = 2;
+}
+
+message StepConvertResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
 message NetlistRequest {
   string project_id = 1;
-  bytes flatbuffer_data = 2; // FlatBuffer payload passed directly
+  bytes flatbuffer_data = 2;
 }
 
 message NetlistResponse {

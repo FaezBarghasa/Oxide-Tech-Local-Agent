@@ -53,7 +53,7 @@ pub struct CompilationRecord {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CloudTrainingSampleRecord {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<RecordId>,

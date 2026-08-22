@@ -29,7 +29,19 @@
       <package file="$PROJECT_DIR$/workspace/knowledge">
         <feature name="default" enabled="true" />
       </package>
+      <package file="$PROJECT_DIR$/crates/mcp-cargo-gatekeeper">
+        <feature name="default" enabled="true" />
+      </package>
       <package file="$PROJECT_DIR$/workspace/mcp-clients">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/mcp-live-docs">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/mcp-probe-rs">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/mcp-qemu-redox">
         <feature name="default" enabled="true" />
       </package>
       <package file="$PROJECT_DIR$/workspace/mcp-server">
@@ -74,7 +86,13 @@
     </cargoProject>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dad71bbd-09f5-4737-a7a3-e37186a13b29" name="Changes" comment="init" />
+    <list default="true" id="dad71bbd-09f5-4737-a7a3-e37186a13b29" name="Changes" comment="init">
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crates/mcp-live-docs/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/crates/mcp-live-docs/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/workspace/common/src/contracts.rs" beforeDir="false" afterPath="$PROJECT_DIR$/workspace/common/src/contracts.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/workspace/common/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/workspace/common/src/lib.rs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

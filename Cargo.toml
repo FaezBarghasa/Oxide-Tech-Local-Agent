@@ -32,7 +32,7 @@ resolver = "2"
 
 [workspace.dependencies]
 rmcp = { version = "1.7.0", features = ["server", "transport-io"] }
-reqwest = { version = "0.13.4", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
 tokio = { version = "1.52", features = ["full"] }
 tokio-stream = "0.1"
 anyhow = "1.0"
@@ -50,7 +50,7 @@ serde_yaml = "0.9"
 # reqwest dependency moved to workspace.dependencies
 syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
 quote = "1.0"
-fastembed = "5.16"
+fastembed = "6.0.0"
 notify = "8.0"
 uuid = { version = "1.23", features = ["v4", "v5"] }
 futures-util = "0.3"
@@ -76,7 +76,7 @@ toml = "1.1.2"
 thiserror = "2.0"
 nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
 
-ndarray = "0.15"
+ndarray = "0.17.2"
 
 
 [package]
