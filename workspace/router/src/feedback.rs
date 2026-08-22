@@ -1,6 +1,6 @@
-use common::contracts::{CloudResponse, CloudTrainingSample, ContextSnapshot, ValidationResult};
+use common::contracts::{CloudResponse, ContextSnapshot, ValidationResult};
 use surrealdb_service::schema::CloudTrainingSampleRecord;
-use tracing::{info, error};
+use tracing::info;
 
 pub struct CloudResponseCapture;
 
@@ -13,7 +13,7 @@ impl CloudResponseCapture {
     ) -> Result<(), anyhow::Error> {
         let outcome = validation.cargo_check && validation.clippy;
         
-        let sample = CloudTrainingSampleRecord {
+        let _sample = CloudTrainingSampleRecord {
             id: None,
             prompt,
             context,

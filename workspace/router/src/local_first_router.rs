@@ -1,8 +1,8 @@
-use common::contracts::{InferenceRequest, CloudResponse, TaskType};
+use common::contracts::{InferenceRequest, TaskType};
 use reqwest::Client;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 pub struct SGLangClient {
     pub api_url: String,

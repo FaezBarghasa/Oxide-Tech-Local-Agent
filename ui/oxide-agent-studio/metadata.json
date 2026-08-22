@@ -1,0 +1,6 @@
+{
+  "name": "oxide-agent-studio",
+  "description": "Unsloth-powered Distributed Agent Studio for FaezBarghasa-Oxide-Tech-Local-Agent featuring FastLanguageModel GRPO RL training, QDoRA, gRPC CAD Bridge, Tree-Sitter RAG compactor, MCP Tools, SGLang TP=2 runtime, and LoRA Model Soup blender.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

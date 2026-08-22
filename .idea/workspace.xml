@@ -93,8 +93,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dad71bbd-09f5-4737-a7a3-e37186a13b29" name="Changes" comment="init">
-      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crates/sandbox/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/crates/sandbox/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
