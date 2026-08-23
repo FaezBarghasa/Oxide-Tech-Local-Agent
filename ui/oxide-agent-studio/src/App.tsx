@@ -16,6 +16,7 @@ import { SglangTab } from './components/SglangTab';
 import { EndpointsTab } from './components/EndpointsTab';
 import { VerificationTab } from './components/VerificationTab';
 import { KnowledgeGraphTab } from './components/KnowledgeGraphTab';
+import { GraphTopologyTab } from './components/GraphTopologyTab';
 import { HardwareClusterStatus } from './components/HardwareClusterStatus';
 
 export default function App() {
@@ -58,7 +59,7 @@ export default function App() {
         <main className="flex-1 p-4 md:p-6 max-w-[1720px] w-full mx-auto">
           {currentTab === 'chat' && <ChatTab />}
           {currentTab === 'overview' && <OverviewTab onNavigateTab={setCurrentTab} />}
-          {currentTab === 'graph' && <KnowledgeGraphTab />}
+          {currentTab === 'graph' && <GraphTopologyTab />}
           {currentTab === 'infra' && <InfraTab />}
           {currentTab === 'grpc' && <GrpcBridgeTab />}
           {currentTab === 'rag' && <RagPipelineTab />}

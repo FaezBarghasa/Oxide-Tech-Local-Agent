@@ -46,11 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
     },
     {
       id: 'graph' as TabId,
-      label: 'Knowledge Graph',
-      desc: 'All projects & hardware map',
+      label: 'Graph Engineering',
+      desc: 'AST, Call & Topology Map',
       icon: Network,
       active: currentTab === 'graph',
-      badge: '8 Projects',
+      badge: 'SurrealDB v3',
       badgeColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
     },
     {
