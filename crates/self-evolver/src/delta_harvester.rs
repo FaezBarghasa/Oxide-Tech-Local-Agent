@@ -1,10 +1,11 @@
 use similar::{ChangeTag, TextDiff};
 use serde::{Serialize, Deserialize};
+use surrealdb_types::SurrealValue;
 use surrealdb::Surreal;
 use surrealdb::engine::local::Db;
 use anyhow::Result;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct VerificationDelta {
     pub prompt: String,
     pub original_failed_code: String,

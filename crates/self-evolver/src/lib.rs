@@ -186,6 +186,22 @@ if __name__ == "__main__":
         assert_eq!(composite.step_sequence.len(), 6);
         assert!(composite.tags.contains(&"composite".to_string()));
     }
+
+    #[tokio::test]
+    async fn test_delta_harvester() {
+        let db = Surreal::new::<Mem>(()).await.unwrap();
+        db.use_ns("test").use_db("test").await.unwrap();
+        db.query("DEFINE TABLE IF NOT EXISTS grpo_training_pool SCHEMALESS;").await.unwrap();
+
+        let harvester = DeltaHarvester::new(db);
+        let prompt = "Implement safe UART buffer";
+        let failed_code = "fn send(buf: &[u8]) { let ptr = buf.as_ptr(); }";
+        let fixed_code = "fn send(buf: &[u8]) -> Result<(), Error> { if buf.is_empty() { return Ok(()); } Ok(()) }";
+        let compiler_err = "error[E0308]: mismatched types";
+
+        let res = harvester.record_verified_solution(prompt, failed_code, fixed_code, compiler_err).await;
+        assert!(res.is_ok());
+    }
 }
 
 

@@ -73,7 +73,7 @@ pub struct AstGraphExtractor {
 impl AstGraphExtractor {
     pub fn new() -> Self {
         let mut rust_parser = Parser::new();
-        rust_parser.set_language(&tree_sitter_rust::LANGUAGE.into()).expect("Failed loading Rust grammar");
+        rust_parser.set_language(tree_sitter_rust::language()).expect("Failed loading Rust grammar");
         Self { rust_parser }
     }
 
@@ -113,8 +113,10 @@ impl AstGraphExtractor {
                     .map(|s| s.to_string())
                     .unwrap_or_else(|| "anonymous".to_string());
                 
-                let is_async = node.children(&mut node.walk()).any(|n| n.kind() == "async");
-                let is_unsafe = node.children(&mut node.walk()).any(|n| n.kind() == "unsafe");
+                let fn_source = &source[node.start_byte()..node.end_byte()];
+                let prefix = fn_source.split("fn ").next().unwrap_or("");
+                let is_async = prefix.contains("async");
+                let is_unsafe = prefix.contains("unsafe");
                 let func_id = format!("fn:{}:{}", file_path, name);
 
                 nodes.push(CodeGraphNode {
