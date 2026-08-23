@@ -3898,6 +3898,7 @@ dependencies = [
  "rmcp 1.7.0",
  "router",
  "schemars 1.2.1",
+ "select",
  "serde",
  "serde_json",
  "tokio",

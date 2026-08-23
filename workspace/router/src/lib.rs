@@ -5,6 +5,11 @@ pub mod hub_routing;
 pub mod local_first_router;
 pub mod feedback;
 pub mod cloud_response_capture;
+pub mod agent_modes;
+pub mod supervisor;
+
+pub use agent_modes::{AgentMode, ToolPermissions};
+pub use supervisor::{SupervisorAgent, TaskDag, TaskNode, TaskStatus, SubAgentRole};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

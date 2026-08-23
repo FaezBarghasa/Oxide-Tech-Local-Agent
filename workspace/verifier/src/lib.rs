@@ -128,7 +128,12 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
 }
 
 pub mod qemu_firmware;
+pub mod git_engine;
+pub mod remote_ssh;
+
 pub use qemu_firmware::FirmwareEmulationVerifier;
+pub use git_engine::{GitEngine, GitStatusResult, GitCommitInfo};
+pub use remote_ssh::{RemoteSshManager, SshConfig};
 
 
 #[cfg(test)]

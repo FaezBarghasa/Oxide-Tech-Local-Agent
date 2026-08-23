@@ -26,6 +26,7 @@ pub mod knowledge_mcp;
 pub mod pcb;
 pub mod verification;
 pub mod web;
+pub mod browser_agent;
 
 // ── Tool Input Structs ────────────────────────────────────────────────────────
 

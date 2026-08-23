@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import os
+import signal
 import sys
 from concurrent import futures
 import grpc
@@ -59,7 +60,30 @@ async def serve(port: int = 50051, uds_path: str = "/tmp/oxide_bridge.sock"):
         except OSError:
             pass
 
-    await server.wait_for_termination()
+    async def shutdown():
+        print("\nShutting down gRPC bridge server...")
+        await server.stop(grace=1.0)
+        if uds_path and os.path.exists(uds_path):
+            try:
+                os.remove(uds_path)
+            except OSError:
+                pass
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown()))
+        except (NotImplementedError, RuntimeError):
+            pass
+
+    try:
+        await server.wait_for_termination()
+    finally:
+        if uds_path and os.path.exists(uds_path):
+            try:
+                os.remove(uds_path)
+            except OSError:
+                pass
 
 def main():
     parser = argparse.ArgumentParser(description="Oxide CAD & gRPC Bridge Server")
@@ -67,7 +91,10 @@ def main():
     parser.add_argument("--uds", type=str, default="/tmp/oxide_bridge.sock", help="Unix Domain Socket path")
     args = parser.parse_args()
 
-    asyncio.run(serve(port=args.port, uds_path=args.uds))
+    try:
+        asyncio.run(serve(port=args.port, uds_path=args.uds))
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        pass
 
 if __name__ == "__main__":
     main()

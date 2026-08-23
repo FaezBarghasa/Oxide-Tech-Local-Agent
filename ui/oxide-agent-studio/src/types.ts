@@ -47,13 +47,25 @@ export interface GraphLink {
   strength?: number;
 }
 
-export type ChatMode = 'chat' | 'code' | 'research' | 'scrape' | 'agent';
+export type ChatMode = 'chat' | 'code' | 'architect' | 'ask' | 'autonomous' | 'research';
+
+export interface SwarmTaskNode {
+  id: string;
+  title: string;
+  role: 'Architect' | 'Coder' | 'Debugger' | 'DevOps' | 'Reviewer';
+  description: string;
+  dependencies: string[];
+  status: 'Pending' | 'Running' | 'Passed' | 'Failed' | 'Skipped';
+  result?: string;
+  retryCount: number;
+}
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'tool' | 'system';
   content: string;
   timestamp: string;
+  mode?: ChatMode;
   toolName?: string;
   toolStatus?: 'success' | 'running' | 'failed';
   toolDuration?: string;
