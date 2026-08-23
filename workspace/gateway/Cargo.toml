@@ -16,6 +16,7 @@ blog = { path = "../blog" }
 scheduler = { path = "../scheduler" }
 
 actix-web = { workspace = true }
+actix-ws = "0.4.0"
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }

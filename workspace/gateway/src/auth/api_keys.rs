@@ -3,10 +3,12 @@ use std::sync::Arc;
 use memory::SurrealClient;
 use tracing::{info, warn};
 
+#[allow(dead_code)]
 pub struct ApiKeyManager {
     pub db: Option<Arc<SurrealClient>>,
 }
 
+#[allow(dead_code)]
 impl ApiKeyManager {
     pub fn new(db: Option<Arc<SurrealClient>>) -> Self {
         Self { db }

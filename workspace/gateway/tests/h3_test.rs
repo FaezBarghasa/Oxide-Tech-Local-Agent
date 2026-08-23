@@ -48,6 +48,16 @@ impl ServerCertVerifier for DummyVerifier {
 
 #[tokio::test]
 async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
+    // 0. Ensure certs exist for testing
+    gateway::ensure_certs();
+
+    // 1. Start in-process H3 server on ephemeral UDP port
+    let cfg = Arc::new(common::config::AppConfig::load_default().unwrap());
+    let bind_addr: SocketAddr = "127.0.0.1:0".parse()?;
+    let (server_addr, _handle) =
+        gateway::h3_gateway::start_h3_gateway_on_addr(bind_addr, cfg, None, None).await?;
+
+    // 2. Configure TLS client with custom verifier
     let provider = rustls::crypto::ring::default_provider();
     let mut rustls_config = rustls::ClientConfig::builder_with_provider(Arc::new(provider))
         .with_safe_default_protocol_versions()?
@@ -61,15 +71,14 @@ async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
         quinn::crypto::rustls::QuicClientConfig::try_from(rustls_config)?,
     ));
 
-    // 2. Setup client endpoint
+    // 3. Setup client endpoint
     let mut endpoint = Endpoint::client("127.0.0.1:0".parse()?)?;
     endpoint.set_default_client_config(client_config);
 
-    // 3. Connect to the HTTP/3 gateway on 127.0.0.1:8080
-    let server_addr: SocketAddr = "127.0.0.1:8080".parse()?;
+    // 4. Connect to the ephemeral HTTP/3 gateway
     let conn = endpoint.connect(server_addr, "localhost")?.await?;
 
-    // 4. Establish H3 connection
+    // 5. Establish H3 connection
     let h3_conn = h3_quinn::Connection::new(conn);
     let (mut driver, mut send_request) = h3::client::new(h3_conn).await?;
 
@@ -78,16 +87,16 @@ async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
         let _ = futures_util::future::poll_fn(|cx| driver.poll_close(cx)).await;
     });
 
-    // 5. Send GET request to /health/live
+    // 6. Send GET request to /health/live
     let req = Request::builder()
         .method(Method::GET)
-        .uri("https://localhost:8080/health/live")
+        .uri(format!("https://localhost:{}/health/live", server_addr.port()))
         .body(())?;
 
     let mut stream = send_request.send_request(req).await?;
     stream.finish().await?;
 
-    // 6. Receive response headers and body
+    // 7. Receive response headers and body
     let resp = stream.recv_response().await?;
     assert_eq!(resp.status(), http::StatusCode::OK);
 
@@ -106,3 +115,4 @@ async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
 
     Ok(())
 }
+

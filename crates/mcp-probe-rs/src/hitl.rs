@@ -1,5 +1,5 @@
 use tokio::net::UnixListener;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::time::timeout;

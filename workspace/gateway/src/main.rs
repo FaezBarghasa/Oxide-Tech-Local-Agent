@@ -7,43 +7,10 @@ use common::config::AppConfig;
 use knowledge::KnowledgeClient;
 use memory::SurrealClient;
 
-mod auth;
-mod h3_gateway;
-mod routes;
+use gateway::{ensure_certs, h3_gateway, routes, websocket};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
-fn ensure_certs() {
-    use std::path::Path;
-    if !Path::new("cert.pem").exists() || !Path::new("key.pem").exists() {
-        info!("TLS certificates not found. Generating self-signed certificates using openssl...");
-        let status = std::process::Command::new("openssl")
-            .args([
-                "req",
-                "-x509",
-                "-newkey",
-                "rsa:2048",
-                "-keyout",
-                "key.pem",
-                "-out",
-                "cert.pem",
-                "-sha256",
-                "-days",
-                "365",
-                "-nodes",
-                "-subj",
-                "/CN=localhost",
-            ])
-            .status();
-        match status {
-            Ok(s) if s.success() => info!("Self-signed TLS certificates generated successfully."),
-            _ => warn!(
-                "Failed to generate self-signed TLS certificates. QUIC/HTTP3 gateway might fail to start."
-            ),
-        }
-    }
-}
 
 fn main() -> std::io::Result<()> {
     tokio::runtime::Builder::new_multi_thread()
@@ -121,25 +88,43 @@ fn main() -> std::io::Result<()> {
                 info!("Background scheduler spawned.");
             }
 
-            let cfg_data = web::Data::new(cfg.clone());
-            let surreal_data = web::Data::new(surreal_client);
-            let knowledge_data = web::Data::new(knowledge_client);
+            let cfg_clone = cfg.clone();
+            let memory_clone = surreal_client.clone();
+            let knowledge_clone = knowledge_client.clone();
+            let ws_broadcaster = Arc::new(websocket::WsBroadcaster::new());
 
             HttpServer::new(move || {
                 App::new()
                     .wrap(Logger::default())
-                    .app_data(cfg_data.clone())
-                    .app_data(surreal_data.clone())
-                    .app_data(knowledge_data.clone())
+                    .app_data(web::Data::new(cfg_clone.clone()))
+                    .app_data(web::Data::new(memory_clone.clone()))
+                    .app_data(web::Data::new(knowledge_clone.clone()))
+                    .app_data(web::Data::new(ws_broadcaster.clone()))
                     // Auth routes
                     .route("/api/auth/login", web::post().to(routes::login))
-                    // Agent routes
-                    .route("/api/agent/think", web::post().to(routes::think))
-                    .route("/api/agent/execute", web::post().to(routes::execute))
-                    .route("/api/status", web::get().to(routes::status))
-                    // RAG routes
-                    .route("/api/rag/query", web::post().to(routes::query_rag))
-                    .route("/api/rag/index", web::post().to(routes::index_rag))
+                    // Protected Status route
+                    .route("/api/status", web::get().to(routes::get_status))
+                    // Core Agent routes
+                    .route("/api/agent/think", web::post().to(routes::agent_think))
+                    .route(
+                        "/api/agent/execute",
+                        web::post().to(routes::agent_execute),
+                    )
+                    // RAG Query and Indexing routes
+                    .route("/api/rag/query", web::post().to(routes::rag_query))
+                    .route("/api/rag/index", web::post().to(routes::rag_index))
+                    // Cargo Toolchain routes
+                    .route("/api/cargo/check", web::post().to(routes::handle_cargo_check))
+                    .route("/api/cargo/clippy", web::post().to(routes::handle_cargo_clippy))
+                    // KiCad CAD routes
+                    .route("/api/kicad/load-board", web::post().to(routes::handle_kicad_load_board))
+                    .route("/api/kicad/run-drc", web::post().to(routes::handle_kicad_run_drc))
+                    // SKiDL PCB generation routes
+                    .route("/api/skidl/generate", web::post().to(routes::handle_skidl_generate))
+                    // Thermal simulation routes
+                    .route("/api/thermal/simulate", web::post().to(routes::handle_thermal_simulate))
+                    // Repository Structure routes
+                    .route("/api/repository/structure", web::get().to(routes::handle_repository_structure))
                     // Manual Knowledge Update route
                     .route(
                         "/api/knowledge/update",
@@ -155,6 +140,9 @@ fn main() -> std::io::Result<()> {
                     // Health routes
                     .route("/health/live", web::get().to(routes::health_live))
                     .route("/health/ready", web::get().to(routes::health_ready))
+                    // WebSocket Streaming routes
+                    .service(websocket::handle_ws_compilation)
+                    .service(websocket::handle_ws_agent_progress)
             })
             .bind((cfg.gateway.host.as_str(), cfg.gateway.port))?
             .run()

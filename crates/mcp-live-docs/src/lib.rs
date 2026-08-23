@@ -29,6 +29,7 @@ pub struct CrateLookupInput {
 
 #[derive(Clone)]
 pub struct LiveDocsServer {
+    #[allow(dead_code)]
     workspace_root: PathBuf,
     cache: Arc<Mutex<std::collections::HashMap<(String, String), ApiSurface>>>,
     scraper: DocsRsScraper,
@@ -58,7 +59,7 @@ impl LiveDocsServer {
                 }
             }
         };
-        let mut cache_lock = self.cache.lock().await;
+        let cache_lock = self.cache.lock().await;
         if let Some(api) = cache_lock.get(&(input.crate_name.clone(), version.clone())) {
             return Ok(CallToolResult::success(vec![Content::text(api.markdown.clone())]));
         }

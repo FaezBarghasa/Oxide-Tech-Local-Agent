@@ -125,7 +125,7 @@ impl GpuResourceManager {
     }
 
     pub async fn start_cron_scheduler(self: Arc<Self>) -> Result<(), anyhow::Error> {
-        let mut sched = JobScheduler::new().await?;
+        let sched = JobScheduler::new().await?;
         
         let self_clone1 = self.clone();
         // At midnight: Switch to Training

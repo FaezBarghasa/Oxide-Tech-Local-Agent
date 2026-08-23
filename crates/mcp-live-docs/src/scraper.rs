@@ -6,9 +6,8 @@ use tokio::sync::Mutex;
 
 use reqwest::Client;
 use select::document::Document;
-use select::predicate::{Class, Name, Attr, Predicate};
+use select::predicate::Class;
 use serde::Deserialize;
-use tracing::{info, warn};
 use anyhow::Result;
 
 #[derive(Clone, Debug)]

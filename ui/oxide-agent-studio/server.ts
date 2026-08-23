@@ -27,14 +27,130 @@ function getGenAI(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Health endpoint
-app.get('/api/health', (req, res) => {
+const RUST_GATEWAY_URL = process.env.RUST_GATEWAY_URL || 'http://127.0.0.1:8080';
+
+// Health endpoint with live Rust Gateway probe
+app.get('/api/health', async (req, res) => {
+  let rustGatewayOnline = false;
+  let rustGatewayLatency = 0;
+  try {
+    const t0 = Date.now();
+    const probe = await fetch(`${RUST_GATEWAY_URL}/health/live`, { signal: AbortSignal.timeout(1500) });
+    rustGatewayLatency = Date.now() - t0;
+    rustGatewayOnline = probe.ok;
+  } catch {
+    rustGatewayOnline = false;
+  }
+
   res.json({
     status: 'ok',
     app: 'oxide-agent-studio',
     runtime: 'Dual RTX 3090 · SGLang TP=2 · Rust + Mojo Control Plane',
     geminiEnabled: Boolean(process.env.GEMINI_API_KEY),
+    rustGateway: {
+      url: RUST_GATEWAY_URL,
+      online: rustGatewayOnline,
+      latencyMs: rustGatewayLatency,
+    },
   });
+});
+
+// Proxy to Rust Gateway status
+app.get('/api/backend/status', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/api/status`, {
+      headers: req.headers.authorization ? { authorization: req.headers.authorization } : {},
+      signal: AbortSignal.timeout(3000),
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway unreachable', details: err.message });
+  }
+});
+
+// Proxy to Rust Gateway Thinker
+app.post('/api/backend/think', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/api/agent/think`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}),
+      },
+      body: JSON.stringify(req.body),
+      signal: AbortSignal.timeout(60000),
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway think error', details: err.message });
+  }
+});
+
+// Proxy to Rust Gateway Execution Sandbox
+app.post('/api/backend/execute', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/api/agent/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}),
+      },
+      body: JSON.stringify(req.body),
+      signal: AbortSignal.timeout(35000),
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway execute error', details: err.message });
+  }
+});
+
+// Proxy to Rust Gateway RAG Query
+app.post('/api/backend/rag/query', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/api/rag/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}),
+      },
+      body: JSON.stringify(req.body),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway RAG error', details: err.message });
+  }
+});
+
+// Proxy to Rust Gateway Auth Login
+app.post('/api/backend/auth/login', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+      signal: AbortSignal.timeout(5000),
+    });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway login error', details: err.message });
+  }
+});
+
+// Proxy to Rust Gateway Blog Posts
+app.get('/api/backend/blog/posts', async (req, res) => {
+  try {
+    const resp = await fetch(`${RUST_GATEWAY_URL}/blog/api/posts`, { signal: AbortSignal.timeout(5000) });
+    const data = await resp.json();
+    res.status(resp.status).json(data);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Rust Gateway blog error', details: err.message });
+  }
 });
 
 // System telemetry API

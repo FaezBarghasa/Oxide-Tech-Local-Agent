@@ -79,6 +79,11 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onNewSe
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14151e] border border-[#232530] text-[10px] mono text-gray-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_6px_rgba(249,115,22,0.7)] animate-pulse" />
+            <span>Rust Gateway :8080 (HTTP/3)</span>
+          </div>
+
           <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[#14151e] border border-[#232530] text-[10px] mono text-gray-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(34,197,94,0.7)] animate-pulse" />
             <span>Dual RTX 3090 (48GB)</span>

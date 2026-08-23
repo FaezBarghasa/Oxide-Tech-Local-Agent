@@ -245,6 +245,51 @@ fn configure_rustls() -> Result<rustls::ServerConfig, anyhow::Error> {
     Ok(server_config)
 }
 
+/// Start the HTTP/3 gateway on a specific socket address, returning the bound local address and task handle.
+pub async fn start_h3_gateway_on_addr(
+    bind_addr: SocketAddr,
+    config: Arc<AppConfig>,
+    memory: Option<Arc<SurrealClient>>,
+    knowledge: Option<Arc<KnowledgeClient>>,
+) -> Result<(SocketAddr, tokio::task::JoinHandle<()>), anyhow::Error> {
+    // Configure QUIC
+    let rustls_config = configure_rustls()?;
+    let wrapped_config = quinn::crypto::rustls::QuicServerConfig::try_from(rustls_config)?;
+    let quic_config = quinn::ServerConfig::with_crypto(Arc::new(wrapped_config));
+
+    // Quinn 0.11 Endpoint setup
+    let endpoint = Endpoint::server(quic_config, bind_addr)?;
+    let local_addr = endpoint.local_addr()?;
+    info!("HTTP/3 Gateway listening on UDP {}", local_addr);
+
+    let handle = tokio::spawn(async move {
+        let endpoint = endpoint;
+        while let Some(incoming) = endpoint.accept().await {
+            let config_clone = config.clone();
+            let memory_clone = memory.clone();
+            let knowledge_clone = knowledge.clone();
+
+            match incoming.accept() {
+                Ok(connecting) => {
+                    tokio::spawn(async move {
+                        if let Err(e) =
+                            handle_connection(connecting, config_clone, memory_clone, knowledge_clone)
+                                .await
+                        {
+                            warn!("HTTP/3 connection finished with error: {}", e);
+                        }
+                    });
+                }
+                Err(e) => {
+                    warn!("QUIC incoming connection failed: {}", e);
+                }
+            }
+        }
+    });
+
+    Ok((local_addr, handle))
+}
+
 /// Start the HTTP/3 gateway background loop.
 pub async fn start_h3_gateway(
     config: Arc<AppConfig>,
@@ -253,37 +298,7 @@ pub async fn start_h3_gateway(
 ) -> Result<(), anyhow::Error> {
     let bind_addr: SocketAddr =
         format!("{}:{}", config.gateway.host, config.gateway.udp_port).parse()?;
-
-    // Configure QUIC
-    let rustls_config = configure_rustls()?;
-    let wrapped_config = quinn::crypto::rustls::QuicServerConfig::try_from(rustls_config)?;
-    let quic_config = quinn::ServerConfig::with_crypto(Arc::new(wrapped_config));
-
-    // Quinn 0.11 Endpoint setup
-    let endpoint = Endpoint::server(quic_config, bind_addr)?;
-    info!("HTTP/3 Gateway listening on UDP {}", bind_addr);
-
-    while let Some(incoming) = endpoint.accept().await {
-        let config_clone = config.clone();
-        let memory_clone = memory.clone();
-        let knowledge_clone = knowledge.clone();
-
-        match incoming.accept() {
-            Ok(connecting) => {
-                tokio::spawn(async move {
-                    if let Err(e) =
-                        handle_connection(connecting, config_clone, memory_clone, knowledge_clone)
-                            .await
-                    {
-                        warn!("HTTP/3 connection finished with error: {}", e);
-                    }
-                });
-            }
-            Err(e) => {
-                warn!("QUIC incoming connection failed: {}", e);
-            }
-        }
-    }
-
-    Ok(())
+    let (_, handle) = start_h3_gateway_on_addr(bind_addr, config, memory, knowledge).await?;
+    handle.await.map_err(|e| anyhow::anyhow!("H3 gateway task failed: {}", e))
 }
+

@@ -2334,6 +2334,7 @@ name = "gateway"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "actix-ws",
  "anyhow",
  "blog",
  "bytes",

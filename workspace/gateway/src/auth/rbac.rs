@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum UserRole {
     Owner,
@@ -8,6 +9,7 @@ pub enum UserRole {
     Viewer,
 }
 
+#[allow(dead_code)]
 impl UserRole {
     pub fn from_str(s: &str) -> Self {
         match s.to_lowercase().as_str() {
