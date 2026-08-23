@@ -1,0 +1,50 @@
+{
+  "model_path": "/home/jrad/models/ornith-1.0-9b-Q4_K_M.gguf",
+  "load_time_sec": 2.79,
+  "scenarios_tested": 3,
+  "average_tok_per_sec": 8.59,
+  "total_tokens_generated": 580,
+  "results": [
+    {
+      "scenario": "SCENARIO_1_EMBEDDED_RUST",
+      "domain": "FirmwareEmbedded",
+      "adapter": "lora_embedded_rust_v2",
+      "prompt_tokens": 69,
+      "completion_tokens": 200,
+      "elapsed_sec": 22.86,
+      "tok_per_sec": 8.75,
+      "output_preview": "<think>\nThe user wants me to implement a zero-alloc circular ring buffer in Rust with `#![no_std]` for UART RX interrupts. They want it to use atomic indices for thread-safe push and pop operations.\n\nKey requirements:\n1. `#![no_std]` - no standard library\n2. Zero-alloc - no heap ...",
+      "full_output": "<think>\nThe user wants me to implement a zero-alloc circular ring buffer in Rust with `#![no_std]` for UART RX interrupts. They want it to use atomic indices for thread-safe push and pop operations.\n\nKey requirements:\n1. `#![no_std]` - no standard library\n2. Zero-alloc - no heap allocation\n3. Circular ring buffer\n4. Atomic indices for thread safety\n5. `push` and `pop` methods\n6. Suitable for UART RX interrupt context\n\nLet me think about the design:\n\n- Use `AtomicUsize` for head and tail indices\n- Use `AtomicU8` or `AtomicU16` for the count (to avoid overflow issues)\n- Actually, for a ring buffer, we need head and tail pointers. The count can be derived from them.\n- Need to handle the case where head == tail (empty or full)\n- For zero-alloc, we need to"
+    },
+    {
+      "scenario": "SCENARIO_2_KICAD_SCHEMATIC",
+      "domain": "PcbCad",
+      "adapter": "lora_kicad_schgen_v3",
+      "prompt_tokens": 80,
+      "completion_tokens": 200,
+      "elapsed_sec": 23.67,
+      "tok_per_sec": 8.45,
+      "output_preview": "<think>\nThe user wants me to generate SKiDL netlist logic for STM32 MCU power decoupling. They want:\n1. 100nF decoupling capacitors connected to VDD pins\n2. 4.7uF bulk capacitor connected to the power rail\n\nLet me think about what this would look like in SKiDL format. SKiDL is a ...",
+      "full_output": "<think>\nThe user wants me to generate SKiDL netlist logic for STM32 MCU power decoupling. They want:\n1. 100nF decoupling capacitors connected to VDD pins\n2. 4.7uF bulk capacitor connected to the power rail\n\nLet me think about what this would look like in SKiDL format. SKiDL is a Python-based netlist generator for KiCad. I need to create a proper SKiDL script that:\n\n1. Defines the power net (VDD)\n2. Creates 100nF decoupling capacitors connected to VDD and GND\n3. Creates a 4.7uF bulk capacitor connected to VDD and GND\n\nFor STM32 MCUs, typical VDD pins include:\n- VDDA (analog supply)\n- VDD (digital supply)\n- VDDIO (I/O supply)"
+    },
+    {
+      "scenario": "SCENARIO_3_SELF_EVOLUTION_TUNING_DELTA",
+      "domain": "SelfEvolutionDelta",
+      "adapter": "delta_grpo_feedback",
+      "prompt_tokens": 82,
+      "completion_tokens": 180,
+      "elapsed_sec": 20.99,
+      "tok_per_sec": 8.58,
+      "output_preview": "<think>\nThe user wants me to fix a Rust compiler error `error[E0277]: the trait bound is not satisfied` in the given snippet. Let me analyze the code:\n\n```rust\nfn send_packet<T>(val: T) { println!(\"{:?}\", val); }\n```\n\nThe issue is that `println!(\"{:?}\", val)` requires the `Debug`...",
+      "full_output": "<think>\nThe user wants me to fix a Rust compiler error `error[E0277]: the trait bound is not satisfied` in the given snippet. Let me analyze the code:\n\n```rust\nfn send_packet<T>(val: T) { println!(\"{:?}\", val); }\n```\n\nThe issue is that `println!(\"{:?}\", val)` requires the `Debug` trait to be implemented for type `T`, but the generic function doesn't constrain `T` with `Debug`. This causes the trait bound error.\n\nThe fix is to add a `Debug` trait bound to the generic parameter:\n\n```rust\nfn send_packet<T: Debug>(val: T) { println!(\"{:?}\", val); }\n```\n\nThis tells the compiler that `T` must implement the `Debug` trait, which is what `{:?}` formatting requires.\n</think>"
+    }
+  ],
+  "delta_sample": {
+    "target_model": "ornith-1.0-9b",
+    "prompt": "<|im_start|>system\nYou are the Oxide Self-Evolution Engine. A compiler error was detected: `error[E0277]: the trait bound is not satisfied`. Fix the broken snippet.<|im_end|>\n<|im_start|>user\nBroken snippet:\n```rust\nfn send_packet<T>(val: T) { println!(\"{:?}\", val); }\n```\nProvide compiler-verified fix.<|im_end|>\n<|im_start|>assistant\n",
+    "fixed_code": "<think>\nThe user wants me to fix a Rust compiler error `error[E0277]: the trait bound is not satisfied` in the given snippet. Let me analyze the code:\n\n```rust\nfn send_packet<T>(val: T) { println!(\"{:?}\", val); }\n```\n\nThe issue is that `println!(\"{:?}\", val)` requires the `Debug` trait to be implemented for type `T`, but the generic function doesn't constrain `T` with `Debug`. This causes the trait bound error.\n\nThe fix is to add a `Debug` trait bound to the generic parameter:\n\n```rust\nfn send_packet<T: Debug>(val: T) { println!(\"{:?}\", val); }\n```\n\nThis tells the compiler that `T` must implement the `Debug` trait, which is what `{:?}` formatting requires.\n</think>",
+    "loss_reduction": 0.142,
+    "reward_score": 0.985,
+    "status": "Crystallized to GRPO Training Pool"
+  }
+}
