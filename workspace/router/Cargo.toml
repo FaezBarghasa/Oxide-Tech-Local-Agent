@@ -19,5 +19,6 @@ surrealdb-service = { path = "../../crates/surrealdb-service" }
 
 [dev-dependencies]
 verifier = { path = "../verifier" }
+vllm-client = { path = "../../crates/vllm-client" }
 
 

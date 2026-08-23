@@ -5879,6 +5879,7 @@ dependencies = [
  "tracing",
  "uuid",
  "verifier",
+ "vllm-client",
 ]
 
 [[package]]
