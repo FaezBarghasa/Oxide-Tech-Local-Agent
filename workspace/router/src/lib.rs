@@ -7,9 +7,13 @@ pub mod feedback;
 pub mod cloud_response_capture;
 pub mod agent_modes;
 pub mod supervisor;
+pub mod lora_router;
+pub mod observer;
 
 pub use agent_modes::{AgentMode, ToolPermissions};
 pub use supervisor::{SupervisorAgent, TaskDag, TaskNode, TaskStatus, SubAgentRole};
+pub use lora_router::{DynamicLoraRouter, LoraAdapterType, LoraAdapterConfig};
+pub use observer::{ObserverAgent, LoopObservationReport, LoopRecommendation};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

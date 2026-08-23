@@ -5877,6 +5877,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "verifier",
 ]
 
 [[package]]
@@ -8173,6 +8174,7 @@ name = "verifier"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "common",
  "nix 0.31.3",
  "serde",
