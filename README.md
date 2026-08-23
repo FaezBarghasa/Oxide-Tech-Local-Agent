@@ -1,104 +1,127 @@
 # Oxide-Tech Local Agent OS
 
-Oxide-Tech Local Agent OS is a production-grade, polyglot (Rust/Python) backend environment built to orchestrate next-generation hardware engineering tasks. The platform coordinates code compilation, AST analysis, schematic generation, 3D PCB layout verification, thermal simulations, and multi-agent AI execution loops, backed by a real-time event system.
+**Oxide-Tech Local Agent OS** (NexusForge) is the premier local-first, high-performance, self-evolving cognitive operating system designed for hardware and software engineering. It combines multi-modal code graph topology mapping, dynamic LoRA adapter hot-swapping, atomic sandbox execution, and tri-fold self-evolution.
 
 ---
 
-## Technical Stack & Architecture
+## 1. Architectural Layers & System Topology
 
-- **Gateway Layer**: Parallel execution of **Actix-web 4.x** (TCP on port `8080`) and native **QUIC / HTTP/3** (UDP on port `8080`), configured with secure TLS 1.3.
-- **Database Layer**: **SurrealDB v3** as a multi-model graph database for hardware relationships, and **Qdrant v1.18.x** for dense/sparse hybrid semantic vector search on datasheet collections.
-- **AI/LLM Inference**: **vLLM (0.5.x)** serving local open-weights LLMs (such as Qwen/Gemma) for structured schematic and code generation.
-- **Execution Sandboxing**: A strict, containerized sandbox layer utilizing Docker/Morph, preventing arbitrary execution of generated scripts directly on the host system.
-- **Telemetry & Monitoring**: Prometheus metrics exported on `/metrics`, alongside standard liveness (`/health/live`) and readiness (`/health/ready`) probes.
-
----
-
-## Project Structure
-
-```text
-Oxide-Tech-Local-Agent/
-├── Cargo.toml               # Workspace configuration and shared dependencies
-├── crates/
-│   ├── api/                 # Actix-web / HTTP/3 server and WebSocket endpoints
-│   ├── tree-sitter-service/ # Tree-sitter Rust AST parser & symbol extractor
-│   ├── surrealdb-service/   # SurrealDB v3 driver, schema models, and graph queries
-│   ├── qdrant-service/      # Qdrant client, dense/sparse collection setups
-│   ├── vllm-client/         # vLLM API client for local LLM completion & streaming
-│   └── sandbox/             # Docker sandbox environment for safe code execution
-├── python-bridge/           # Python-based bridges for KiCad, Skidl, and ML models
-│   ├── training/            # PyTorch / Unsloth fine-tuning scripts
-│   ├── server.py            # Local Python services router
-│   └── requirements.txt     # Python environment requirements
-├── scripts/                 # Initialize scripts, migrations, and assets
-└── target/                  # Compiled Rust artifacts
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       USER & IDE WORKSPACE LAYER                                               │
+│             Oxide-Tech-IDE (Tauri v2 + Monaco + AST Viewer)  │  oxide-agent-studio (React 19 + Vite)            │
+└───────────────────────────────────────────────────────┬────────────────────────────────────────────────────────┘
+                                                        │ JSON-RPC 2.0 / gRPC / SSE / QUIC HTTP/3
+┌───────────────────────────────────────────────────────▼────────────────────────────────────────────────────────┐
+│                          NEXUSFORGE / OXIDE-TECH-LOCAL-AGENT CORE ENGINE                                       │
+│                                                                                                                │
+│   ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐   │
+│   │                                      GRAPH ENGINEERING LAYER                                           │   │
+│   │  ┌─────────────────────────┐  ┌──────────────────────────────┐  ┌───────────────────────────────────┐  │   │
+│   │  │  Multi-Modal Code Graph │  │  Semantic-Structural Hybrid  │  │   Impact Analysis & Propagation   │  │   │
+│   │  │  (AST, Call, Flow, Net) │  │  Indexing (Qdrant+SurrealQL) │  │   (Sub-graph AST Slicing -80%)    │  │   │
+│   │  └────────────┬────────────┘  └──────────────┬───────────────┘  └─────────────────┬─────────────────┘  │   │
+│   └───────────────┼──────────────────────────────┼────────────────────────────────────┼────────────────────┘   │
+│                   │                              │                                    │                        │
+│   ┌───────────────▼──────────────────────────────▼────────────────────────────────────▼────────────────────┐   │
+│   │                                     CONTEXT & MEMORY LAYER                                             │   │
+│   │  ┌─────────────────────────┐  ┌──────────────────────────────┐  ┌───────────────────────────────────┐  │   │
+│   │  │ Temporal History (Git)  │  │ Dual-State Memory Engine     │  │ Ephemeral Ring Buffers            │  │   │
+│   │  │ Graph-Node Versioning   │  │ (SurrealDB + Qdrant Embeds)  │  │ (Terminal, Editor, Stack Traces)  │  │   │
+│   │  └─────────────────────────┘  └──────────────────────────────┘  └───────────────────────────────────┘  │   │
+│   └──────────────────────────────────────────────┬─────────────────────────────────────────────────────────┘   │
+│                                                  │                                                             │
+│   ┌──────────────────────────────────────────────▼─────────────────────────────────────────────────────────┐   │
+│   │                                       LOOP & EXECUTION LAYER                                           │   │
+│   │  ┌─────────────────────────┐  ┌──────────────────────────────┐  ┌───────────────────────────────────┐  │   │
+│   │  │ Optio ReAct DAG Engine  │  │ Atomic Checkpointer & Rollback│ │ Deterministic Verifiers           │  │   │
+│   │  │ (Oscillation Guard)     │  │ (bwrap / git stash create)   │  │ (cargo check, kicad-cli, QEMU)    │  │   │
+│   │  └─────────────────────────┘  └──────────────────────────────┘  └───────────────────────────────────┘  │   │
+│   └──────────────────────────────────────────────┬─────────────────────────────────────────────────────────┘   │
+│                                                  │                                                             │
+│   ┌──────────────────────────────────────────────▼─────────────────────────────────────────────────────────┐   │
+│   │                                      SELF-EVOLUTION ENGINE                                             │   │
+│   │  ┌─────────────────────────┐  ┌──────────────────────────────┐  ┌───────────────────────────────────┐  │   │
+│   │  │ JIT MCP Tool Synthesizer│  │ SkillOpt Workflow Curator    │  │ Delta-RL Harvester & Trainer      │  │   │
+│   │  │ (Mojo SIMD / Sandbox)   │  │ (Crystallized Skill Graph)   │  │ (SurrealDB grpo_training_pool)    │  │   │
+│   │  └─────────────────────────┘  └──────────────────────────────┘  └───────────────────────────────────┘  │   │
+│   └────────────────────────────────────────────────────────────────────────────────────────────────────────┘   │
+└───────────────────────────────────────────────────────┬────────────────────────────────────────────────────────┘
+                                                        │
+┌───────────────────────────────────────────────────────▼────────────────────────────────────────────────────────┐
+│                        DUAL NVIDIA RTX ACCELERATION & INFERENCE ENGINE                                         │
+│   ┌─────────────────────────────────────────────────┐   ┌──────────────────────────────────────────────────┐   │
+│   │         GPU 0 (PCIe 4.0 x16 - 24GB VRAM)        │   │         GPU 1 (PCIe 4.0 x16 - 24GB VRAM)         │   │
+│   │ - SGLang Tensor Parallel Rank 0 (Qwen3.8-35B)   │◄──┼►- SGLang Tensor Parallel Rank 1 (Qwen3.8-35B)    │   │
+│   │ - Fast Intent Router (Gemma-4-9B / Ornith-1.0)  │NCC│ - SF3D / B-Rep Latent Geometry Diffusion Engine  │   │
+│   │ - Mojo SIMD Vector & Netlist Acceleration Core  │ L │ - Dynamic LoRA Adapter Cache (Rust/KiCad/CAD)    │   │
+│   └─────────────────────────────────────────────────┘   └──────────────────────────────────────────────────┘   │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Quickstart Guide
+## 2. Core Workspace Crates & Architecture
 
-### 1. Prerequisites
-- **Rust**: Rust 1.75+ or newer.
-- **Docker**: For running sandboxed executions.
-- **SurrealDB**: Version 3.x installed and running.
-- **Qdrant**: Version 1.18.x or newer running.
-
-### 2. Configure Environment Variables
-Create a `.env` file in the project root or export the following variables in your shell:
-```bash
-export SURREALDB_URL="ws://127.0.0.1:8000" # Or mem:// for in-memory DB testing
-export QDRANT_URL="http://127.0.0.1:6334"
-export VLLM_API_URL="http://127.0.0.1:8000"
-```
-
-### 3. Initialize Databases
-Initialize database schemas and mock collections using the provided setup scripts:
-```bash
-# Initialize SurrealDB Schema
-surreal import --conn http://127.0.0.1:8000 --user root --pass root --ns oxide_tech --db main scripts/init-surrealdb.surql
-
-# Initialize Qdrant Collections
-curl -X PUT http://127.0.0.1:6333/collections/datasheets -H "Content-Type: application/json" -d @scripts/init-qdrant.json
-```
-
-### 4. Build and Run
-Build the monorepo workspace to ensure everything compiles cleanly:
-```bash
-cargo build --release
-```
-
-Run the backend server:
-```bash
-cargo run --bin api
-```
-
-The gateway will start listening on:
-- **HTTP/1.1 & HTTP/2**: `http://127.0.0.1:8080` (TCP)
-- **HTTP/3 (QUIC)**: `https://127.0.0.1:8080` (UDP)
+| Crate / Module | Path | Description |
+|---|---|---|
+| `knowledge` | `workspace/knowledge/` | Multi-modal code graph, Tree-sitter AST extraction (`AstGraphExtractor`), impact blast radius, and subgraph context pruning. |
+| `memory` | `workspace/memory/` | Ephemeral ring buffers (editor, terminal logs, stack traces) and temporal git churn / co-change tracking. |
+| `router` | `workspace/router/` | Multi-persona supervisor swarm, meta-cognitive observer agent, and dynamic LoRA adapter hot-swapping. |
+| `optio` | `crates/optio/` | ReAct DAG engine, oscillation guard, impact analysis, context slicing, and persona orchestrator. |
+| `verifier` | `workspace/verifier/` | Atomic checkpoint snapshotting (`git stash create`), rollback engine, and deterministic firmware validation. |
+| `self-evolver` | `crates/self-evolver/` | Delta-based reinforcement harvester (`grpo_training_pool`), JIT MCP tool synthesizer (`bwrap`), and workflow skill crystallization. |
+| `surrealdb-service` | `crates/surrealdb-service/` | SurrealDB v3 schema definitions (`code_node`, `calls`, `defines`, `implements`, `references`, `data_flows_to`). |
+| `qdrant-service` | `crates/qdrant-service/` | High-dimensional semantic-structural hybrid vector indexer. |
+| `vllm-client` | `crates/vllm-client/` | SGLang TP=2 runtime client and `/v1/lora/activate` hot-swap dispatcher. |
+| `gateway` | `workspace/gateway/` | High-performance dual-protocol gateway (Actix-web TCP + Quinn QUIC HTTP/3 on port `8080`). |
+| `oxide-agent-studio` | `ui/oxide-agent-studio/` | React 19 + Vite web studio with interactive Graph Engineering, Agent Loops, Verifiers, and LoRA controllers. |
 
 ---
 
-## Verification & Testing
+## 3. Quickstart & Testing
 
-### Automated Checks
-Execute the Rust test suite to verify code correctness and schema integrations:
+### Prerequisites
+- **Rust**: 1.85+ (Edition 2021 / 2024)
+- **Node.js & pnpm**: 20+ (`pnpm` required for UI)
+- **Python / uv**: Python 3.11+ and `uv`
+- **SurrealDB & Qdrant**: SurrealDB 3.x and Qdrant 1.18.x
+
+### Build & Run Tests
 ```bash
+# Verify all 27 workspace crates
+cargo check --workspace
+
+# Run full automated test suite across all subsystems
 cargo test --workspace
+
+# Test AST parsing and code graph
+cargo test -p knowledge --lib ast::tests
+cargo test -p knowledge --test code_graph_test
+
+# Test Supervisor and Dynamic LoRA Router
+cargo test -p router --test supervisor_test
+cargo test -p router --test agent_loop_test
+cargo test -p router --test ornith_test
+
+# Test Self-Evolution & Delta Harvester
+cargo test -p self-evolver
 ```
 
-Ensure lint checks and compiler warnings are verified:
+### Launch Local Stack & UI Studio
 ```bash
-cargo clippy --all-targets -- -D warnings
+# 1. Launch backend services & SGLang serving stack
+./scripts/launch_stack.sh
+
+# 2. Launch Oxide Agent Studio UI (built with pnpm)
+cd ui/oxide-agent-studio
+pnpm install
+pnpm build
+pnpm start
+# Open http://localhost:3000 in your browser
 ```
 
----
-
-## Detailed Documentation
-
-For deep technical insights into the backend platform, explore the following documentation:
-- [System Architecture Details](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/architecture.md): Visualizes the multi-layered layout, services isolation, and polyglot architecture.
-- [Mermaid Diagrams](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/diagram.md): Flowcharts of runtime components and the AI agent auto-healing loop.
-- [Changelog](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/changelog.md): Highlights SurrealDB v3 upgrades, QUIC addition, and thread-safety details.
-- [API Documentation](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/api.md): Standardized schema endpoints, WebSockets, and UDP HTTP/3 routing.
-- [Execution Flows](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/flow.md): Walkthrough of the Chief Planner-Execution-Verifier lifecycle.
+### Run Ornith-1.0-9B Inference & Tuning Benchmark
+```bash
+uv run --with llama-cpp-python python3 scripts/run_and_tune_benchmark.py
+```
