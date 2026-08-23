@@ -201,6 +201,36 @@ max_concurrent_fetches = 4
 rate_limit_delay_ms = 1000
 
 # ---------------------------------------------------------------------------
+# EXTERNAL RESEARCH & PERCEPTION LAYER (Tri-Engine Perception)
+# ---------------------------------------------------------------------------
+[perception]
+default_engine = "auto"               # "scrapling" | "pinchtab" | "kitesurf" | "auto"
+auto_escalate_on_block = true
+max_parallel_research_tasks = 8
+grounding_confidence_threshold = 0.80
+
+[perception.scrapling]
+stealth_mode = true
+user_agent_rotation = true
+request_timeout_secs = 15
+max_retries = 3
+
+[perception.pinchtab]
+endpoint = "http://127.0.0.1:9876"
+port = 9876
+cloak_mode = true
+auto_start = false
+timeout_secs = 30
+
+[perception.kitesurf]
+account_id_env = "CLOUDFLARE_ACCOUNT_ID"
+api_token_env = "CLOUDFLARE_API_TOKEN"
+endpoint = "https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering"
+isolate_timeout_ms = 30000
+enable_screenshot_verification = true
+enable_pdf_extraction = true
+
+# ---------------------------------------------------------------------------
 # AUTHENTICATION
 # ---------------------------------------------------------------------------
 [auth]

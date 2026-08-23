@@ -12,6 +12,10 @@ pub enum CodeNodeType {
     Module,
     Variable,
     Interface,
+    /// External researched crate, library, or API node
+    ExternalDependency,
+    /// External documentation node
+    ExternalDoc,
 }
 
 /// A node in the code graph representing an AST symbol or state construct
@@ -45,6 +49,8 @@ pub enum CodeEdgeType {
     PassesTo,
     /// Symbol references another symbol
     References,
+    /// Node depends on an external researched dependency/API
+    DependsOnExternal,
 }
 
 /// A directed edge in the code graph

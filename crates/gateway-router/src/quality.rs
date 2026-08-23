@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn single_error_reduces_score() {
-        let gate = QualityGate::new(0.85);
+        let gate = QualityGate::new(0.95);
         let stderr = "error[E0308]: mismatched types\nerror: aborting due to previous error";
         let (score, count) = gate.score(stderr);
         assert_eq!(count, 2);

@@ -1,5 +1,6 @@
 use select::document::Document;
 use select::predicate::Name;
+use regex::Regex;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FeedEntry {
@@ -10,14 +11,11 @@ pub struct FeedEntry {
 }
 
 pub fn parse_feed(content: &str) -> Vec<FeedEntry> {
-    let doc = Document::from(content);
     let mut entries = Vec::new();
 
-    // Check if it looks like an Atom feed
-    let is_atom =
-        doc.find(Name("feed")).next().is_some() || doc.find(Name("entry")).next().is_some();
-
-    if is_atom {
+    // Check if it's an Atom feed (<feed> or <entry>)
+    if content.contains("<feed") || (content.contains("<entry") && !content.contains("<rss")) {
+        let doc = Document::from(content);
         for entry in doc.find(Name("entry")) {
             let title = entry
                 .find(Name("title"))
@@ -65,39 +63,19 @@ pub fn parse_feed(content: &str) -> Vec<FeedEntry> {
             }
         }
     } else {
-        // RSS feed
-        for item in doc.find(Name("item")) {
-            let title = item
-                .find(Name("title"))
-                .next()
-                .map(|n| n.text())
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            let link = item
-                .find(Name("link"))
-                .next()
-                .map(|n| n.text())
-                .unwrap_or_default()
-                .trim()
-                .to_string();
+        // RSS 2.0 / RDF parsing: extract <item> blocks via regex if HTML parser collapses XML tags
+        let item_re = Regex::new(r"(?s)<item>(.*?)</item>").unwrap();
+        let title_re = Regex::new(r"(?s)<title>(.*?)</title>").unwrap();
+        let link_re = Regex::new(r"(?s)<link>(.*?)</link>").unwrap();
+        let desc_re = Regex::new(r"(?s)<description>(.*?)</description>").unwrap();
+        let pub_re = Regex::new(r"(?si)<pubdate>(.*?)</pubdate>").unwrap();
 
-            let summary = item
-                .find(Name("description"))
-                .next()
-                .or_else(|| item.find(Name("content")).next())
-                .map(|n| n.text())
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-
-            let published = item
-                .find(Name("pubdate"))
-                .next()
-                .map(|n| n.text())
-                .unwrap_or_default()
-                .trim()
-                .to_string();
+        for cap in item_re.captures_iter(content) {
+            let block = &cap[1];
+            let title = title_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
+            let link = link_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
+            let summary = desc_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
+            let published = pub_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
 
             if !title.is_empty() && !link.is_empty() {
                 entries.push(FeedEntry {

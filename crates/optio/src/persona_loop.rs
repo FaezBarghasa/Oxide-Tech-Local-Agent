@@ -52,7 +52,7 @@ impl PersonaOrchestrator {
                             "properties": {
                                 "step_id": { "type": "integer" },
                                 "description": { "type": "string" },
-                                "assigned_persona": { "type": "string", "enum": ["Architect", "Coder", "DRC_Reviewer"] },
+                                "assigned_persona": { "type": "string", "enum": ["Researcher", "Architect", "Coder", "DRC_Reviewer"] },
                                 "tool_calls": { "type": "array", "items": { "type": "string" } }
                             },
                             "required": ["step_id", "description", "assigned_persona", "tool_calls"]

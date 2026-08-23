@@ -1,5 +1,8 @@
-// Live Docs MCP server
+// Live Docs & Perception Research MCP Server
 pub mod scraper;
+pub mod pinchtab;
+pub mod kitesurf;
+pub mod perception_router;
 
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -17,7 +20,10 @@ use rmcp::{
     tool, tool_router,
 };
 use tokio::sync::Mutex;
+use config_loader::{AppConfig, PerceptionConfig};
 use crate::scraper::{DocsRsScraper, ApiSurface};
+use crate::pinchtab::ActionRequest;
+use crate::perception_router::PerceptionRouter;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct CrateLookupInput {
@@ -27,22 +33,53 @@ pub struct CrateLookupInput {
     pub version: Option<String>,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct ResearchInput {
+    /// Target URL or technical query URL (e.g. docs, GitHub issue, errata sheet)
+    pub url: String,
+    /// Preferred perception engine: "auto" | "scrapling" | "pinchtab" | "kitesurf"
+    pub engine: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct BrowserActionInput {
+    /// Action type: "navigate" | "click" | "type" | "scroll" | "wait"
+    pub action: String,
+    /// CSS selector or element reference
+    pub selector: Option<String>,
+    /// Text to input if action is "type"
+    pub text: Option<String>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct VisualVerifyInput {
+    /// Target URL to visually snapshot and render
+    pub url: String,
+}
+
 #[derive(Clone)]
 pub struct LiveDocsServer {
     #[allow(dead_code)]
     workspace_root: PathBuf,
     cache: Arc<Mutex<std::collections::HashMap<(String, String), ApiSurface>>>,
     scraper: DocsRsScraper,
+    router: PerceptionRouter,
     tool_router: ToolRouter<Self>,
 }
 
 #[tool_router]
 impl LiveDocsServer {
     pub fn new(workspace_root: PathBuf) -> Self {
+        let perception_cfg = match AppConfig::load_default() {
+            Ok(cfg) => cfg.perception,
+            Err(_) => PerceptionConfig::default(),
+        };
+
         Self {
             workspace_root,
             cache: Arc::new(Mutex::new(std::collections::HashMap::new())),
             scraper: DocsRsScraper::new(),
+            router: PerceptionRouter::new(perception_cfg),
             tool_router: Self::tool_router(),
         }
     }
@@ -71,6 +108,47 @@ impl LiveDocsServer {
                 Ok(CallToolResult::success(vec![Content::text(api.markdown)]))
             }
             Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Docs scrape failed: {}", e))])),
+        }
+    }
+
+    #[tool(description = "Deep research and perceive any web URL using the Tri-Engine Perception router (Scrapling / PinchTab / Cloudflare Kitesurf)")]
+    async fn perception_deep_research(&self, Parameters(input): Parameters<ResearchInput>) -> Result<CallToolResult, McpError> {
+        match self.router.fetch_research(&input.url, input.engine.as_deref()).await {
+            Ok(res) => {
+                let formatted = format!(
+                    "### Perception Research Result\n- **URL**: {}\n- **Engine**: {}\n- **Confidence**: {:.2}\n\n{}\n",
+                    res.url, res.engine_used, res.confidence_score, res.markdown_content
+                );
+                Ok(CallToolResult::success(vec![Content::text(formatted)]))
+            }
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Perception research error: {}", e))])),
+        }
+    }
+
+    #[tool(description = "Execute local interactive browser action via PinchTab daemon")]
+    async fn perception_browser_action(&self, Parameters(input): Parameters<BrowserActionInput>) -> Result<CallToolResult, McpError> {
+        let req = ActionRequest {
+            action: input.action,
+            selector: input.selector,
+            element_id: None,
+            text: input.text,
+            coordinates: None,
+        };
+
+        match self.router.interactive_action(req).await {
+            Ok(res) => Ok(CallToolResult::success(vec![Content::text(format!("PinchTab Action: {}", res.message))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("PinchTab Action Error: {}", e))])),
+        }
+    }
+
+    #[tool(description = "Capture visual snapshot and rendered verification screenshot using Kitesurf or PinchTab")]
+    async fn perception_visual_verify(&self, Parameters(input): Parameters<VisualVerifyInput>) -> Result<CallToolResult, McpError> {
+        match self.router.visual_verify_screenshot(&input.url).await {
+            Ok(bytes) => {
+                let msg = format!("Captured visual verification screenshot ({} bytes) for {}", bytes.len(), input.url);
+                Ok(CallToolResult::success(vec![Content::text(msg)]))
+            }
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Visual verify failed: {}", e))])),
         }
     }
 }

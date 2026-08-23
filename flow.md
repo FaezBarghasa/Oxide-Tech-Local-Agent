@@ -1,13 +1,41 @@
-# Oxide-Tech Local Agent OS: System Control Flow
+# Oxide-Tech Local Agent OS: System Control Flow (v2.1)
 
 This document details the step-by-step logic, runtime control loops, and execution algorithms that govern Oxide-Tech Local Agent OS.
 
 ---
 
-## 1. Multi-Modal Graph Traversal & Context Pruning Flow
+## 1. Tri-Engine Perception & External Research Flow
 
 ```
-[Target Node Modified (Function / Struct / Net)]
+[Research / Perception Intent Identified]
+                   │
+                   ▼
+[PerceptionRouter (perception_router.rs)]
+  - Evaluates target URL domain & task requirements
+                   │
+  ┌────────────────┼────────────────────────┐
+  │                │                        │
+  ▼                ▼                        ▼
+[Tier 1: Scrapling] [Tier 2: PinchTab]   [Tier 3: Kitesurf]
+- Python stealth    - Local Go daemon    - Cloudflare V8 isolates
+- Sub-200ms DOM     - AX-tree snapshots  - Anti-bot / Turnstile bypass
+- Docs & Crates.io  - Interactive click  - Parallel deep research
+  │                │                        │
+  └────────────────┴────────────────────────┘
+                   │
+                   ▼
+[Grounded Memory Ingestion (client.rs)]
+  - Embeds chunks into Qdrant `rust_rag`
+  - Records provenance (URL, engine, timestamp, confidence >= 0.80)
+  - Injects `ExternalDependencyNode` into Multi-Modal Code Graph
+```
+
+---
+
+## 2. Multi-Modal Graph Traversal & Context Pruning Flow
+
+```
+[Target Node Modified (Function / Struct / Net / ExternalDependency)]
                     │
                     ▼
 [AST & Tree-sitter Extractor (ast.rs)]
@@ -28,7 +56,7 @@ This document details the step-by-step logic, runtime control loops, and executi
 
 ---
 
-## 2. Dynamic LoRA Adapter Hot-Swapping Flow
+## 3. Dynamic LoRA Adapter Hot-Swapping Flow
 
 1. **Intent Analysis**: The user prompt is analyzed by `LoraRouter` in `workspace/router/src/lora_router.rs`.
 2. **Domain Classification**:
@@ -39,13 +67,14 @@ This document details the step-by-step logic, runtime control loops, and executi
 
 ---
 
-## 3. Auto-Healing & Verification Loop Flow
+## 4. Auto-Healing & Verification Loop Flow
 
 1. **Working Tree Snapshot**: `CheckpointManager` in `workspace/verifier/src/checkpoint.rs` captures instantaneous git stash (`git stash create`).
-2. **Action Execution**: `PersonaOrchestrator` invokes tools to create/modify files.
+2. **Action Execution**: `PersonaOrchestrator` invokes tools (`Researcher`, `Architect`, `Coder`, `DRC_Reviewer`).
 3. **Deterministic Verification**:
    - Firmware: `cargo check --target thumbv7em-none-eabihf` / QEMU test.
    - PCB: `kicad-cli drc --output drc.json`.
+   - Web/Perception: `perception_visual_verify` screenshot comparison.
 4. **Failure Handling**:
    - If verification fails, stderr is sent back to the `Coder` persona.
    - `OscillationDetector` tracks identical attempts (max threshold = 3).
@@ -56,10 +85,10 @@ This document details the step-by-step logic, runtime control loops, and executi
 
 ---
 
-## 4. JIT MCP Tool Synthesis & Sandbox Flow
+## 5. JIT MCP Tool Synthesis & Sandbox Flow
 
 ```
-[Agent Identifies Missing Tool (e.g. specialized SIMD CRC / Netlist Parser)]
+[Agent Identifies Missing Tool (e.g. specialized SIMD CRC / Netlist Parser / Web Extractor)]
                                 │
                                 ▼
 [JitMcpToolMaker (tool_maker.rs)]

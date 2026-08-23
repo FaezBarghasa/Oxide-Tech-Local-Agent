@@ -17,5 +17,6 @@ select = { workspace = true }
 reqwest = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+regex = { workspace = true }
 tree-sitter = "0.20"
 tree-sitter-rust = "0.20"

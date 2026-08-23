@@ -29,6 +29,98 @@ pub struct AppConfig {
     pub coder: CoderConfig,
     pub rag: RagConfig,
     pub mcp: McpConfig,
+    #[serde(default)]
+    pub perception: PerceptionConfig,
+}
+
+// ── External Research & Perception Layer ─────────────────────────────────────
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct PerceptionConfig {
+    pub default_engine: String, // "scrapling" | "pinchtab" | "kitesurf" | "auto"
+    pub auto_escalate_on_block: bool,
+    pub max_parallel_research_tasks: usize,
+    pub grounding_confidence_threshold: f32,
+    pub scrapling: ScraplingConfig,
+    pub pinchtab: PinchTabConfig,
+    pub kitesurf: KitesurfConfig,
+}
+
+impl Default for PerceptionConfig {
+    fn default() -> Self {
+        Self {
+            default_engine: "auto".to_string(),
+            auto_escalate_on_block: true,
+            max_parallel_research_tasks: 8,
+            grounding_confidence_threshold: 0.80,
+            scrapling: ScraplingConfig::default(),
+            pinchtab: PinchTabConfig::default(),
+            kitesurf: KitesurfConfig::default(),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ScraplingConfig {
+    pub stealth_mode: bool,
+    pub user_agent_rotation: bool,
+    pub request_timeout_secs: u64,
+    pub max_retries: usize,
+}
+
+impl Default for ScraplingConfig {
+    fn default() -> Self {
+        Self {
+            stealth_mode: true,
+            user_agent_rotation: true,
+            request_timeout_secs: 15,
+            max_retries: 3,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct PinchTabConfig {
+    pub endpoint: String,
+    pub port: u16,
+    pub cloak_mode: bool,
+    pub auto_start: bool,
+    pub timeout_secs: u64,
+}
+
+impl Default for PinchTabConfig {
+    fn default() -> Self {
+        Self {
+            endpoint: "http://127.0.0.1:9876".to_string(),
+            port: 9876,
+            cloak_mode: true,
+            auto_start: false,
+            timeout_secs: 30,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct KitesurfConfig {
+    pub account_id_env: String,
+    pub api_token_env: String,
+    pub endpoint: String,
+    pub isolate_timeout_ms: u64,
+    pub enable_screenshot_verification: bool,
+    pub enable_pdf_extraction: bool,
+}
+
+impl Default for KitesurfConfig {
+    fn default() -> Self {
+        Self {
+            account_id_env: "CLOUDFLARE_ACCOUNT_ID".to_string(),
+            api_token_env: "CLOUDFLARE_API_TOKEN".to_string(),
+            endpoint: "https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering".to_string(),
+            isolate_timeout_ms: 30000,
+            enable_screenshot_verification: true,
+            enable_pdf_extraction: true,
+        }
+    }
 }
 
 // ── Gateway / router ─────────────────────────────────────────────────────────
@@ -175,6 +267,7 @@ impl AppConfig {
                 transport: "stdio".to_string(),
                 tcp_port: 9090,
             },
+            perception: PerceptionConfig::default(),
         }
     }
 }

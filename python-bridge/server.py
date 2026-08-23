@@ -12,6 +12,34 @@ import bridge_pb2
 import bridge_pb2_grpc
 from kicad_bridge import KiCadBridgeServicer
 from blender_bridge import CADServiceServicer
+from scrapling_bridge import ScraplingBridge
+
+class PerceptionService(bridge_pb2_grpc.PerceptionServiceServicer if hasattr(bridge_pb2_grpc, "PerceptionServiceServicer") else object):
+    def __init__(self):
+        self.worker = ScraplingBridge(stealth_mode=True)
+
+    async def ScrapeUrl(self, request, context):
+        print(f"Perception scrape request for: {request.url} (stealth={request.stealth_mode})")
+        res = self.worker.fetch_url(request.url, selector=request.selector or None)
+        return bridge_pb2.ScrapeResponse(
+            success=res.success,
+            status_code=res.status_code,
+            title=res.title,
+            markdown_content=res.markdown_content,
+            links=res.links,
+            error_message=res.error or "",
+            metadata=res.metadata,
+        )
+
+    async def ExtractDocumentation(self, request, context):
+        url = f"https://docs.rs/{request.library_name}/{request.version or 'latest'}/{request.library_name.replace('-', '_')}/"
+        res = self.worker.fetch_url(url)
+        return bridge_pb2.DocExtractResponse(
+            success=res.success,
+            formatted_markdown=res.markdown_content,
+            public_symbols=[],
+            error_message=res.error or "",
+        )
 
 class BridgeService(bridge_pb2_grpc.BridgeServiceServicer):
     async def AnalyzeNetlist(self, request, context):
@@ -34,6 +62,8 @@ async def serve(port: int = 50051, uds_path: str = "/tmp/oxide_bridge.sock"):
     bridge_pb2_grpc.add_BridgeServiceServicer_to_server(BridgeService(), server)
     bridge_pb2_grpc.add_KiCadServiceServicer_to_server(KiCadBridgeServicer(), server)
     bridge_pb2_grpc.add_CADServiceServicer_to_server(CADServiceServicer(), server)
+    if hasattr(bridge_pb2_grpc, "add_PerceptionServiceServicer_to_server"):
+        bridge_pb2_grpc.add_PerceptionServiceServicer_to_server(PerceptionService(), server)
 
     # Bind TCP port
     listen_addr = f"0.0.0.0:{port}"

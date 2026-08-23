@@ -11,9 +11,43 @@ service CADService {
   rpc ConvertStepToGltf (StepConvertRequest) returns (StepConvertResponse);
 }
 
+service PerceptionService {
+  rpc ScrapeUrl (ScrapeRequest) returns (ScrapeResponse);
+  rpc ExtractDocumentation (DocExtractRequest) returns (DocExtractResponse);
+}
+
 service BridgeService {
   rpc AnalyzeNetlist (NetlistRequest) returns (NetlistResponse);
   rpc RunThermalSimulation (ThermalRequest) returns (ThermalResponse);
+}
+
+message ScrapeRequest {
+  string url = 1;
+  string selector = 2;
+  bool stealth_mode = 3;
+}
+
+message ScrapeResponse {
+  bool success = 1;
+  int32 status_code = 2;
+  string title = 3;
+  string markdown_content = 4;
+  repeated string links = 5;
+  string error_message = 6;
+  map<string, string> metadata = 7;
+}
+
+message DocExtractRequest {
+  string library_name = 1;
+  string version = 2;
+  string target_symbol = 3;
+}
+
+message DocExtractResponse {
+  bool success = 1;
+  string formatted_markdown = 2;
+  repeated string public_symbols = 3;
+  string error_message = 4;
 }
 
 message ComponentSpec {

@@ -178,6 +178,65 @@ impl KnowledgeClient {
         Ok(())
     }
 
+    /// Ingest research results from External Research & Perception Layer with strict provenance
+    pub async fn ingest_research_result(
+        &self,
+        url: &str,
+        text: &str,
+        engine: &str,
+        confidence_score: f32,
+        title: Option<&str>,
+    ) -> Result<()> {
+        let chunks = chunk_text(text, 400, 50);
+        if chunks.is_empty() {
+            return Ok(());
+        }
+
+        let embeddings = {
+            let mut embedder = self.embedder.lock().unwrap();
+            embedder
+                .embed(chunks.clone(), None)
+                .map_err(|e| EiosError::Internal(format!("Embedding failed: {}", e)))?
+        };
+
+        let mut points = Vec::new();
+        for (i, (chunk, embedding)) in chunks.into_iter().zip(embeddings.into_iter()).enumerate() {
+            let point_uuid =
+                Uuid::new_v5(&Uuid::NAMESPACE_URL, format!("research://{}#{}", url, i).as_bytes());
+
+            let payload: Payload = serde_json::json!({
+                "text": chunk,
+                "source": "external_research",
+                "source_url": url,
+                "engine": engine,
+                "confidence_score": confidence_score,
+                "title": title.unwrap_or(""),
+                "timestamp": Utc::now().to_rfc3339(),
+            })
+            .try_into()
+            .map_err(|e| EiosError::VectorStore(format!("Payload conversion error: {}", e)))?;
+
+            points.push(PointStruct::new(point_uuid.to_string(), embedding, payload));
+        }
+
+        let point_count = points.len();
+        if !points.is_empty() {
+            self.qdrant
+                .upsert_points(UpsertPointsBuilder::new("documentation", points))
+                .await
+                .map_err(|e| EiosError::VectorStore(e.to_string()))?;
+        }
+
+        info!(
+            "Grounded {} research chunks for {} via engine: {} (confidence: {:.2})",
+            point_count,
+            url,
+            engine,
+            confidence_score
+        );
+        Ok(())
+    }
+
     /// Ingest parsed workspace AST symbols into the "code" collection.
     pub async fn ingest_workspace_ast(&self, symbols: &[ParsedSymbol]) -> Result<()> {
         info!(
