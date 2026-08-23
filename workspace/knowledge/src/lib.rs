@@ -3,11 +3,17 @@ pub mod client;
 pub mod collections;
 pub mod indexer;
 pub mod rss;
+pub mod code_graph;
+pub mod impact_analysis;
+pub mod subgraph_pruner;
 
 pub use ast::ParsedSymbol;
 pub use client::{EiosChunk, KnowledgeClient};
 pub use collections::COLLECTIONS;
 pub use rss::{FeedEntry, parse_feed};
+pub use code_graph::{CodeEdge, CodeEdgeType, CodeNode, CodeNodeType, MultiModalCodeGraph};
+pub use impact_analysis::{ImpactAnalysisEngine, ImpactAnalysisReport, ImpactRiskLevel};
+pub use subgraph_pruner::{PrunedSubgraph, SubgraphPruner};
 
 #[cfg(test)]
 mod tests {
