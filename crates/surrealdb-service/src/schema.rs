@@ -65,3 +65,17 @@ pub struct CloudTrainingSampleRecord {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+pub struct GraphDatabase;
+
+impl GraphDatabase {
+    pub const SCHEMA_QUERY: &'static str = "
+        DEFINE TABLE code_node SCHEMALESS;
+        DEFINE TABLE calls SCHEMALESS;
+        DEFINE TABLE defines SCHEMALESS;
+        DEFINE TABLE implements SCHEMALESS;
+        DEFINE TABLE references SCHEMALESS;
+        DEFINE TABLE data_flows_to SCHEMALESS;
+    ";
+}
+
+

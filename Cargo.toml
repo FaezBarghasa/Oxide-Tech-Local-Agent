@@ -58,6 +58,7 @@ notify = "8.0"
 uuid = { version = "1.23", features = ["v4", "v5"] }
 futures-util = "0.3"
 select = "0.6"
+similar = "2.6"
 surrealdb = { version = "3", features = [
     "kv-surrealkv",
     "kv-mem",

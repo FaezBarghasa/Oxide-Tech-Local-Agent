@@ -1,10 +1,16 @@
 pub mod tool_maker;
 pub mod skill_curator;
 pub mod harness_evolver;
+pub mod graph_optimizer;
+pub mod skill_crystallizer;
+pub mod delta_harvester;
 
 pub use tool_maker::{ToolMaker, ToolSpecification, MojoToolSpecification, TestResult, JitToolSpec, VerificationResult};
 pub use skill_curator::{SkillCurator, SkillPerformance};
 pub use harness_evolver::{HarnessEvolver, HarnessRefinement};
+pub use graph_optimizer::{GraphTraversalOptimizer, GraphWeightProfile};
+pub use skill_crystallizer::{SkillCrystallizer, CrystallizedSkill};
+pub use delta_harvester::{DeltaHarvester, VerificationDelta};
 
 
 #[cfg(test)]
@@ -132,6 +138,53 @@ if __name__ == "__main__":
         let reverted_content = tokio::fs::read_to_string(&prompt_notes).await.unwrap();
         assert!(!reverted_content.contains("RULE-001"));
         assert!(!reverted_content.contains("NEVER configure SPI baud rate > 20MHz"));
+    }
+
+    #[tokio::test]
+    async fn test_graph_traversal_optimization() {
+        let mut opt = GraphTraversalOptimizer::new();
+        let initial = opt.get_current_profile();
+        assert_eq!(initial.max_traversal_hops, 3);
+
+        opt.record_missed_dependency("imports");
+        let updated = opt.get_current_profile();
+        assert!(updated.dependency_weight > initial.dependency_weight);
+        assert_eq!(updated.max_traversal_hops, 4);
+    }
+
+    #[tokio::test]
+    async fn test_skill_crystallization_and_composition() {
+        let tmp = tempdir().unwrap();
+        let skills_dir = tmp.path().join("skills");
+        let crystallizer = SkillCrystallizer::new(skills_dir.clone());
+
+        let skill1 = CrystallizedSkill {
+            name: "setup_freertos_queue".to_string(),
+            description: "Creates FreeRTOS message queue".to_string(),
+            tags: vec!["freertos".to_string(), "embedded".to_string()],
+            prompt_template: "Setup FreeRTOS queue".to_string(),
+            step_sequence: vec!["Initialize queue handle".to_string(), "Allocate storage buffer".to_string()],
+            source_task_id: "task_01".to_string(),
+        };
+
+        let skill_file = crystallizer.crystallize_workflow(&skill1).await.unwrap();
+        assert!(skill_file.exists());
+        let content = tokio::fs::read_to_string(&skill_file).await.unwrap();
+        assert!(content.contains("name: setup_freertos_queue"));
+        assert!(content.contains("1. Initialize queue handle"));
+
+        let skill2 = CrystallizedSkill {
+            name: "verify_qemu_execution".to_string(),
+            description: "Runs bare-metal binary in QEMU".to_string(),
+            tags: vec!["qemu".to_string(), "verification".to_string()],
+            prompt_template: "Run QEMU".to_string(),
+            step_sequence: vec!["Launch qemu-system-arm".to_string(), "Assert serial output".to_string()],
+            source_task_id: "task_02".to_string(),
+        };
+
+        let composite = crystallizer.compose_skills("full_rtos_qemu_pipeline", "End to end RTOS verification", &[&skill1, &skill2]);
+        assert_eq!(composite.step_sequence.len(), 6);
+        assert!(composite.tags.contains(&"composite".to_string()));
     }
 }
 

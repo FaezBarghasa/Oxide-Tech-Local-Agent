@@ -7,7 +7,7 @@ pub mod code_graph;
 pub mod impact_analysis;
 pub mod subgraph_pruner;
 
-pub use ast::ParsedSymbol;
+pub use ast::{ParsedSymbol, AstGraphExtractor, CodeGraphNode, CodeGraphEdge, CodeNodeType as AstCodeNodeType, CodeEdgeType as AstCodeEdgeType};
 pub use client::{EiosChunk, KnowledgeClient};
 pub use collections::COLLECTIONS;
 pub use rss::{FeedEntry, parse_feed};

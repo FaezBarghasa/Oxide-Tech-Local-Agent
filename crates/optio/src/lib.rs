@@ -1,8 +1,14 @@
 pub mod oscillation;
 pub mod dag;
+pub mod impact_analysis;
+pub mod context_slicer;
+pub mod persona_loop;
 
 pub use oscillation::OscillationDetector;
 pub use dag::{TaskDag, TaskNode};
+pub use impact_analysis::{ImpactAnalyzer, ImpactSurface};
+pub use context_slicer::{GraphContextSlicer, SubgraphSlice};
+pub use persona_loop::{PersonaOrchestrator, PlanOutput, PlanStep};
 
 #[cfg(test)]
 mod tests {
