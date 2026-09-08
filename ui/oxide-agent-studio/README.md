@@ -1,6 +1,6 @@
 # Oxide Agent Studio
 
-**Oxide Agent Studio** is the unified web control plane and visual IDE for **Oxide-Tech-Local-Agent** (NexusForge), built with React 19, TypeScript, TailwindCSS, Lucide icons, and Vite.
+**Oxide Agent Studio** is the unified web control plane and visual IDE for **Oxide-Tech-Local-Agent**, built with React 19, TypeScript, TailwindCSS, Lucide icons, and Vite.
 
 ---
 

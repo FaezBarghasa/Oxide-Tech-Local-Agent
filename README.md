@@ -1,6 +1,6 @@
 # Oxide-Tech Local Agent OS
 
-**Oxide-Tech Local Agent OS** (NexusForge) is the premier local-first, high-performance, self-evolving cognitive operating system designed for hardware and software engineering. It combines multi-modal code graph topology mapping, dynamic LoRA adapter hot-swapping, atomic sandbox execution, and tri-fold self-evolution.
+**Oxide-Tech Local Agent OS** is the premier local-first, high-performance, self-evolving cognitive operating system designed for hardware and software engineering. It combines multi-modal code graph topology mapping, dynamic LoRA adapter hot-swapping, atomic sandbox execution, and tri-fold self-evolution.
 
 ---
 
@@ -13,7 +13,7 @@
 └───────────────────────────────────────────────────────┬────────────────────────────────────────────────────────┘
                                                         │ JSON-RPC 2.0 / gRPC / SSE / QUIC HTTP/3
 ┌───────────────────────────────────────────────────────▼────────────────────────────────────────────────────────┐
-│                          NEXUSFORGE / OXIDE-TECH-LOCAL-AGENT CORE ENGINE                                       │
+│                              OXIDE-TECH-LOCAL-AGENT CORE ENGINE                                                │
 │                                                                                                                │
 │   ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐   │
 │   │                                      GRAPH ENGINEERING LAYER                                           │   │

@@ -1,6 +1,6 @@
 # Oxide-Tech Local Agent OS: System Architecture (v2.1)
 
-**NexusForge / Oxide-Tech-Local-Agent** is organized into 6 primary engineering layers, ensuring full isolation, structural intelligence, deterministic verification, autonomous self-evolution, and deep internet-connected perception.
+**Oxide-Tech-Local-Agent** is organized into 6 primary engineering layers, ensuring full isolation, structural intelligence, deterministic verification, autonomous self-evolution, and deep internet-connected perception.
 
 ---
 
