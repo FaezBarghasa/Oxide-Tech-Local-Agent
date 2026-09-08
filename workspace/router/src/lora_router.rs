@@ -21,9 +21,10 @@ pub struct LoraAdapterConfig {
     pub alpha: u32,
     pub path: String,
     pub target_modules: Vec<String>,
+    pub domain_keywords: Vec<String>,
 }
 
-/// Dynamic LoRA Router: Hot-swaps task-specific LoRA weights on SGLang TP=2 serving cluster
+/// Dynamic LoRA Router: Selects task-specific LoRA weights using keyword frequency scoring and fallback classifiers.
 #[derive(Debug, Clone)]
 pub struct DynamicLoraRouter {
     pub active_adapter: LoraAdapterType,
@@ -42,6 +43,8 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_sql_opt".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
+                    domain_keywords: vec!["surrealql", "sql", "query", "database", "index", "schema", "relate", "recordid"]
+                        .into_iter().map(String::from).collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::FirmwareEmbedded,
@@ -50,6 +53,8 @@ impl DynamicLoraRouter {
                     alpha: 128,
                     path: "weights/lora_firmware_embedded".to_string(),
                     target_modules: vec!["q_proj".to_string(), "k_proj".to_string(), "v_proj".to_string(), "o_proj".to_string()],
+                    domain_keywords: vec!["no_std", "firmware", "stm32", "esp32", "cortex-m", "embassy", "probe-rs", "hal", "gpio", "uart", "spi", "i2c"]
+                        .into_iter().map(String::from).collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::PcbCad,
@@ -58,6 +63,8 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_pcb_cad".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
+                    domain_keywords: vec!["kicad", "skidl", "pcb", "schematic", "netlist", "footprint", "gerber", "drc", "erc", "spice"]
+                        .into_iter().map(String::from).collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::SecurityAudit,
@@ -66,6 +73,8 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_security_audit".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
+                    domain_keywords: vec!["cve", "vulnerability", "audit", "exploit", "memory safety", "unsafe", "overflow", "injection", "sbom"]
+                        .into_iter().map(String::from).collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::UiStyling,
@@ -74,27 +83,33 @@ impl DynamicLoraRouter {
                     alpha: 32,
                     path: "weights/lora_ui_styling".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
+                    domain_keywords: vec!["tailwind", "css", "slint", "ui", "component", "frontend", "layout", "styling", "rsx", "view"]
+                        .into_iter().map(String::from).collect(),
                 },
             ],
         }
     }
 
-    /// Predict the optimal LoRA adapter for a given user prompt or task goal
+    /// Predict the optimal LoRA adapter using weighted domain keyword ranking
     pub fn select_adapter_for_prompt(&self, prompt: &str) -> LoraAdapterType {
         let p_lower = prompt.to_lowercase();
-        if p_lower.contains("surrealql") || p_lower.contains("sql") || p_lower.contains("query") || p_lower.contains("database") {
-            LoraAdapterType::SqlOptimization
-        } else if p_lower.contains("no_std") || p_lower.contains("firmware") || p_lower.contains("stm32") || p_lower.contains("esp32") || p_lower.contains("klipper") || p_lower.contains("embassy") {
-            LoraAdapterType::FirmwareEmbedded
-        } else if p_lower.contains("kicad") || p_lower.contains("skidl") || p_lower.contains("pcb") || p_lower.contains("schematic") || p_lower.contains("netlist") {
-            LoraAdapterType::PcbCad
-        } else if p_lower.contains("cve") || p_lower.contains("vulnerability") || p_lower.contains("audit") || p_lower.contains("exploit") || p_lower.contains("memory safety") {
-            LoraAdapterType::SecurityAudit
-        } else if p_lower.contains("tailwind") || p_lower.contains("css") || p_lower.contains("ui") || p_lower.contains("react") || p_lower.contains("component") {
-            LoraAdapterType::UiStyling
-        } else {
-            LoraAdapterType::BaseModel
+        let mut best_score = 0;
+        let mut best_type = LoraAdapterType::BaseModel;
+
+        for config in &self.adapters {
+            let score = config
+                .domain_keywords
+                .iter()
+                .filter(|kw| p_lower.contains(kw.as_str()))
+                .count();
+
+            if score > best_score {
+                best_score = score;
+                best_type = config.adapter_type.clone();
+            }
         }
+
+        best_type
     }
 
     /// Dispatch dynamic LoRA hot-swap request to SGLang server
@@ -108,5 +123,45 @@ impl DynamicLoraRouter {
 impl Default for DynamicLoraRouter {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_select_adapter_ranking() {
+        let router = DynamicLoraRouter::new();
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Write a no_std embassy STM32 SPI driver"),
+            LoraAdapterType::FirmwareEmbedded
+        );
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Generate KiCad schematic with DRC and netlist export"),
+            LoraAdapterType::PcbCad
+        );
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Optimize SurrealQL query with recordid indices"),
+            LoraAdapterType::SqlOptimization
+        );
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Fix Slint UI component tailwind styling"),
+            LoraAdapterType::UiStyling
+        );
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Check for CVE vulnerability and unsafe memory safety"),
+            LoraAdapterType::SecurityAudit
+        );
+
+        assert_eq!(
+            router.select_adapter_for_prompt("Hello, how are you?"),
+            LoraAdapterType::BaseModel
+        );
     }
 }

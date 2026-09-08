@@ -14,6 +14,12 @@ pub enum AgentMode {
     Autonomous,
     /// Discuss / Plan mode (OpenWorker-aligned): Strict read-only, all mutations & execs blocked
     Plan,
+    /// Static analysis, vulnerability assessment, and code audit pass
+    Review,
+    /// Compiler error diagnosis, panic triage, and repair synthesis
+    Debug,
+    /// Deep retrieval and multi-source research synthesis
+    Research,
 }
 
 impl AgentMode {
@@ -23,6 +29,9 @@ impl AgentMode {
             "ask" => AgentMode::Ask,
             "plan" | "discuss" => AgentMode::Plan,
             "autonomous" | "auto" => AgentMode::Autonomous,
+            "review" | "audit" => AgentMode::Review,
+            "debug" | "fix" => AgentMode::Debug,
+            "research" => AgentMode::Research,
             _ => AgentMode::Code,
         }
     }
@@ -34,6 +43,9 @@ impl AgentMode {
             AgentMode::Ask => "ask",
             AgentMode::Autonomous => "autonomous",
             AgentMode::Plan => "plan",
+            AgentMode::Review => "review",
+            AgentMode::Debug => "debug",
+            AgentMode::Research => "research",
         }
     }
 
@@ -64,6 +76,21 @@ impl AgentMode {
                 "OPERATIONAL MODE: PLAN (GOVERNED READ-ONLY).\n\
                  You may inspect ASTs, read files, search the code graph, and draft actionable execution plans.\n\
                  All write tools, shell commands, and external side effects are strictly blocked."
+            }
+            AgentMode::Review => {
+                "OPERATIONAL MODE: REVIEW.\n\
+                 Focus on security audits, memory safety invariants, code smell identification, and dependency risk scans.\n\
+                 Output structured findings with risk severity ratings."
+            }
+            AgentMode::Debug => {
+                "OPERATIONAL MODE: DEBUG.\n\
+                 Focus on compiler diagnostic traces, rustc error codes, panics, and minimal reproducible repairs.\n\
+                 Synthesize exact corrective diffs to resolve errors."
+            }
+            AgentMode::Research => {
+                "OPERATIONAL MODE: RESEARCH.\n\
+                 Focus on deep multi-document retrieval, crate API lookups, reference documentation, and comparative analysis.\n\
+                 Synthesize findings into actionable technical summaries."
             }
         }
     }
@@ -215,7 +242,7 @@ pub struct ToolPermissions {
 impl ToolPermissions {
     pub fn for_mode(mode: AgentMode) -> Self {
         match mode {
-            AgentMode::Code => Self {
+            AgentMode::Code | AgentMode::Debug => Self {
                 allow_read_files: true,
                 allow_write_files: true,
                 allow_terminal_exec: true,
@@ -223,15 +250,7 @@ impl ToolPermissions {
                 allow_hardware_flash: false,
                 allow_git_commit: true,
             },
-            AgentMode::Architect | AgentMode::Plan => Self {
-                allow_read_files: true,
-                allow_write_files: false,
-                allow_terminal_exec: false,
-                allow_network_outbound: true,
-                allow_hardware_flash: false,
-                allow_git_commit: false,
-            },
-            AgentMode::Ask => Self {
+            AgentMode::Architect | AgentMode::Plan | AgentMode::Review | AgentMode::Ask | AgentMode::Research => Self {
                 allow_read_files: true,
                 allow_write_files: false,
                 allow_terminal_exec: false,
@@ -265,8 +284,8 @@ impl ToolPermissions {
             return PermissionDecision::Allow;
         }
 
-        // 2. Plan / Architect / Ask modes block all consequential actions
-        if matches!(mode, AgentMode::Plan | AgentMode::Architect | AgentMode::Ask) {
+        // 2. Read-only modes block all consequential actions
+        if matches!(mode, AgentMode::Plan | AgentMode::Architect | AgentMode::Ask | AgentMode::Review | AgentMode::Research) {
             return PermissionDecision::Deny {
                 reason: format!(
                     "Tool '{}' with risk {:?} is blocked in {} mode",
@@ -364,6 +383,13 @@ mod tests {
         assert!(matches!(dec, PermissionDecision::Deny { .. }));
         let dec_read = perms.evaluate_execution(AgentMode::Plan, "read_file", None, false);
         assert_eq!(dec_read, PermissionDecision::Allow);
+    }
+
+    #[test]
+    fn test_review_mode_blocks_writes() {
+        let perms = ToolPermissions::for_mode(AgentMode::Review);
+        let dec = perms.evaluate_execution(AgentMode::Review, "apply_diff", None, false);
+        assert!(matches!(dec, PermissionDecision::Deny { .. }));
     }
 
     #[test]

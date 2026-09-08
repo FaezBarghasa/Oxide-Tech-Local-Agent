@@ -6,6 +6,9 @@ use tracing::{error, info, warn};
 
 pub mod gpu_resource_manager;
 pub mod cloud_budget;
+pub mod inbox;
+
+pub use inbox::{HitlInboxManager, InboxEntry, InboxStatus};
 
 use blog::BlogPost;
 use common::config::AppConfig;

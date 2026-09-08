@@ -274,6 +274,33 @@ impl SupervisorAgent {
                     vec![],
                 );
             }
+            AgentMode::Review => {
+                dag.add_task(
+                    "security_audit",
+                    "Security & Code Quality Audit",
+                    SubAgentRole::Reviewer,
+                    &format!("Audit AST, dependencies, and memory safety for: {goal}"),
+                    vec![],
+                );
+            }
+            AgentMode::Debug => {
+                dag.add_task(
+                    "diagnose",
+                    "Compiler & Diagnostic Analysis",
+                    SubAgentRole::Debugger,
+                    &format!("Diagnose error and synthesize minimal repair for: {goal}"),
+                    vec![],
+                );
+            }
+            AgentMode::Research => {
+                dag.add_task(
+                    "deep_research",
+                    "Multi-Source Documentation Synthesis",
+                    SubAgentRole::Architect,
+                    &format!("Perform deep RAG and web research for: {goal}"),
+                    vec![],
+                );
+            }
             AgentMode::Code | AgentMode::Autonomous => {
                 // Tier 0: Architect (no deps)
                 dag.add_task(
@@ -372,6 +399,14 @@ mod tests {
         let dag = supervisor.plan_goal("Design embedded HAL").await;
         assert_eq!(dag.nodes.len(), 1);
         assert!(dag.nodes.contains_key("arch_spec"));
+    }
+
+    #[tokio::test]
+    async fn plan_goal_debug_mode_produces_diagnose_task() {
+        let supervisor = SupervisorAgent::new(AgentMode::Debug);
+        let dag = supervisor.plan_goal("Fix borrow checker error").await;
+        assert_eq!(dag.nodes.len(), 1);
+        assert!(dag.nodes.contains_key("diagnose"));
     }
 
     #[test]

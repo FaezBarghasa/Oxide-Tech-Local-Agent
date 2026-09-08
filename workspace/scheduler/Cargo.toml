@@ -18,4 +18,5 @@ surrealdb = { workspace = true }
 surrealdb-types = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
+uuid = { workspace = true, features = ["serde"] }
 tokio-cron-scheduler = "0.13"

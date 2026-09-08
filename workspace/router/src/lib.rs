@@ -9,11 +9,13 @@ pub mod agent_modes;
 pub mod supervisor;
 pub mod lora_router;
 pub mod observer;
+pub mod agent_fsm;
 
-pub use agent_modes::{AgentMode, ToolPermissions};
+pub use agent_modes::{AgentMode, ToolPermissions, RiskClass, PermissionDecision, classify_tool_call};
 pub use supervisor::{SupervisorAgent, TaskDag, TaskNode, TaskStatus, SubAgentRole};
 pub use lora_router::{DynamicLoraRouter, LoraAdapterType, LoraAdapterConfig};
 pub use observer::{ObserverAgent, LoopObservationReport, LoopRecommendation};
+pub use agent_fsm::{AgentFsmRouter, RoutingDecision};
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -187,6 +187,7 @@ impl LlmRouterClient {
     /// `expect_json` instructs OpenAI-compatible backends to use
     /// `response_format: { type: "json_object" }`.  Ollama ignores this flag
     /// (JSON mode is controlled via the system prompt instead).
+    #[tracing::instrument(name = "llm_complete", skip(self, system_prompt, user_prompt), fields(provider = ?self.provider, model = %self.model, expect_json = expect_json))]
     pub async fn complete(
         &self,
         system_prompt: &str,
@@ -208,6 +209,7 @@ impl LlmRouterClient {
 
     // ── OpenAI-compatible path (Groq, Mistral, vLLM) ────────────────────────
 
+    #[tracing::instrument(name = "llm_openai_request", skip(self, system_prompt, user_prompt), fields(url = %self.base_url))]
     async fn complete_openai_compatible(
         &self,
         system_prompt: &str,
@@ -298,6 +300,7 @@ impl LlmRouterClient {
 
     // ── Ollama path ──────────────────────────────────────────────────────────
 
+    #[tracing::instrument(name = "llm_ollama_request", skip(self, system_prompt, user_prompt), fields(url = %self.base_url))]
     async fn complete_ollama(
         &self,
         system_prompt: &str,

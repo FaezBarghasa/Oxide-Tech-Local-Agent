@@ -1,21 +1,8 @@
 //! # Telemetry
 //!
 //! OpenTelemetry tracing and metrics initializer for the Oxide-Tech agent system.
-//!
-//! ## Usage
-//!
-//! ```rust,no_run
-//! use telemetry::TelemetryConfig;
-//!
-//! #[tokio::main]
-//! async fn main() {
-//!     let _guard = TelemetryConfig::from_env().init().await.unwrap();
-//!     // application code…
-//! }
-//! ```
 
 use anyhow::{Context, Result};
-use opentelemetry::trace::TracerProvider as _;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{runtime, trace as sdktrace};
 use tracing_opentelemetry::OpenTelemetryLayer;
@@ -69,12 +56,11 @@ impl TelemetryConfig {
             .context("invalid RUST_LOG filter")?;
 
         if let Some(ref endpoint) = self.otlp_endpoint {
-            // ── OTLP exporter (tracing) ─────────────────────────────────────
             let exporter = opentelemetry_otlp::new_exporter()
                 .tonic()
                 .with_endpoint(endpoint);
 
-            let tracer_provider = opentelemetry_otlp::new_pipeline()
+            let tracer = opentelemetry_otlp::new_pipeline()
                 .tracing()
                 .with_exporter(exporter)
                 .with_trace_config(sdktrace::Config::default().with_resource(
@@ -86,28 +72,26 @@ impl TelemetryConfig {
                 .install_batch(runtime::Tokio)
                 .context("failed to install OTLP tracer")?;
 
-            let tracer = tracer_provider.tracer(self.service_name.clone());
             let otel_layer = OpenTelemetryLayer::new(tracer);
 
             if self.json_logs {
+                let fmt_layer = tracing_subscriber::fmt::layer().json();
                 Registry::default()
                     .with(env_filter)
-                    .with(tracing_subscriber::fmt::layer().json())
                     .with(otel_layer)
+                    .with(fmt_layer)
                     .init();
             } else {
+                let fmt_layer = tracing_subscriber::fmt::layer();
                 Registry::default()
                     .with(env_filter)
-                    .with(tracing_subscriber::fmt::layer())
                     .with(otel_layer)
+                    .with(fmt_layer)
                     .init();
             }
 
-            Ok(TelemetryGuard {
-                provider: Some(tracer_provider),
-            })
+            Ok(TelemetryGuard { otel_active: true })
         } else {
-            // ── Local stdout/stderr only ─────────────────────────────────────
             if self.json_logs {
                 Registry::default()
                     .with(env_filter)
@@ -120,22 +104,20 @@ impl TelemetryConfig {
                     .init();
             }
 
-            Ok(TelemetryGuard { provider: None })
+            Ok(TelemetryGuard { otel_active: false })
         }
     }
 }
 
-/// RAII guard — when dropped, flushes all pending OTLP spans to the collector.
+/// RAII guard — when dropped, shuts down the OpenTelemetry tracer provider.
 pub struct TelemetryGuard {
-    provider: Option<opentelemetry_sdk::trace::TracerProvider>,
+    otel_active: bool,
 }
 
 impl Drop for TelemetryGuard {
     fn drop(&mut self) {
-        if let Some(provider) = self.provider.take() {
-            if let Err(e) = provider.shutdown() {
-                eprintln!("telemetry: failed to flush OTLP spans on shutdown: {e}");
-            }
+        if self.otel_active {
+            opentelemetry::global::shutdown_tracer_provider();
         }
     }
 }

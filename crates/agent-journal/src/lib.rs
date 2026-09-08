@@ -6,17 +6,11 @@
 //! table — never mutated in place. On restart the supervisor replays the journal to
 //! restore the exact `TaskDag` state at the last committed boundary, giving crash-safe
 //! durable execution comparable to LangGraph's `SqliteSaver` / Restate journal.
-//!
-//! ## Key Design Choices
-//! - **Append-only** — entries are never deleted or updated, only inserted.
-//! - **Ordered replay** — `event_seq` (monotonically increasing u64) ensures correct
-//!   reconstruction even if wall-clock timestamps collide.
-//! - **HITL aware** — `HitlInterrupt` / `HitlResumed` events carry the full decision
-//!   payload so the audit trail is complete without additional joins.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::{Surreal, engine::any::Any};
+use surrealdb_types::{RecordId, SurrealValue};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -35,7 +29,7 @@ pub enum JournalError {
 // ── Domain Types ──────────────────────────────────────────────────────────────
 
 /// Typed artifact reference — replaces the bare `Option<String>` result field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ArtifactRef {
     /// Human-readable label (e.g. "cargo_check_output", "applied_diff")
     pub label: String,
@@ -47,7 +41,7 @@ pub struct ArtifactRef {
 
 /// Rich, typed result for a completed `TaskNode`.
 /// Replaces the previous bare `Option<String>` in `supervisor.rs`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct TaskResult {
     /// One-sentence summary suitable for the supervisor's context window.
     pub summary: String,
@@ -64,7 +58,7 @@ pub struct TaskResult {
 }
 
 /// Human-in-the-loop decision recorded in the journal.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, SurrealValue)]
 pub enum HitlDecision {
     /// Human approved the pending action as proposed.
     Approved,
@@ -75,7 +69,7 @@ pub enum HitlDecision {
 }
 
 /// All possible journal events — the complete vocabulary of the agent's execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 #[serde(tag = "event_type", rename_all = "snake_case")]
 pub enum JournalEvent {
     /// A new task execution DAG has been created.
@@ -148,11 +142,11 @@ pub enum JournalEvent {
 // ── Stored Journal Entry ──────────────────────────────────────────────────────
 
 /// A single immutable row in the `agent_journal` SurrealDB table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct JournalEntry {
     /// Auto-generated SurrealDB record id (populated on read-back).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<surrealdb::RecordId>,
+    pub id: Option<RecordId>,
     /// Monotonically increasing sequence within the session (not globally unique).
     pub event_seq: u64,
     /// The concrete event payload.
@@ -196,7 +190,7 @@ impl AgentJournal {
             recorded_at: Utc::now(),
         };
 
-        let _: Vec<JournalEntry> = self.db.create(TABLE).content(entry).await?;
+        let _: Option<JournalEntry> = self.db.create(TABLE).content(entry).await?;
         tracing::debug!(seq, "agent_journal: appended event");
         Ok(seq)
     }
