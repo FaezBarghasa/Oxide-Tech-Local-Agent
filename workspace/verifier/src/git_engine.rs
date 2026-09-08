@@ -39,8 +39,8 @@ impl GitEngine {
                     .next()
                     .unwrap_or("main");
                 branch = b.to_string();
-            } else if line.starts_with("?? ") {
-                untracked_files.push(line[3..].trim().to_string());
+            } else if let Some(untracked) = line.strip_prefix("?? ") {
+                untracked_files.push(untracked.trim().to_string());
             } else if !line.trim().is_empty() {
                 let f = line.get(3..).unwrap_or(line).trim().to_string();
                 modified_files.push(f);

@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default, clippy::useless_conversion)]
+
 use chrono::Utc;
 use select::document::Document;
 use select::predicate::Name;

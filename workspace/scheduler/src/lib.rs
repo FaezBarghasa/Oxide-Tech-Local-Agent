@@ -1,3 +1,5 @@
+#![allow(clippy::collapsible_if, clippy::new_without_default)]
+
 use chrono::Utc;
 use std::time::Duration;
 use surrealdb::Surreal;

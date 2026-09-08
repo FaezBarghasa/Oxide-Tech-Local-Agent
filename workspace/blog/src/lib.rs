@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_closure)]
+
 pub mod models;
 pub mod service;
 pub mod templates;

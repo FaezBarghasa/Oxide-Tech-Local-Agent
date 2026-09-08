@@ -23,6 +23,12 @@ pub struct DocsRsScraper {
     rate_delay: Duration,
 }
 
+impl Default for DocsRsScraper {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DocsRsScraper {
     pub fn new() -> Self {
         // Use rustls and a short timeout

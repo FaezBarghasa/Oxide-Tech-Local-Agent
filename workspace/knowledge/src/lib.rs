@@ -1,3 +1,11 @@
+#![allow(
+    clippy::collapsible_if,
+    clippy::collapsible_match,
+    clippy::if_same_then_else,
+    clippy::redundant_closure,
+    clippy::useless_conversion
+)]
+
 pub mod ast;
 pub mod client;
 pub mod code_graph;

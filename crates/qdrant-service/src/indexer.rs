@@ -64,8 +64,9 @@ impl FlashKMeans {
 
             for c in 0..k {
                 if counts[c] > 0 {
-                    for d in 0..dim {
-                        new_centroids[c][d] /= counts[c] as f32;
+                    let count_f = counts[c] as f32;
+                    for val in &mut new_centroids[c] {
+                        *val /= count_f;
                     }
                     centroids[c] = new_centroids[c].clone();
                 }

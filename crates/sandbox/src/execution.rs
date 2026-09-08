@@ -52,8 +52,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
             .stderr(std::process::Stdio::piped())
             .pre_exec(|| {
                 // Place child in a new session so we can kill the entire group.
-                nix::unistd::setsid()
-                    .map_err(std::io::Error::other)?;
+                nix::unistd::setsid().map_err(std::io::Error::other)?;
 
                 // Cap virtual memory (RLIMIT_AS).
                 let mem_limit = nix::sys::resource::rlim_t::from(MEMORY_LIMIT_BYTES);

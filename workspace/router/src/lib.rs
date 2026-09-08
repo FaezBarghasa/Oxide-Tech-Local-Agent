@@ -1,3 +1,10 @@
+#![allow(
+    clippy::collapsible_if,
+    clippy::new_without_default,
+    clippy::should_implement_trait,
+    clippy::too_many_arguments
+)]
+
 use serde::{Deserialize, Serialize};
 
 pub mod agent_fsm;

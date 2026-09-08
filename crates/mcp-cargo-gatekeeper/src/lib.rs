@@ -125,6 +125,16 @@ impl CargoGatekeeperServer {
             .unwrap_or_else(|| self.workspace_root.clone());
         let mut violations = Vec::new();
         let mut dirs = vec![base_dir.clone()];
+        let unsafe_re = match Regex::new(r"(?m)^\s*unsafe\s+(fn\s|\{)") {
+            Ok(r) => r,
+            Err(e) => {
+                return Ok(CallToolResult::error(vec![Content::text(format!(
+                    "Failed to compile safety audit regex: {}",
+                    e
+                ))]));
+            }
+        };
+
         while let Some(dir) = dirs.pop() {
             let mut entries = match fs::read_dir(&dir).await {
                 Ok(e) => e,
@@ -140,8 +150,7 @@ impl CargoGatekeeperServer {
                             Ok(c) => c,
                             Err(_) => continue,
                         };
-                        let re = Regex::new(r"(?m)^\s*unsafe\s+(fn\s|\{)").unwrap();
-                        for mat in re.find_iter(&content) {
+                        for mat in unsafe_re.find_iter(&content) {
                             let line_num = content[..mat.start()].matches('\n').count() + 1;
                             let start_slice = if mat.start() >= 200 {
                                 &content[mat.start() - 200..mat.start()]

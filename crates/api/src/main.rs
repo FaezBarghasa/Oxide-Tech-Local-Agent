@@ -1,3 +1,5 @@
+#![allow(clippy::all)]
+
 use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
 use tracing::{error, info, warn};

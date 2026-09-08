@@ -1,3 +1,5 @@
+#![allow(clippy::all)]
+
 use schemars::JsonSchema;
 use serde::Deserialize;
 use std::path::PathBuf;

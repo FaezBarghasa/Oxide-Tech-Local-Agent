@@ -6,7 +6,7 @@ use tokio::time::{Duration, timeout};
 use tracing::{error, info};
 
 const EXECUTION_TIMEOUT: Duration = Duration::from_secs(30);
-const MEMORY_LIMIT_BYTES: u64 = 1 * 1024 * 1024 * 1024; // 1 GiB
+const MEMORY_LIMIT_BYTES: u64 = 1024 * 1024 * 1024; // 1 GiB
 const CPU_TIME_LIMIT_SECS: u64 = 60;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
@@ -41,8 +41,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
             .stderr(std::process::Stdio::piped())
             .pre_exec(|| {
                 // New session for process group signals
-                nix::unistd::setsid()
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                nix::unistd::setsid().map_err(std::io::Error::other)?;
 
                 // Virtual memory cap (RLIMIT_AS)
                 let mem_limit = nix::sys::resource::rlim_t::from(MEMORY_LIMIT_BYTES);
@@ -51,7 +50,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                     mem_limit,
                     mem_limit,
                 )
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                .map_err(std::io::Error::other)?;
 
                 // CPU time cap (RLIMIT_CPU)
                 let cpu_limit = nix::sys::resource::rlim_t::from(CPU_TIME_LIMIT_SECS);
@@ -60,17 +59,12 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                     cpu_limit,
                     cpu_limit,
                 )
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                .map_err(std::io::Error::other)?;
 
                 Ok(())
             })
             .spawn()
-            .map_err(|e| {
-                std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to spawn process: {}", e),
-                )
-            })?
+            .map_err(|e| std::io::Error::other(format!("Failed to spawn process: {}", e)))?
     };
 
     let pid = child.id().unwrap_or(0);

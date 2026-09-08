@@ -22,11 +22,9 @@ fn get_previous_doc_comments(node: Node, content: &str) -> Option<String> {
             .get(prev.start_byte()..prev.end_byte())
             .unwrap_or("")
             .trim();
-        if prev.kind() == "line_comment" && text.starts_with("///") {
-            comments.push(text.to_string());
-            current = prev;
-            continue;
-        } else if prev.kind() == "block_comment" && text.starts_with("/**") {
+        let is_doc = (prev.kind() == "line_comment" && text.starts_with("///"))
+            || (prev.kind() == "block_comment" && text.starts_with("/**"));
+        if is_doc {
             comments.push(text.to_string());
             current = prev;
             continue;
@@ -416,7 +414,7 @@ impl AstCompactor {
                     "use_declaration" => {
                         let text = code.get(child.start_byte()..child.end_byte()).unwrap_or("");
                         compacted.push_str(text);
-                        compacted.push_str("\n");
+                        compacted.push('\n');
                     }
                     _ => {}
                 }

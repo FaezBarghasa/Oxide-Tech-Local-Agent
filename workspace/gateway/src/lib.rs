@@ -1,3 +1,12 @@
+#![allow(
+    clippy::collapsible_if,
+    clippy::manual_div_ceil,
+    clippy::manual_unwrap_or,
+    clippy::manual_unwrap_or_default,
+    clippy::match_like_matches_macro,
+    clippy::should_implement_trait
+)]
+
 pub mod auth;
 pub mod h3_gateway;
 pub mod routes;
