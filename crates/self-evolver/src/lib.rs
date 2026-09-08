@@ -1,6 +1,7 @@
 pub mod delta_harvester;
 pub mod graph_optimizer;
 pub mod harness_evolver;
+pub mod qlora_trainer;
 pub mod skill_crystallizer;
 pub mod skill_curator;
 pub mod tool_maker;
@@ -8,6 +9,7 @@ pub mod tool_maker;
 pub use delta_harvester::{DeltaHarvester, VerificationDelta};
 pub use graph_optimizer::{GraphTraversalOptimizer, GraphWeightProfile};
 pub use harness_evolver::{HarnessEvolver, HarnessRefinement};
+pub use qlora_trainer::{QLoraTrainConfig, QLoraTrainer, TrainingReport};
 pub use skill_crystallizer::{CrystallizedSkill, SkillCrystallizer};
 pub use skill_curator::{SkillCurator, SkillPerformance};
 pub use tool_maker::{

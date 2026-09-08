@@ -1,11 +1,13 @@
 pub mod context_slicer;
+pub mod critic;
 pub mod dag;
 pub mod impact_analysis;
 pub mod oscillation;
 pub mod persona_loop;
 
 pub use context_slicer::{GraphContextSlicer, SubgraphSlice};
-pub use dag::{TaskDag, TaskNode};
+pub use critic::{CriticAgent, Critique};
+pub use dag::{ReflectionRound, TaskDag, TaskNode};
 pub use impact_analysis::{ImpactAnalyzer, ImpactSurface};
 pub use oscillation::OscillationDetector;
 pub use persona_loop::{PersonaOrchestrator, PlanOutput, PlanStep};

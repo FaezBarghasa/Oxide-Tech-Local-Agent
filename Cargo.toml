@@ -29,6 +29,7 @@ members = [
     "crates/optio",
     "crates/agent-journal",
     "crates/telemetry",
+    "crates/benchmark-harness",
 ]
 
 
@@ -36,8 +37,8 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-rmcp = { version = "1.7.0", features = ["server", "transport-io"] }
-reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
+rmcp = { version = "3.2.0", features = ["server", "transport-io"] }
+reqwest = { version = "0.13.4", features = ["json", "stream", "rustls-tls"] }
 tokio = { version = "1.52", features = ["full"] }
 tokio-stream = "0.1"
 anyhow = "1.0"
@@ -53,14 +54,14 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 
 # reqwest dependency moved to workspace.dependencies
-syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
+syn = { version = "3.0.5", features = ["full", "extra-traits", "visit"] }
 quote = "1.0"
 fastembed = "6.0.0"
 notify = "8.0"
 uuid = { version = "1.23", features = ["v4", "v5"] }
 futures-util = "0.3"
 select = "0.6"
-similar = "2.6"
+similar = "3.2.0"
 surrealdb = { version = "3", features = [
     "kv-surrealkv",
     "kv-mem",
@@ -83,8 +84,8 @@ thiserror = "2.0"
 nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
 
 ndarray = "0.17.2"
-petgraph = { version = "0.6", features = ["serde-1"] }
-lru = "0.12"
+petgraph = { version = "0.8.3", features = ["serde-1"] }
+lru = "0.18.4"
 
 
 [package]

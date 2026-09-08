@@ -1,10 +1,9 @@
-use anyhow::{anyhow, Result};
 use lru::LruCache;
 use serde::{Deserialize, Serialize};
 use std::num::NonZeroUsize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, info};
+use tracing::info;
 
 /// Status of a memory page in the virtual memory hierarchy.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/crates/agent-journal/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/api/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/config-loader/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/gateway-router/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mcp-cargo-gatekeeper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mcp-live-docs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mcp-probe-rs/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/mcp-qemu-redox/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/optio/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/qdrant-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/rag-pipeline/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/sandbox/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/self-evolver/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/surrealdb-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/telemetry/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/tree-sitter-service/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/vllm-client/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/blog/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/common/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/gateway/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/gateway/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/knowledge/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/knowledge/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/mcp-clients/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/mcp-server/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/memory/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/memory/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/router/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/router/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/scheduler/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/skills/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/thinker/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/workspace/verifier/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
