@@ -1,6 +1,5 @@
 use crate::shadow_state::WorkspaceSnapshot;
 use crate::mcts::MctsDecisionEngine;
-use std::sync::Arc;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SimulationEvaluation {

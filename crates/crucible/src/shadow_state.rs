@@ -2,7 +2,6 @@ use rkyv::{Archive, Deserialize, Serialize};
 
 /// Serializable, zero-copy workspace snapshot for high-speed MCTS branch simulation.
 #[derive(Archive, Serialize, Deserialize, Clone, Debug, PartialEq)]
-#[archive(check_bytes)]
 pub struct WorkspaceSnapshot {
     pub task_id: String,
     pub step_index: usize,
@@ -25,7 +24,7 @@ impl WorkspaceSnapshot {
     /// Archive current state into a zero-copy byte buffer for microsecond cloning.
     #[inline(always)]
     pub fn archive_to_bytes(&self) -> Result<Vec<u8>, String> {
-        rkyv::to_bytes::<_, 256>(self)
+        rkyv::to_bytes::<rkyv::rancor::Error>(self)
             .map(|buf| buf.into_vec())
             .map_err(|e| format!("Failed to archive WorkspaceSnapshot: {e:?}"))
     }
@@ -33,7 +32,7 @@ impl WorkspaceSnapshot {
     /// Clone state from an archived byte slice with zero heap overhead.
     #[inline(always)]
     pub fn from_archived_bytes(bytes: &[u8]) -> Result<Self, String> {
-        let archived = rkyv::access::<ArchivedWorkspaceSnapshot>(bytes)
+        let archived = rkyv::access::<ArchivedWorkspaceSnapshot, rkyv::rancor::Error>(bytes)
             .map_err(|e| format!("Zero-copy access verification failed: {e:?}"))?;
         let deserialized: Self = rkyv::deserialize::<Self, rkyv::rancor::Error>(archived)
             .map_err(|e| format!("Deserialization error: {e:?}"))?;

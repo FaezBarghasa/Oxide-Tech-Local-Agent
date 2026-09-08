@@ -93,7 +93,7 @@ petgraph = { version = "0.8.3", features = ["serde-1"] }
 lru = "0.18.4"
 
 # --- 5-Pillar Ascension Dependencies ---
-rkyv = { version = "0.8", features = ["validation", "strict"] }
+rkyv = { version = "0.8", features = ["bytecheck", "std"] }
 rayon = "1.10"
 postcard = { version = "1.0", features = ["alloc"] }
 wasmtime = { version = "48.0.1", features = ["async", "cranelift"] }
