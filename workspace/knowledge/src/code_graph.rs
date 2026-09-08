@@ -167,7 +167,10 @@ impl MultiModalCodeGraph {
     pub fn stats(&self) -> (usize, usize) {
         let total_nodes = self.nodes.len();
         let total_edges: usize = self.outgoing_edges.values().map(|v| v.len()).sum();
-        info!("Code Graph topology: {} nodes, {} directed edges", total_nodes, total_edges);
+        info!(
+            "Code Graph topology: {} nodes, {} directed edges",
+            total_nodes, total_edges
+        );
         (total_nodes, total_edges)
     }
 }

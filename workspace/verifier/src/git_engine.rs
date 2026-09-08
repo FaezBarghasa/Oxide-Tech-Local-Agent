@@ -1,6 +1,6 @@
+use crate::execute_in_sandbox;
 use serde::{Deserialize, Serialize};
 use tracing::info;
-use crate::execute_in_sandbox;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitCommitInfo {
@@ -33,7 +33,11 @@ impl GitEngine {
 
         for line in res.stdout.lines() {
             if line.starts_with("## ") {
-                let b = line.trim_start_matches("## ").split("...").next().unwrap_or("main");
+                let b = line
+                    .trim_start_matches("## ")
+                    .split("...")
+                    .next()
+                    .unwrap_or("main");
                 branch = b.to_string();
             } else if line.starts_with("?? ") {
                 untracked_files.push(line[3..].trim().to_string());

@@ -1,25 +1,26 @@
+use chrono::Utc;
+use select::document::Document;
+use select::predicate::Name;
 use std::collections::HashSet;
 use std::sync::Mutex;
 use tracing::{info, warn};
 use uuid::Uuid;
-use chrono::Utc;
-use select::document::Document;
-use select::predicate::Name;
 
-use qdrant_client::Qdrant;
-use qdrant_client::qdrant::{CreateCollectionBuilder, Distance, VectorParamsBuilder, PointStruct, UpsertPointsBuilder, SearchPoints};
+use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
 use qdrant_client::Payload;
-use fastembed::{TextEmbedding, InitOptions, EmbeddingModel};
-
+use qdrant_client::Qdrant;
+use qdrant_client::qdrant::{
+    CreateCollectionBuilder, Distance, PointStruct, SearchPoints, UpsertPointsBuilder,
+    VectorParamsBuilder,
+};
 
 use qdrant_service::client::QdrantServiceClient;
 use surrealdb_service::client::SurrealClient;
 use tree_sitter_service::ast::ParsedSymbol;
 
-pub mod updater;
-pub mod okf;
 pub mod fable_router;
-
+pub mod okf;
+pub mod updater;
 
 const COLLECTION_NAME: &str = "rust_rag";
 
@@ -47,8 +48,7 @@ impl RagPipeline {
 
         // Initialize BGE Small EN v1.5 embedder locally
         let embedder = TextEmbedding::try_new(
-            InitOptions::new(EmbeddingModel::BGESmallENV15)
-                .with_show_download_progress(true)
+            InitOptions::new(EmbeddingModel::BGESmallENV15).with_show_download_progress(true),
         )?;
 
         let surreal = SurrealClient::new().await?;
@@ -67,24 +67,39 @@ impl RagPipeline {
     /// Set up the vector collection if it doesn't already exist.
     pub async fn setup_collection(&self) -> Result<(), anyhow::Error> {
         let collections = self.qdrant.list_collections().await?;
-        let exists = collections.collections.iter().any(|c| c.name == COLLECTION_NAME);
+        let exists = collections
+            .collections
+            .iter()
+            .any(|c| c.name == COLLECTION_NAME);
         if !exists {
             info!("Creating Qdrant collection: {}", COLLECTION_NAME);
-            self.qdrant.create_collection(
-                CreateCollectionBuilder::new(COLLECTION_NAME)
-                    .vectors_config(VectorParamsBuilder::new(384, Distance::Cosine))
-            ).await?;
+            self.qdrant
+                .create_collection(
+                    CreateCollectionBuilder::new(COLLECTION_NAME)
+                        .vectors_config(VectorParamsBuilder::new(384, Distance::Cosine)),
+                )
+                .await?;
         }
         Ok(())
     }
 
     /// Crawl and ingest docs.rs pages for a specific crate and version.
-    pub async fn ingest_crate_docs(&self, crate_name: &str, version: &str) -> Result<(), anyhow::Error> {
+    pub async fn ingest_crate_docs(
+        &self,
+        crate_name: &str,
+        version: &str,
+    ) -> Result<(), anyhow::Error> {
         let module_name = crate_name.replace('-', "_");
-        let base_url = format!("https://docs.rs/{}/{}/{}/", crate_name, version, module_name);
+        let base_url = format!(
+            "https://docs.rs/{}/{}/{}/",
+            crate_name, version, module_name
+        );
         let index_url = format!("{}index.html", base_url);
 
-        info!("Starting doc ingestion for crate {} v{} at {}", crate_name, version, index_url);
+        info!(
+            "Starting doc ingestion for crate {} v{} at {}",
+            crate_name, version, index_url
+        );
 
         let mut pages_to_fetch = vec![index_url.clone()];
         let mut fetched_pages = HashSet::new();
@@ -126,7 +141,10 @@ impl RagPipeline {
             if url.ends_with("index.html") {
                 let doc = Document::from(html.as_str());
                 for link in doc.find(Name("a")).filter_map(|n| n.attr("href")) {
-                    if link.starts_with("struct.") || link.starts_with("trait.") || link.starts_with("enum.") {
+                    if link.starts_with("struct.")
+                        || link.starts_with("trait.")
+                        || link.starts_with("enum.")
+                    {
                         let full_link = format!("{}{}", base_url, link);
                         pages_to_fetch.push(full_link);
                     }
@@ -134,7 +152,11 @@ impl RagPipeline {
             }
         }
 
-        info!("Crawled {} pages for crate {}. Chunking and embedding...", docs.len(), crate_name);
+        info!(
+            "Crawled {} pages for crate {}. Chunking and embedding...",
+            docs.len(),
+            crate_name
+        );
 
         for (url, text) in docs {
             let chunks = chunk_text(&text, 400, 50);
@@ -148,9 +170,12 @@ impl RagPipeline {
             };
 
             let mut points = Vec::new();
-            for (i, (chunk, embedding)) in chunks.into_iter().zip(embeddings.into_iter()).enumerate() {
+            for (i, (chunk, embedding)) in
+                chunks.into_iter().zip(embeddings.into_iter()).enumerate()
+            {
                 // Generate a deterministic UUID based on the URL and chunk index
-                let point_uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, format!("{}#{}", url, i).as_bytes());
+                let point_uuid =
+                    Uuid::new_v5(&Uuid::NAMESPACE_URL, format!("{}#{}", url, i).as_bytes());
 
                 let payload: Payload = serde_json::json!({
                     "text": chunk,
@@ -162,25 +187,32 @@ impl RagPipeline {
                 })
                 .try_into()?;
 
-                points.push(PointStruct::new(
-                    point_uuid.to_string(),
-                    embedding,
-                    payload,
-                ));
+                points.push(PointStruct::new(point_uuid.to_string(), embedding, payload));
             }
 
             if !points.is_empty() {
-                self.qdrant.upsert_points(UpsertPointsBuilder::new(COLLECTION_NAME, points)).await?;
+                self.qdrant
+                    .upsert_points(UpsertPointsBuilder::new(COLLECTION_NAME, points))
+                    .await?;
             }
         }
 
-        info!("Successfully ingested docs for crate {} v{}", crate_name, version);
+        info!(
+            "Successfully ingested docs for crate {} v{}",
+            crate_name, version
+        );
         Ok(())
     }
 
     /// Ingest parsed workspace AST symbols into the vector database.
-    pub async fn ingest_workspace_ast(&self, symbols: &[ParsedSymbol]) -> Result<(), anyhow::Error> {
-        info!("Ingesting {} workspace AST symbols into RAG...", symbols.len());
+    pub async fn ingest_workspace_ast(
+        &self,
+        symbols: &[ParsedSymbol],
+    ) -> Result<(), anyhow::Error> {
+        info!(
+            "Ingesting {} workspace AST symbols into RAG...",
+            symbols.len()
+        );
 
         let mut chunks = Vec::new();
         let mut payloads = Vec::new();
@@ -209,10 +241,21 @@ impl RagPipeline {
         };
 
         let mut points = Vec::new();
-        for (i, ((chunk, embedding), payload_val)) in chunks.into_iter().zip(embeddings.into_iter()).zip(payloads.into_iter()).enumerate() {
-            let file_path = payload_val.get("file_path").and_then(|v| v.as_str()).unwrap_or("");
-            let symbol_name = payload_val.get("symbol_name").and_then(|v| v.as_str()).unwrap_or("");
-            
+        for (i, ((chunk, embedding), payload_val)) in chunks
+            .into_iter()
+            .zip(embeddings.into_iter())
+            .zip(payloads.into_iter())
+            .enumerate()
+        {
+            let file_path = payload_val
+                .get("file_path")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let symbol_name = payload_val
+                .get("symbol_name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+
             // Deterministic UUID for the symbol
             let point_uuid = Uuid::new_v5(
                 &Uuid::NAMESPACE_URL,
@@ -221,19 +264,20 @@ impl RagPipeline {
 
             // Reconstruct full payload
             let mut payload_json = payload_val;
-            payload_json.as_object_mut().unwrap().insert("text".to_string(), serde_json::Value::String(chunk));
+            payload_json
+                .as_object_mut()
+                .unwrap()
+                .insert("text".to_string(), serde_json::Value::String(chunk));
 
             let payload: Payload = payload_json.try_into()?;
 
-            points.push(PointStruct::new(
-                point_uuid.to_string(),
-                embedding,
-                payload,
-            ));
+            points.push(PointStruct::new(point_uuid.to_string(), embedding, payload));
         }
 
         if !points.is_empty() {
-            self.qdrant.upsert_points(UpsertPointsBuilder::new(COLLECTION_NAME, points)).await?;
+            self.qdrant
+                .upsert_points(UpsertPointsBuilder::new(COLLECTION_NAME, points))
+                .await?;
         }
 
         info!("Workspace AST ingestion complete.");
@@ -256,24 +300,47 @@ impl RagPipeline {
 
         let query_vector = embeddings[0].clone();
 
-        let response = self.qdrant.search_points(SearchPoints {
-            collection_name: COLLECTION_NAME.to_string(),
-            vector: query_vector,
-            limit: top_k as u64,
-            with_payload: Some(true.into()),
-            ..Default::default()
-        }).await?;
+        let response = self
+            .qdrant
+            .search_points(SearchPoints {
+                collection_name: COLLECTION_NAME.to_string(),
+                vector: query_vector,
+                limit: top_k as u64,
+                with_payload: Some(true.into()),
+                ..Default::default()
+            })
+            .await?;
 
         let mut results = Vec::new();
         for point in response.result {
             let val = serde_json::to_value(&point.payload)?;
-            
-            let text = val.get("text").and_then(|v| v.as_str()).unwrap_or_default().to_string();
-            let source = val.get("source").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-            let crate_name = val.get("crate_name").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let version = val.get("version").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let file_path = val.get("file_path").and_then(|v| v.as_str()).map(|s| s.to_string());
-            let symbol_name = val.get("symbol_name").and_then(|v| v.as_str()).map(|s| s.to_string());
+
+            let text = val
+                .get("text")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string();
+            let source = val
+                .get("source")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown")
+                .to_string();
+            let crate_name = val
+                .get("crate_name")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let version = val
+                .get("version")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let file_path = val
+                .get("file_path")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
+            let symbol_name = val
+                .get("symbol_name")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string());
 
             results.push(RagChunk {
                 text,
@@ -298,7 +365,10 @@ fn extract_text_from_html(html: &str) -> String {
     } else if let Some(body) = doc.find(Name("body")).next() {
         body.text()
     } else {
-        doc.find(Name("html")).next().map(|n| n.text()).unwrap_or_default()
+        doc.find(Name("html"))
+            .next()
+            .map(|n| n.text())
+            .unwrap_or_default()
     }
 }
 
@@ -331,7 +401,10 @@ fn chunk_text(text: &str, chunk_size: usize, overlap: usize) -> Vec<String> {
 // ── Symbol Formatting Helpers ──────────────────────────────────────────────────
 
 fn format_symbol(sym: &ParsedSymbol) -> String {
-    let mut s = format!("Symbol: {}\nKind: {}\nFile: {}\nLine Range: {}-{}\n", sym.name, sym.kind, sym.file_path, sym.start_line, sym.end_line);
+    let mut s = format!(
+        "Symbol: {}\nKind: {}\nFile: {}\nLine Range: {}-{}\n",
+        sym.name, sym.kind, sym.file_path, sym.start_line, sym.end_line
+    );
     if let Some(ref doc) = sym.doc_comment {
         s.push_str(&format!("Doc Comment:\n{}\n", doc));
     }
@@ -352,9 +425,15 @@ fn format_symbol(sym: &ParsedSymbol) -> String {
 }
 
 fn format_symbol_summary(sym: &ParsedSymbol) -> String {
-    let mut s = format!("Symbol: {}\nKind: {}\nFile: {}\n", sym.name, sym.kind, sym.file_path);
+    let mut s = format!(
+        "Symbol: {}\nKind: {}\nFile: {}\n",
+        sym.name, sym.kind, sym.file_path
+    );
     if let Some(ref doc) = sym.doc_comment {
-        s.push_str(&format!("Doc Comment: {}\n", doc.lines().next().unwrap_or("")));
+        s.push_str(&format!(
+            "Doc Comment: {}\n",
+            doc.lines().next().unwrap_or("")
+        ));
     }
     s
 }

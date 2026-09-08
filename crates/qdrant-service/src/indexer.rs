@@ -1,6 +1,4 @@
-
 pub struct FlashKMeans {
-
     pub k: usize,
     pub max_iterations: usize,
 }
@@ -16,7 +14,7 @@ impl FlashKMeans {
         if vectors.is_empty() {
             return Vec::new();
         }
-        
+
         let dim = vectors[0].len();
         let n = vectors.len();
         let k = self.k.min(n);

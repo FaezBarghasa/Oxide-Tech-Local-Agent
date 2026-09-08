@@ -1,14 +1,14 @@
 // Live Docs scraper implementation
 
-use std::time::{Duration, Instant};
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 
+use anyhow::Result;
 use reqwest::Client;
 use select::document::Document;
 use select::predicate::Class;
 use serde::Deserialize;
-use anyhow::Result;
 
 #[derive(Clone, Debug)]
 pub struct ApiSurface {
@@ -53,9 +53,14 @@ impl DocsRsScraper {
         let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
         let resp = self.client.get(&url).send().await?.error_for_status()?;
         #[derive(Deserialize)]
-        struct CrateInfo { max_version: String }
+        struct CrateInfo {
+            max_version: String,
+        }
         #[derive(Deserialize)]
-        struct CrateResponse { #[serde(rename = "crate")] krate: CrateInfo }
+        struct CrateResponse {
+            #[serde(rename = "crate")]
+            krate: CrateInfo,
+        }
         let data: CrateResponse = resp.json().await?;
         Ok(data.krate.max_version)
     }

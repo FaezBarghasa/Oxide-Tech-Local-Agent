@@ -77,5 +77,3 @@ impl GraphDatabase {
         DEFINE TABLE data_flows_to SCHEMALESS;
     ";
 }
-
-

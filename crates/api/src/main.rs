@@ -1,6 +1,6 @@
 use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 use tracing_subscriber::fmt;
 
 use config_loader::AppConfig;
@@ -46,7 +46,7 @@ fn main() -> std::io::Result<()> {
                 Ok(p) => {
                     info!("RAG pipeline initialized successfully.");
                     let p_arc = Arc::new(p);
-                    
+
                     // Handle auto-update on startup in a background thread
                     if cfg.rag.auto_update_on_startup {
                         let p_clone = p_arc.clone();
@@ -96,4 +96,3 @@ fn main() -> std::io::Result<()> {
             .await
         })
 }
-

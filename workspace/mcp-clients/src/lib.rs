@@ -86,20 +86,17 @@ pub mod bridge_proto {
 }
 
 use bridge_proto::bridge_service_client::BridgeServiceClient;
-use tonic::transport::{Endpoint, Uri, Channel};
-use tower::service_fn;
 use tokio::net::UnixStream;
+use tonic::transport::{Channel, Endpoint, Uri};
+use tower::service_fn;
 
-pub async fn build_uds_bridge_client() -> std::result::Result<BridgeServiceClient<Channel>, anyhow::Error> {
+pub async fn build_uds_bridge_client()
+-> std::result::Result<BridgeServiceClient<Channel>, anyhow::Error> {
     let socket_path = "/tmp/oxide_bridge.sock";
 
     let channel = Endpoint::try_from("http://[::]:50051")?
-        .connect_with_connector(service_fn(move |_: Uri| {
-            UnixStream::connect(socket_path)
-        }))
+        .connect_with_connector(service_fn(move |_: Uri| UnixStream::connect(socket_path)))
         .await?;
 
     Ok(BridgeServiceClient::new(channel))
 }
-
-

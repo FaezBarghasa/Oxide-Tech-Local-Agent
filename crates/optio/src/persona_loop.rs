@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use anyhow::Result;
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PlanStep {
@@ -63,7 +63,8 @@ impl PersonaOrchestrator {
             }
         });
 
-        let resp = self.sglang_client
+        let resp = self
+            .sglang_client
             .post(format!("{}/generate", self.sglang_url))
             .json(&body)
             .send()

@@ -1,10 +1,9 @@
 pub mod config;
-pub mod error;
 pub mod contracts;
+pub mod error;
 
 pub use config::AppConfig;
-pub use error::{EiosError, Result};
 pub use contracts::*;
+pub use error::{EiosError, Result};
 
 uniffi::setup_scaffolding!();
-

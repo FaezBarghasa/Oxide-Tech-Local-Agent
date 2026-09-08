@@ -43,8 +43,19 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_sql_opt".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
-                    domain_keywords: vec!["surrealql", "sql", "query", "database", "index", "schema", "relate", "recordid"]
-                        .into_iter().map(String::from).collect(),
+                    domain_keywords: vec![
+                        "surrealql",
+                        "sql",
+                        "query",
+                        "database",
+                        "index",
+                        "schema",
+                        "relate",
+                        "recordid",
+                    ]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::FirmwareEmbedded,
@@ -52,9 +63,19 @@ impl DynamicLoraRouter {
                     rank: 64,
                     alpha: 128,
                     path: "weights/lora_firmware_embedded".to_string(),
-                    target_modules: vec!["q_proj".to_string(), "k_proj".to_string(), "v_proj".to_string(), "o_proj".to_string()],
-                    domain_keywords: vec!["no_std", "firmware", "stm32", "esp32", "cortex-m", "embassy", "probe-rs", "hal", "gpio", "uart", "spi", "i2c"]
-                        .into_iter().map(String::from).collect(),
+                    target_modules: vec![
+                        "q_proj".to_string(),
+                        "k_proj".to_string(),
+                        "v_proj".to_string(),
+                        "o_proj".to_string(),
+                    ],
+                    domain_keywords: vec![
+                        "no_std", "firmware", "stm32", "esp32", "cortex-m", "embassy", "probe-rs",
+                        "hal", "gpio", "uart", "spi", "i2c",
+                    ]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::PcbCad,
@@ -63,8 +84,21 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_pcb_cad".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
-                    domain_keywords: vec!["kicad", "skidl", "pcb", "schematic", "netlist", "footprint", "gerber", "drc", "erc", "spice"]
-                        .into_iter().map(String::from).collect(),
+                    domain_keywords: vec![
+                        "kicad",
+                        "skidl",
+                        "pcb",
+                        "schematic",
+                        "netlist",
+                        "footprint",
+                        "gerber",
+                        "drc",
+                        "erc",
+                        "spice",
+                    ]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::SecurityAudit,
@@ -73,8 +107,20 @@ impl DynamicLoraRouter {
                     alpha: 64,
                     path: "weights/lora_security_audit".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
-                    domain_keywords: vec!["cve", "vulnerability", "audit", "exploit", "memory safety", "unsafe", "overflow", "injection", "sbom"]
-                        .into_iter().map(String::from).collect(),
+                    domain_keywords: vec![
+                        "cve",
+                        "vulnerability",
+                        "audit",
+                        "exploit",
+                        "memory safety",
+                        "unsafe",
+                        "overflow",
+                        "injection",
+                        "sbom",
+                    ]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
                 },
                 LoraAdapterConfig {
                     adapter_type: LoraAdapterType::UiStyling,
@@ -83,8 +129,21 @@ impl DynamicLoraRouter {
                     alpha: 32,
                     path: "weights/lora_ui_styling".to_string(),
                     target_modules: vec!["q_proj".to_string(), "v_proj".to_string()],
-                    domain_keywords: vec!["tailwind", "css", "slint", "ui", "component", "frontend", "layout", "styling", "rsx", "view"]
-                        .into_iter().map(String::from).collect(),
+                    domain_keywords: vec![
+                        "tailwind",
+                        "css",
+                        "slint",
+                        "ui",
+                        "component",
+                        "frontend",
+                        "layout",
+                        "styling",
+                        "rsx",
+                        "view",
+                    ]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
                 },
             ],
         }
@@ -114,7 +173,10 @@ impl DynamicLoraRouter {
 
     /// Dispatch dynamic LoRA hot-swap request to SGLang server
     pub fn switch_adapter(&mut self, new_adapter: LoraAdapterType) -> String {
-        info!("DynamicLoraRouter switching adapter: {:?} => {:?}", self.active_adapter, new_adapter);
+        info!(
+            "DynamicLoraRouter switching adapter: {:?} => {:?}",
+            self.active_adapter, new_adapter
+        );
         self.active_adapter = new_adapter.clone();
         format!("LoRA adapter successfully activated: {:?}", new_adapter)
     }
@@ -140,7 +202,8 @@ mod tests {
         );
 
         assert_eq!(
-            router.select_adapter_for_prompt("Generate KiCad schematic with DRC and netlist export"),
+            router
+                .select_adapter_for_prompt("Generate KiCad schematic with DRC and netlist export"),
             LoraAdapterType::PcbCad
         );
 
@@ -155,7 +218,8 @@ mod tests {
         );
 
         assert_eq!(
-            router.select_adapter_for_prompt("Check for CVE vulnerability and unsafe memory safety"),
+            router
+                .select_adapter_for_prompt("Check for CVE vulnerability and unsafe memory safety"),
             LoraAdapterType::SecurityAudit
         );
 

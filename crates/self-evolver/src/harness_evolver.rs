@@ -121,7 +121,7 @@ Output ONLY JSON:
 
         let content = tokio::fs::read_to_string(&self.prompt_notes_path).await?;
         let id_marker = format!("<!-- REFINE_ID: {} -->", rule_id);
-        
+
         if !content.contains(&id_marker) {
             return Ok(false);
         }

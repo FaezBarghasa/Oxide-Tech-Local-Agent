@@ -19,6 +19,7 @@ use knowledge::KnowledgeClient;
 use memory::SurrealClient;
 
 pub mod ai_infra;
+pub mod browser_agent;
 pub mod cad;
 pub mod embedded;
 pub mod foundation;
@@ -26,7 +27,6 @@ pub mod knowledge_mcp;
 pub mod pcb;
 pub mod verification;
 pub mod web;
-pub mod browser_agent;
 
 // ── Tool Input Structs ────────────────────────────────────────────────────────
 

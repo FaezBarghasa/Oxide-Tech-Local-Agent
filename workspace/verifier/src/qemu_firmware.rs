@@ -1,9 +1,9 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::path::PathBuf;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
-use tokio::time::{timeout, Duration};
+use tokio::time::{Duration, timeout};
 
 pub struct FirmwareEmulationVerifier {
     pub qemu_arm_binary: String,
@@ -30,37 +30,50 @@ impl FirmwareEmulationVerifier {
         target_board: &str, // e.g. "netduinoplus2" or "lm3s6965evb"
     ) -> Result<bool> {
         if !elf_path.exists() {
-            tracing::warn!("Firmware ELF '{}' does not exist; returning mock verification success", elf_path.display());
+            tracing::warn!(
+                "Firmware ELF '{}' does not exist; returning mock verification success",
+                elf_path.display()
+            );
             return Ok(true);
         }
 
         let mut cmd = Command::new(&self.qemu_arm_binary);
-        cmd.arg("-M").arg(target_board)
-            .arg("-kernel").arg(elf_path)
+        cmd.arg("-M")
+            .arg(target_board)
+            .arg("-kernel")
+            .arg(elf_path)
             .arg("-nographic")
-            .arg("-serial").arg("stdio")
+            .arg("-serial")
+            .arg("stdio")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
         let mut child = match cmd.spawn() {
             Ok(c) => c,
             Err(e) => {
-                tracing::warn!("QEMU ARM binary '{}' failed to spawn: {}", self.qemu_arm_binary, e);
+                tracing::warn!(
+                    "QEMU ARM binary '{}' failed to spawn: {}",
+                    self.qemu_arm_binary,
+                    e
+                );
                 // Graceful fallback for test environments without full qemu-system-arm binaries
                 return Ok(true);
             }
         };
 
-        let stdout = child.stdout.take().ok_or_else(|| anyhow!("Failed to capture QEMU stdout"))?;
+        let stdout = child
+            .stdout
+            .take()
+            .ok_or_else(|| anyhow!("Failed to capture QEMU stdout"))?;
         let mut reader = BufReader::new(stdout).lines();
         let mut verified = false;
 
         let monitor_task = async {
             while let Ok(Some(line)) = reader.next_line().await {
                 // Verify G-code parser init or MCU timer loop start in r-klipper
-                if line.contains("Klipper MCU Initialized") 
+                if line.contains("Klipper MCU Initialized")
                     || line.contains("Stepper Step Loop Active")
-                    || line.contains("MCU OK") 
+                    || line.contains("MCU OK")
                     || line.contains("r-klipper")
                 {
                     verified = true;

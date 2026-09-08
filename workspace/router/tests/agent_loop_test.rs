@@ -1,4 +1,4 @@
-use router::{DynamicLoraRouter, LoraAdapterType, ObserverAgent, LoopRecommendation};
+use router::{DynamicLoraRouter, LoopRecommendation, LoraAdapterType, ObserverAgent};
 use verifier::CheckpointManager;
 
 #[test]
@@ -6,19 +6,23 @@ fn test_dynamic_lora_router_selection() {
     let router = DynamicLoraRouter::new();
 
     // SQL / DB prompt
-    let adapter1 = router.select_adapter_for_prompt("Optimize SurrealQL query for call graph traversal");
+    let adapter1 =
+        router.select_adapter_for_prompt("Optimize SurrealQL query for call graph traversal");
     assert_eq!(adapter1, LoraAdapterType::SqlOptimization);
 
     // Firmware prompt
-    let adapter2 = router.select_adapter_for_prompt("Write Embassy #[no_std] STM32F4 UART async driver");
+    let adapter2 =
+        router.select_adapter_for_prompt("Write Embassy #[no_std] STM32F4 UART async driver");
     assert_eq!(adapter2, LoraAdapterType::FirmwareEmbedded);
 
     // PCB / CAD prompt
-    let adapter3 = router.select_adapter_for_prompt("Generate KiCad 8 schematic and netlist for dual H-bridge");
+    let adapter3 = router
+        .select_adapter_for_prompt("Generate KiCad 8 schematic and netlist for dual H-bridge");
     assert_eq!(adapter3, LoraAdapterType::PcbCad);
 
     // Security prompt
-    let adapter4 = router.select_adapter_for_prompt("Audit Rust buffer memory safety and patch potential CVE");
+    let adapter4 =
+        router.select_adapter_for_prompt("Audit Rust buffer memory safety and patch potential CVE");
     assert_eq!(adapter4, LoraAdapterType::SecurityAudit);
 
     // Generic prompt
@@ -57,7 +61,10 @@ fn test_observer_agent_hallucination_and_loop_pruning() {
         "use phantom_fake_ai_crate::magic;\nuse super_secret_nonexistent::llm;\nuse imaginary_lib::xyz;",
         95,
     );
-    assert_eq!(report3.recommendation, LoopRecommendation::RollbackAndReflect);
+    assert_eq!(
+        report3.recommendation,
+        LoopRecommendation::RollbackAndReflect
+    );
     assert_eq!(report3.hallucination_flags.len(), 3);
 }
 

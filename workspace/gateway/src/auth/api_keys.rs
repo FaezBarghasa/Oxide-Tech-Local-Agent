@@ -1,6 +1,6 @@
-use sha2::{Sha256, Digest};
-use std::sync::Arc;
 use memory::SurrealClient;
+use sha2::{Digest, Sha256};
+use std::sync::Arc;
 use tracing::{info, warn};
 
 #[allow(dead_code)]
@@ -27,14 +27,15 @@ impl ApiKeyManager {
 
     pub async fn validate_key(&self, raw_key: &str) -> Result<bool, anyhow::Error> {
         let hashed = self.hash_key(raw_key);
-        
+
         let Some(ref client) = self.db else {
             warn!("SurrealDB not initialized; API key validation skipped/mocked.");
             return Ok(raw_key == "mock-developer-key");
         };
 
         // Query the api_key table for matching key_hash
-        let mut response = client.db
+        let mut response = client
+            .db
             .query("SELECT * FROM api_key WHERE key_hash = $hash LIMIT 1")
             .bind(("hash", hashed))
             .await?;

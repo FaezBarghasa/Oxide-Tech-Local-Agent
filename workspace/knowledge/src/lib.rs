@@ -1,18 +1,21 @@
 pub mod ast;
 pub mod client;
+pub mod code_graph;
 pub mod collections;
+pub mod impact_analysis;
 pub mod indexer;
 pub mod rss;
-pub mod code_graph;
-pub mod impact_analysis;
 pub mod subgraph_pruner;
 
-pub use ast::{ParsedSymbol, AstGraphExtractor, CodeGraphNode, CodeGraphEdge, CodeNodeType as AstCodeNodeType, CodeEdgeType as AstCodeEdgeType};
+pub use ast::{
+    AstGraphExtractor, CodeEdgeType as AstCodeEdgeType, CodeGraphEdge, CodeGraphNode,
+    CodeNodeType as AstCodeNodeType, ParsedSymbol,
+};
 pub use client::{EiosChunk, KnowledgeClient};
-pub use collections::COLLECTIONS;
-pub use rss::{FeedEntry, parse_feed};
 pub use code_graph::{CodeEdge, CodeEdgeType, CodeNode, CodeNodeType, MultiModalCodeGraph};
+pub use collections::COLLECTIONS;
 pub use impact_analysis::{ImpactAnalysisEngine, ImpactAnalysisReport, ImpactRiskLevel};
+pub use rss::{FeedEntry, parse_feed};
 pub use subgraph_pruner::{PrunedSubgraph, SubgraphPruner};
 
 #[cfg(test)]

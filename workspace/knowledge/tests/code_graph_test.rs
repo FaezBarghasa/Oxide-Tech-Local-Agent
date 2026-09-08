@@ -41,13 +41,19 @@ fn test_code_graph_topology_and_call_paths() {
         file_path: "src/db/user.rs".to_string(),
         span_start: 100,
         span_end: 130,
-        signature: "pub async fn fetch_user(db: &SurrealClient, id: &str) -> Option<User>".to_string(),
+        signature: "pub async fn fetch_user(db: &SurrealClient, id: &str) -> Option<User>"
+            .to_string(),
         doc_comment: None,
         vector_id: Some("vec-db-1".to_string()),
     });
 
     // Edits: handle_login calls verify_password & fetch_user
-    graph.add_edge("fn_handle_login", "fn_verify_password", CodeEdgeType::Calls, 1.0);
+    graph.add_edge(
+        "fn_handle_login",
+        "fn_verify_password",
+        CodeEdgeType::Calls,
+        1.0,
+    );
     graph.add_edge("fn_handle_login", "fn_fetch_user", CodeEdgeType::Calls, 1.0);
 
     let (nodes, edges) = graph.stats();
@@ -124,7 +130,8 @@ fn test_subgraph_pruner_context_reduction() {
         file_path: "src/firmware/builder.rs".to_string(),
         span_start: 25,
         span_end: 60,
-        signature: "pub fn synthesize_firmware(config: BuildConfig) -> Result<Vec<u8>, BuildError>".to_string(),
+        signature: "pub fn synthesize_firmware(config: BuildConfig) -> Result<Vec<u8>, BuildError>"
+            .to_string(),
         doc_comment: Some("Compiles bare-metal no_std ELF".to_string()),
         vector_id: None,
     });

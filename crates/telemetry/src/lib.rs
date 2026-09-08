@@ -52,8 +52,7 @@ impl TelemetryConfig {
     ///
     /// Returns a `TelemetryGuard` — dropping it flushes all pending spans and logs.
     pub async fn init(self) -> Result<TelemetryGuard> {
-        let env_filter = EnvFilter::try_new(&self.log_filter)
-            .context("invalid RUST_LOG filter")?;
+        let env_filter = EnvFilter::try_new(&self.log_filter).context("invalid RUST_LOG filter")?;
 
         if let Some(ref endpoint) = self.otlp_endpoint {
             let exporter = opentelemetry_otlp::new_exporter()

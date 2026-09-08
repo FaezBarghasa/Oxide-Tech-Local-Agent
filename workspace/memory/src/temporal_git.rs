@@ -72,7 +72,13 @@ impl TemporalGitMemory {
     /// Calculate churn metrics and co-change predictions for a file
     pub fn get_churn_metrics(&self, file_path: &str) -> ModuleChurnMetrics {
         let edits = self.file_edit_counts.get(file_path).copied().unwrap_or(0);
-        let max_edits = self.file_edit_counts.values().max().copied().unwrap_or(1).max(1);
+        let max_edits = self
+            .file_edit_counts
+            .values()
+            .max()
+            .copied()
+            .unwrap_or(1)
+            .max(1);
 
         let churn_risk_score = (edits as f32 / max_edits as f32).min(1.0);
 
@@ -82,7 +88,8 @@ impl TemporalGitMemory {
                 let coupling = *count as f32 / edits.max(1) as f32;
                 top_co_changed.push((other_file.clone(), coupling));
             }
-            top_co_changed.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+            top_co_changed
+                .sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
             top_co_changed.truncate(5);
         }
 

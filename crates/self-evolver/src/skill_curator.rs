@@ -1,12 +1,11 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::sync::Arc;
 use surrealdb::Connection;
 use surrealdb::Surreal;
 use surrealdb_types::SurrealValue;
-use std::path::PathBuf;
-use std::sync::Arc;
 use tokio::fs;
-
 
 #[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct SkillPerformance {
@@ -17,7 +16,6 @@ pub struct SkillPerformance {
     pub avg_tokens: Option<u32>,
     pub error_logs: Vec<String>,
 }
-
 
 pub struct SkillCurator<C: Connection> {
     pub db: Arc<Surreal<C>>,
@@ -49,12 +47,18 @@ impl<C: Connection> SkillCurator<C> {
         success: bool,
         error_log: Option<String>,
     ) -> Result<()> {
-        let _ = self.db.query("DEFINE TABLE IF NOT EXISTS agent_skill SCHEMALESS;").await;
+        let _ = self
+            .db
+            .query("DEFINE TABLE IF NOT EXISTS agent_skill SCHEMALESS;")
+            .await;
 
         let sql = "SELECT * FROM agent_skill WHERE skill_name = $name;";
-        let mut response = self.db.query(sql).bind(("name", skill_name.to_string())).await?;
+        let mut response = self
+            .db
+            .query(sql)
+            .bind(("name", skill_name.to_string()))
+            .await?;
         let existing: Option<SkillPerformance> = response.take(0)?;
-
 
         let mut perf = existing.unwrap_or_else(|| SkillPerformance {
             skill_name: skill_name.to_string(),
@@ -86,7 +90,8 @@ impl<C: Connection> SkillCurator<C> {
             };
         "#;
 
-        self.db.query(upsert_sql)
+        self.db
+            .query(upsert_sql)
             .bind(("name", skill_name.to_string()))
             .bind(("domain", perf.domain.clone()))
             .bind(("succ", perf.success_count))
@@ -95,14 +100,17 @@ impl<C: Connection> SkillCurator<C> {
             .bind(("logs", perf.error_logs.clone()))
             .await?;
 
-
         Ok(())
     }
 
     /// Evaluates a skill's historical performance in SurrealDB and mutates it if degraded (failures >= 2)
     pub async fn evaluate_and_refine_skill(&self, skill_name: &str) -> Result<bool> {
         let sql = "SELECT * FROM agent_skill WHERE skill_name = $name;";
-        let mut response = self.db.query(sql).bind(("name", skill_name.to_string())).await?;
+        let mut response = self
+            .db
+            .query(sql)
+            .bind(("name", skill_name.to_string()))
+            .await?;
         let performance: Option<SkillPerformance> = response.take(0)?;
 
         if let Some(perf) = performance {
@@ -133,7 +141,6 @@ impl<C: Connection> SkillCurator<C> {
         self.mutate_skill_body(perf).await
     }
 
-
     pub async fn mutate_skill_body(&self, perf: &SkillPerformance) -> Result<String> {
         let skill_file_name = if perf.skill_name.ends_with(".md") {
             perf.skill_name.clone()
@@ -141,14 +148,18 @@ impl<C: Connection> SkillCurator<C> {
             format!("{}.md", perf.skill_name)
         };
 
-        let skill_path = self.skills_base_dir
+        let skill_path = self
+            .skills_base_dir
             .join(&perf.domain)
             .join(&skill_file_name);
 
         let current_body = if skill_path.exists() {
             fs::read_to_string(&skill_path).await?
         } else {
-            format!("# Skill: {}\n\nInitial procedure for {}", perf.skill_name, perf.domain)
+            format!(
+                "# Skill: {}\n\nInitial procedure for {}",
+                perf.skill_name, perf.domain
+            )
         };
 
         let prompt = format!(
@@ -158,7 +169,7 @@ impl<C: Connection> SkillCurator<C> {
         );
 
         let system = "You are the Oxide Skill Refiner. Return an updated Markdown skill definition that corrects the execution strategy.";
-        
+
         let client = reqwest::Client::new();
         let req_body = serde_json::json!({
             "model": self.model_name,
@@ -169,7 +180,8 @@ impl<C: Connection> SkillCurator<C> {
             "temperature": 0.2
         });
 
-        let res = client.post(format!("{}/v1/chat/completions", self.vllm_endpoint))
+        let res = client
+            .post(format!("{}/v1/chat/completions", self.vllm_endpoint))
             .json(&req_body)
             .send()
             .await?;
@@ -183,7 +195,11 @@ impl<C: Connection> SkillCurator<C> {
             fs::create_dir_all(parent).await?;
         }
         fs::write(&skill_path, refined_content).await?;
-        tracing::info!("Skill '{}' successfully mutated and saved to {:?}", perf.skill_name, skill_path);
+        tracing::info!(
+            "Skill '{}' successfully mutated and saved to {:?}",
+            perf.skill_name,
+            skill_path
+        );
 
         Ok(refined_content.to_string())
     }

@@ -90,7 +90,10 @@ async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
     // 6. Send GET request to /health/live
     let req = Request::builder()
         .method(Method::GET)
-        .uri(format!("https://localhost:{}/health/live", server_addr.port()))
+        .uri(format!(
+            "https://localhost:{}/health/live",
+            server_addr.port()
+        ))
         .body(())?;
 
     let mut stream = send_request.send_request(req).await?;
@@ -115,4 +118,3 @@ async fn test_h3_gateway_integration() -> Result<(), anyhow::Error> {
 
     Ok(())
 }
-

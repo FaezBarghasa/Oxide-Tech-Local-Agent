@@ -8,14 +8,16 @@ pub struct ThermalRequest {
 }
 
 pub async fn run_thermal_simulate(req: ThermalRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
+
     let cmd = ["python3", "-m", "thermal_sim", &req.board_path];
-    
-    let res = execute_in_sandbox(&cmd, &workspace_path).await
+
+    let res = execute_in_sandbox(&cmd, &workspace_path)
+        .await
         .map_err(|e| format!("Sandbox execution failed: {}", e))?;
-        
+
     if res.exit_code == 127 || res.exit_code == 1 {
         Ok(serde_json::json!({
             "status": "warning",

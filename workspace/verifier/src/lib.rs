@@ -127,16 +127,15 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
     }
 }
 
-pub mod qemu_firmware;
-pub mod git_engine;
-pub mod remote_ssh;
 pub mod checkpoint;
+pub mod git_engine;
+pub mod qemu_firmware;
+pub mod remote_ssh;
 
+pub use checkpoint::{AtomicFileSnapshot, CheckpointManager, WorkspaceCheckpoint};
+pub use git_engine::{GitCommitInfo, GitEngine, GitStatusResult};
 pub use qemu_firmware::FirmwareEmulationVerifier;
-pub use git_engine::{GitEngine, GitStatusResult, GitCommitInfo};
 pub use remote_ssh::{RemoteSshManager, SshConfig};
-pub use checkpoint::{CheckpointManager, WorkspaceCheckpoint, AtomicFileSnapshot};
-
 
 #[cfg(test)]
 mod tests {
@@ -147,9 +146,11 @@ mod tests {
     async fn test_rklipper_firmware_verification() {
         let verifier = FirmwareEmulationVerifier::new().with_timeout(1);
         let dummy_elf = PathBuf::from("workspace/firmware/rklipper.elf");
-        let res = verifier.verify_rklipper_firmware(&dummy_elf, "netduinoplus2").await.unwrap();
+        let res = verifier
+            .verify_rklipper_firmware(&dummy_elf, "netduinoplus2")
+            .await
+            .unwrap();
         // Verifier completes verification check safely
         assert!(res);
     }
 }
-

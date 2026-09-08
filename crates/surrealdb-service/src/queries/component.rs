@@ -16,11 +16,8 @@ pub async fn create_component(
         created_at: chrono::Utc::now(),
     };
 
-    let created: Option<Component> = client.db
-        .create("component")
-        .content(component)
-        .await?;
-        
+    let created: Option<Component> = client.db.create("component").content(component).await?;
+
     created.ok_or_else(|| Error::thrown("Failed to create component".to_string()))
 }
 
@@ -28,7 +25,8 @@ pub async fn get_component_by_ref(
     client: &SurrealClient,
     ref_des: &str,
 ) -> Result<Option<Component>, Error> {
-    let mut response = client.db
+    let mut response = client
+        .db
         .query("SELECT * FROM component WHERE ref_des = $ref_des")
         .bind(("ref_des", ref_des))
         .await?;
@@ -36,12 +34,8 @@ pub async fn get_component_by_ref(
     Ok(components.pop())
 }
 
-pub async fn list_components(
-    client: &SurrealClient,
-) -> Result<Vec<Component>, Error> {
-    let mut response = client.db
-        .query("SELECT * FROM component")
-        .await?;
+pub async fn list_components(client: &SurrealClient) -> Result<Vec<Component>, Error> {
+    let mut response = client.db.query("SELECT * FROM component").await?;
     let components: Vec<Component> = response.take(0)?;
     Ok(components)
 }

@@ -115,7 +115,9 @@ impl Default for KitesurfConfig {
         Self {
             account_id_env: "CLOUDFLARE_ACCOUNT_ID".to_string(),
             api_token_env: "CLOUDFLARE_API_TOKEN".to_string(),
-            endpoint: "https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering".to_string(),
+            endpoint:
+                "https://api.cloudflare.com/client/v4/accounts/{account_id}/browser-rendering"
+                    .to_string(),
             isolate_timeout_ms: 30000,
             enable_screenshot_verification: true,
             enable_pdf_extraction: true,

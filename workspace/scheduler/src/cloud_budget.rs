@@ -21,14 +21,14 @@ impl CloudBudgetManager {
     pub async fn check_budget_ok(&self) -> bool {
         let daily = *self.current_daily_spend.read().await;
         let monthly = *self.current_monthly_spend.read().await;
-        
+
         daily < self.daily_limit_usd && monthly < self.monthly_limit_usd
     }
 
     pub async fn record_spend(&self, cost: f32) {
         let mut daily = self.current_daily_spend.write().await;
         let mut monthly = self.current_monthly_spend.write().await;
-        
+
         *daily += cost;
         *monthly += cost;
     }

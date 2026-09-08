@@ -43,10 +43,7 @@ impl SkillCrystallizer {
     }
 
     /// Distill a successful multi-step task execution into a crystallized skill
-    pub async fn crystallize_workflow(
-        &self,
-        skill: &CrystallizedSkill,
-    ) -> Result<PathBuf, String> {
+    pub async fn crystallize_workflow(&self, skill: &CrystallizedSkill) -> Result<PathBuf, String> {
         info!("Crystallizing workflow skill: {}", skill.name);
         let skill_folder = self.skills_dir.join(&skill.name);
         tokio::fs::create_dir_all(&skill_folder)

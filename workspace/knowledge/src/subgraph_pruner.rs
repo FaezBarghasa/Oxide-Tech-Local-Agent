@@ -1,5 +1,5 @@
-use std::collections::HashSet;
 use crate::code_graph::{CodeEdge, CodeNode, MultiModalCodeGraph};
+use std::collections::HashSet;
 
 /// A pruned, self-contained sub-graph suitable for LLM prompt context injection
 #[derive(Debug, Clone)]
@@ -18,7 +18,12 @@ impl PrunedSubgraph {
         if let Some(ref center) = self.center_node {
             out.push_str(&format!(
                 "**Primary Target Symbol**: `{}` ({:?})\n- File: `{}:{}-{}`\n- Signature: `{}`\n\n",
-                center.name, center.node_type, center.file_path, center.span_start, center.span_end, center.signature
+                center.name,
+                center.node_type,
+                center.file_path,
+                center.span_start,
+                center.span_end,
+                center.signature
             ));
         }
 
@@ -81,7 +86,10 @@ impl SubgraphPruner {
 
         // Approximate token count (character count / 4)
         let total_chars = center_node.as_ref().map(|c| c.signature.len()).unwrap_or(0)
-            + neighbor_nodes.iter().map(|n| n.signature.len() + n.name.len()).sum::<usize>()
+            + neighbor_nodes
+                .iter()
+                .map(|n| n.signature.len() + n.name.len())
+                .sum::<usize>()
             + internal_edges.len() * 30;
 
         let estimated_tokens = (total_chars / 4).max(1);

@@ -9,7 +9,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::{Surreal, engine::any::Any};
+use surrealdb::{engine::any::Any, Surreal};
 use surrealdb_types::{RecordId, SurrealValue};
 use thiserror::Error;
 use uuid::Uuid;
@@ -104,10 +104,7 @@ pub enum JournalEvent {
         reason: String,
     },
     /// Git working-tree snapshot created for atomic rollback.
-    CheckpointCreated {
-        dag_id: Uuid,
-        git_sha: String,
-    },
+    CheckpointCreated { dag_id: Uuid, git_sha: String },
     /// Oscillation detected — same error repeated N times.
     OscillationDetected {
         dag_id: Uuid,
@@ -179,9 +176,7 @@ impl AgentJournal {
     ///
     /// Returns the `event_seq` assigned to this entry.
     pub async fn append(&self, event: JournalEvent) -> Result<u64, JournalError> {
-        let seq = self
-            .seq
-            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let seq = self.seq.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
         let entry = JournalEntry {
             id: None,
@@ -273,7 +268,9 @@ impl ReplayedDagState {
                 JournalEvent::TaskStarted { task_id, .. } => {
                     state.task_states.insert(task_id.clone(), "running".into());
                 }
-                JournalEvent::TaskCompleted { task_id, result, .. } => {
+                JournalEvent::TaskCompleted {
+                    task_id, result, ..
+                } => {
                     state.task_states.insert(task_id.clone(), "passed".into());
                     state.task_results.insert(task_id.clone(), result.clone());
                     // Clear any HITL block if this task just completed

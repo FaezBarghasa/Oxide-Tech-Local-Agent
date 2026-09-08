@@ -36,7 +36,11 @@ impl HitlGate {
         let listener = match UnixListener::bind(&self.socket_path) {
             Ok(l) => l,
             Err(e) => {
-                warn!("Failed to bind HITL socket {}: {}", self.socket_path.display(), e);
+                warn!(
+                    "Failed to bind HITL socket {}: {}",
+                    self.socket_path.display(),
+                    e
+                );
                 return;
             }
         };
@@ -49,7 +53,9 @@ impl HitlGate {
                     tokio::spawn(async move {
                         let mut reader = BufReader::new(stream);
                         let mut line = String::new();
-                        if let Ok(Ok(_)) = timeout(Duration::from_secs(30), reader.read_line(&mut line)).await {
+                        if let Ok(Ok(_)) =
+                            timeout(Duration::from_secs(30), reader.read_line(&mut line)).await
+                        {
                             if line.trim().eq_ignore_ascii_case("CONFIRM") {
                                 info!("HITL CONFIRM token received via UNIX socket");
                                 let _ = tx_inner.send(());
@@ -75,7 +81,10 @@ impl HitlGate {
                 true
             }
             _ => {
-                warn!("HITL confirmation timed out after {} seconds", self.timeout_secs);
+                warn!(
+                    "HITL confirmation timed out after {} seconds",
+                    self.timeout_secs
+                );
                 false
             }
         }

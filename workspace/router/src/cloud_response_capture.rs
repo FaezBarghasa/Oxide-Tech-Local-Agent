@@ -1,8 +1,8 @@
-use uuid::Uuid;
-use std::sync::Arc;
-use common::contracts::{CloudTrainingSample, ValidationResult, UserOutcome};
+use common::contracts::{CloudTrainingSample, UserOutcome, ValidationResult};
 use memory::SurrealClient;
+use std::sync::Arc;
 use tracing::{info, warn};
+use uuid::Uuid;
 
 pub struct CloudResponseCapture {
     pub db: Option<Arc<SurrealClient>>,
@@ -47,12 +47,12 @@ impl CloudResponseCapture {
 
         if let Some(ref client) = self.db {
             let sample_val = serde_json::to_value(&sample)?;
-            let _: Option<serde_json::Value> = client.db
+            let _: Option<serde_json::Value> = client
+                .db
                 .create(("cloud_training_sample", id.to_string()))
                 .content(sample_val)
                 .await?;
             info!("Captured cloud training sample with ID: {}", id);
-
         } else {
             warn!("SurrealDB not initialized; skipping capture storage.");
         }

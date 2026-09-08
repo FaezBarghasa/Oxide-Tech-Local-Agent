@@ -8,7 +8,10 @@ pub struct SimplexRotaryEncoding {
 
 impl SimplexRotaryEncoding {
     pub fn new(dimension: usize, num_agents: usize) -> Self {
-        Self { dimension, num_agents }
+        Self {
+            dimension,
+            num_agents,
+        }
     }
 
     /// Compute the SRAE angles representing regular simplex vertices

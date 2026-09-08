@@ -6,7 +6,6 @@ use tracing_subscriber::fmt;
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-
 use common::config::AppConfig;
 use knowledge::KnowledgeClient;
 use mcp_server::McpServer;

@@ -1,7 +1,7 @@
+use crate::execute_in_sandbox;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::info;
-use crate::execute_in_sandbox;
 
 /// An atomic snapshot of file contents before agentic modification
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -48,15 +48,24 @@ impl CheckpointManager {
     }
 
     /// Revert working tree instantaneously to the recorded checkpoint
-    pub async fn rollback(checkpoint: &WorkspaceCheckpoint, work_dir: &str) -> Result<String, String> {
-        info!("Rolling back workspace to checkpoint: {}", checkpoint.checkpoint_id);
+    pub async fn rollback(
+        checkpoint: &WorkspaceCheckpoint,
+        work_dir: &str,
+    ) -> Result<String, String> {
+        info!(
+            "Rolling back workspace to checkpoint: {}",
+            checkpoint.checkpoint_id
+        );
 
         // If git stash ref exists, apply it
         if let Some(ref stash_ref) = checkpoint.git_stash_ref {
             let res = execute_in_sandbox(&["git", "stash", "apply", stash_ref], work_dir)
                 .await
                 .map_err(|e| format!("Rollback git stash apply failed: {}", e))?;
-            return Ok(format!("Workspace restored to stash {}: {}", stash_ref, res.stdout));
+            return Ok(format!(
+                "Workspace restored to stash {}: {}",
+                stash_ref, res.stdout
+            ));
         }
 
         // Fallback: git checkout . and clean

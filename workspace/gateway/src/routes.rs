@@ -228,7 +228,14 @@ pub async fn handle_kicad_run_drc(req: web::Json<KicadBoardRequest>) -> impl Res
         .clone()
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
 
-    let cmd = ["kicad-cli", "pcb", "drc", "--output", "drc_report.json", &req.board_path];
+    let cmd = [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--output",
+        "drc_report.json",
+        &req.board_path,
+    ];
     match verifier::execute_in_sandbox(&cmd, &workspace_path).await {
         Ok(res) => {
             if res.exit_code == 127 {
@@ -380,11 +387,7 @@ fn build_tree(dir: &std::path::Path, base_path: &std::path::Path) -> Option<Vec<
         }
     });
 
-    if nodes.is_empty() {
-        None
-    } else {
-        Some(nodes)
-    }
+    if nodes.is_empty() { None } else { Some(nodes) }
 }
 
 pub async fn handle_repository_structure(

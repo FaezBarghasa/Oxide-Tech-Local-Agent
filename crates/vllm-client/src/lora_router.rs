@@ -1,5 +1,5 @@
-use reqwest::Client;
 use anyhow::Result;
+use reqwest::Client;
 
 pub struct DynamicLoraRouter {
     sglang_url: String,
@@ -36,7 +36,10 @@ impl DynamicLoraRouter {
 
         match resp {
             Ok(_) => Ok(format!("Activated LoRA adapter: {}", adapter_name)),
-            Err(e) => Ok(format!("Dispatched LoRA activation for {} (mock/offline: {})", adapter_name, e)),
+            Err(e) => Ok(format!(
+                "Dispatched LoRA activation for {} (mock/offline: {})",
+                adapter_name, e
+            )),
         }
     }
 }

@@ -17,7 +17,9 @@ pub struct OkfDocument {
 impl OkfDocument {
     pub fn parse_okf(input: &str) -> Result<Self, anyhow::Error> {
         if !input.starts_with("---") {
-            return Err(anyhow::anyhow!("Invalid OKF format: Missing Metadata Block"));
+            return Err(anyhow::anyhow!(
+                "Invalid OKF format: Missing Metadata Block"
+            ));
         }
         let parts: Vec<&str> = input.splitn(3, "---").collect();
         if parts.len() < 3 {
@@ -26,7 +28,10 @@ impl OkfDocument {
         let metadata: OkfMetadata = serde_yaml::from_str(parts[1])?;
         let raw_content = parts[2].trim().to_string();
 
-        Ok(Self { metadata, raw_content })
+        Ok(Self {
+            metadata,
+            raw_content,
+        })
     }
 }
 
@@ -69,4 +74,3 @@ mod tests {
         assert!(!compacted.contains("Checking foo"));
     }
 }
-

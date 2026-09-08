@@ -15,8 +15,8 @@ impl DockerSandbox {
         Self {
             image_name: image_name.to_string(),
             workspace_dir,
-            cpu_limit: "8.0".to_string(),     // Limit to 8 CPU cores
-            memory_limit: "16g".to_string(),  // Limit to 16GB RAM
+            cpu_limit: "8.0".to_string(),    // Limit to 8 CPU cores
+            memory_limit: "16g".to_string(), // Limit to 16GB RAM
         }
     }
 
@@ -35,12 +35,18 @@ impl DockerSandbox {
         let mut cmd = Command::new("docker");
         cmd.arg("run")
             .arg("--rm")
-            .arg("--cpus").arg(&self.cpu_limit)
-            .arg("--memory").arg(&self.memory_limit)
-            .arg("-v").arg(format!("{}:/workspace", self.workspace_dir.display()))
-            .arg("-w").arg("/workspace")
+            .arg("--cpus")
+            .arg(&self.cpu_limit)
+            .arg("--memory")
+            .arg(&self.memory_limit)
+            .arg("-v")
+            .arg(format!("{}:/workspace", self.workspace_dir.display()))
+            .arg("-w")
+            .arg("/workspace")
             .arg(&self.image_name)
-            .arg("sh").arg("-c").arg(build_cmd);
+            .arg("sh")
+            .arg("-c")
+            .arg(build_cmd);
 
         let docker_res = cmd.output().await;
         match docker_res {
@@ -51,9 +57,14 @@ impl DockerSandbox {
             }
             Ok(output) => {
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-                tracing::warn!("Docker command execution failed (code {:?}): {}, falling back to local runner", output.status.code(), stderr);
+                tracing::warn!(
+                    "Docker command execution failed (code {:?}): {}, falling back to local runner",
+                    output.status.code(),
+                    stderr
+                );
                 let local_output = Command::new("sh")
-                    .arg("-c").arg(build_cmd)
+                    .arg("-c")
+                    .arg(build_cmd)
                     .current_dir(&self.workspace_dir)
                     .output()
                     .await?;
@@ -66,7 +77,8 @@ impl DockerSandbox {
                 tracing::warn!("Docker command execution fallback: {}", e);
                 // Fallback to local native process execution if docker daemon is inactive
                 let local_output = Command::new("sh")
-                    .arg("-c").arg(build_cmd)
+                    .arg("-c")
+                    .arg(build_cmd)
                     .current_dir(&self.workspace_dir)
                     .output()
                     .await?;

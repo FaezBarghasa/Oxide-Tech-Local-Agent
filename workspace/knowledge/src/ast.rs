@@ -1,5 +1,5 @@
-use tree_sitter::{Parser, Node, Tree};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use tree_sitter::{Node, Parser, Tree};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SymbolField {
@@ -31,13 +31,33 @@ pub struct ParsedSymbol {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CodeNodeType {
-    File { path: String },
-    Module { name: String },
-    Struct { name: String, is_no_std: bool },
-    Trait { name: String },
-    Function { name: String, is_async: bool, is_unsafe: bool, return_type: Option<String> },
-    Field { name: String, type_name: String },
-    Variable { name: String, type_name: Option<String> },
+    File {
+        path: String,
+    },
+    Module {
+        name: String,
+    },
+    Struct {
+        name: String,
+        is_no_std: bool,
+    },
+    Trait {
+        name: String,
+    },
+    Function {
+        name: String,
+        is_async: bool,
+        is_unsafe: bool,
+        return_type: Option<String>,
+    },
+    Field {
+        name: String,
+        type_name: String,
+    },
+    Variable {
+        name: String,
+        type_name: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,12 +71,12 @@ pub struct CodeGraphNode {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CodeEdgeType {
-    Defines,      // Module -> Struct / Function
-    Calls,        // Function -> Function
-    Implements,   // Struct -> Trait
-    References,   // Function -> Struct / Field
-    DataFlowsTo,  // Variable -> Variable
-    Imports,      // File -> Module
+    Defines,     // Module -> Struct / Function
+    Calls,       // Function -> Function
+    Implements,  // Struct -> Trait
+    References,  // Function -> Struct / Field
+    DataFlowsTo, // Variable -> Variable
+    Imports,     // File -> Module
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -73,11 +93,17 @@ pub struct AstGraphExtractor {
 impl AstGraphExtractor {
     pub fn new() -> Self {
         let mut rust_parser = Parser::new();
-        rust_parser.set_language(tree_sitter_rust::language()).expect("Failed loading Rust grammar");
+        rust_parser
+            .set_language(tree_sitter_rust::language())
+            .expect("Failed loading Rust grammar");
         Self { rust_parser }
     }
 
-    pub fn parse_rust_file(&mut self, file_path: &str, source: &str) -> (Vec<CodeGraphNode>, Vec<CodeGraphEdge>) {
+    pub fn parse_rust_file(
+        &mut self,
+        file_path: &str,
+        source: &str,
+    ) -> (Vec<CodeGraphNode>, Vec<CodeGraphEdge>) {
         let tree: Tree = self.rust_parser.parse(source, None).unwrap();
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
@@ -85,13 +111,22 @@ impl AstGraphExtractor {
         let file_node_id = format!("file:{}", file_path);
         nodes.push(CodeGraphNode {
             id: file_node_id.clone(),
-            node_type: CodeNodeType::File { path: file_path.to_string() },
+            node_type: CodeNodeType::File {
+                path: file_path.to_string(),
+            },
             span: (0, source.len()),
             file_path: file_path.to_string(),
             doc_comment: None,
         });
 
-        self.traverse_tree(tree.root_node(), source, file_path, &file_node_id, &mut nodes, &mut edges);
+        self.traverse_tree(
+            tree.root_node(),
+            source,
+            file_path,
+            &file_node_id,
+            &mut nodes,
+            &mut edges,
+        );
         (nodes, edges)
     }
 
@@ -108,11 +143,12 @@ impl AstGraphExtractor {
 
         match node.kind() {
             "function_item" => {
-                let name = node.child_by_field_name("name")
+                let name = node
+                    .child_by_field_name("name")
                     .and_then(|n| n.utf8_text(source.as_bytes()).ok())
                     .map(|s| s.to_string())
                     .unwrap_or_else(|| "anonymous".to_string());
-                
+
                 let fn_source = &source[node.start_byte()..node.end_byte()];
                 let prefix = fn_source.split("fn ").next().unwrap_or("");
                 let is_async = prefix.contains("async");
@@ -125,7 +161,10 @@ impl AstGraphExtractor {
                         name,
                         is_async,
                         is_unsafe,
-                        return_type: node.child_by_field_name("return_type").and_then(|n| n.utf8_text(source.as_bytes()).ok()).map(|s| s.to_string()),
+                        return_type: node
+                            .child_by_field_name("return_type")
+                            .and_then(|n| n.utf8_text(source.as_bytes()).ok())
+                            .map(|s| s.to_string()),
                     },
                     span: (node.start_byte(), node.end_byte()),
                     file_path: file_path.to_string(),

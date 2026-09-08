@@ -1,4 +1,4 @@
-use actix_web::{post, get, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -43,7 +43,9 @@ pub struct EditorResponse {
 // ── Filesystem helpers ────────────────────────────────────────────────────────
 
 fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = fs::read_dir(dir) else { return };
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         if path.is_dir() {
@@ -76,8 +78,7 @@ async fn write_file_async(workspace: &str, filepath: &str, content: &str) -> Res
             fs::create_dir_all(parent)
                 .map_err(|e| format!("mkdir failed for {:?}: {}", full, e))?;
         }
-        fs::write(&full, &content)
-            .map_err(|e| format!("write failed for {:?}: {}", full, e))
+        fs::write(&full, &content).map_err(|e| format!("write failed for {:?}: {}", full, e))
     })
     .await
     .map_err(|e| format!("write_file task panicked: {e}"))??;
@@ -94,14 +95,13 @@ async fn apply_diff_async(
     let search = search.to_owned();
     let replace = replace.to_owned();
     tokio::task::spawn_blocking(move || {
-        let content = fs::read_to_string(&full)
-            .map_err(|e| format!("read failed for {:?}: {}", full, e))?;
+        let content =
+            fs::read_to_string(&full).map_err(|e| format!("read failed for {:?}: {}", full, e))?;
         if !content.contains(&search) {
             return Err(format!("apply_diff: search block not found in {:?}", full));
         }
         let new_content = content.replacen(&search, &replace, 1);
-        fs::write(&full, new_content)
-            .map_err(|e| format!("write failed for {:?}: {}", full, e))
+        fs::write(&full, new_content).map_err(|e| format!("write failed for {:?}: {}", full, e))
     })
     .await
     .map_err(|e| format!("apply_diff task panicked: {e}"))??;
@@ -255,9 +255,8 @@ pub async fn run_agent_generate(
             })?;
 
         let cleaned = strip_json_fences(&raw);
-        let editor: EditorResponse = serde_json::from_str(&cleaned).map_err(|e| {
-            format!("Coder returned invalid JSON: {e}\nRaw output:\n{raw}")
-        })?;
+        let editor: EditorResponse = serde_json::from_str(&cleaned)
+            .map_err(|e| format!("Coder returned invalid JSON: {e}\nRaw output:\n{raw}"))?;
 
         // Apply all tool calls.
         for tool in &editor.tool_calls {
@@ -271,8 +270,7 @@ pub async fn run_agent_generate(
                     if let (Some(ref search), Some(ref replace)) =
                         (&tool.args.search_block, &tool.args.replace_block)
                     {
-                        apply_diff_async(&workspace, &tool.args.filepath, search, replace)
-                            .await?;
+                        apply_diff_async(&workspace, &tool.args.filepath, search, replace).await?;
                     }
                 }
                 other => warn!("Unknown tool call '{}' — skipping", other),
@@ -363,7 +361,9 @@ pub async fn handle_rag_update(
         let watchlist = cfg.rag.watchlist.clone();
 
         tokio::spawn(async move {
-            if let Err(e) = rag_pipeline::updater::check_and_update_crates(&watchlist, &rp_clone).await {
+            if let Err(e) =
+                rag_pipeline::updater::check_and_update_crates(&watchlist, &rp_clone).await
+            {
                 tracing::error!("Background RAG update failed: {}", e);
             }
         });

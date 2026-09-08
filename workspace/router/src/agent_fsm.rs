@@ -4,10 +4,10 @@
 //! Rather than executing a static linear DAG, agents evaluate state after each step
 //! and dynamically determine the next role or terminate.
 
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use crate::supervisor::SubAgentRole;
 use agent_journal::TaskResult;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Next routing decision computed dynamically after a task completes or fails.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -26,22 +26,13 @@ pub enum RoutingDecision {
         attempt: usize,
     },
     /// Loop back to architecture or design reflection due to structural flaws.
-    RollbackToPlan {
-        reason: String,
-    },
+    RollbackToPlan { reason: String },
     /// Halt and await human decision (HITL).
-    RequestHitl {
-        reason: String,
-        inbox_id: Uuid,
-    },
+    RequestHitl { reason: String, inbox_id: Uuid },
     /// All verification criteria passed; DAG execution succeeds.
-    Complete {
-        final_summary: String,
-    },
+    Complete { final_summary: String },
     /// Fatal unrecoverable failure (e.g. oscillation threshold reached).
-    FatalError {
-        error: String,
-    },
+    FatalError { error: String },
 }
 
 /// Dynamic FSM router state machine.
@@ -76,7 +67,9 @@ impl AgentFsmRouter {
                         return RoutingDecision::Retry {
                             role: current_role,
                             task_id: task_id.to_string(),
-                            feedback: format!("Quality score too low ({score:.2}). Refine implementation."),
+                            feedback: format!(
+                                "Quality score too low ({score:.2}). Refine implementation."
+                            ),
                             attempt: retry_count + 1,
                         };
                     }
@@ -87,7 +80,10 @@ impl AgentFsmRouter {
                     SubAgentRole::Architect => RoutingDecision::TransitionTo {
                         role: SubAgentRole::Coder,
                         task_id: "implement".to_string(),
-                        instruction: format!("Implement the architecture specification: {}", res.summary),
+                        instruction: format!(
+                            "Implement the architecture specification: {}",
+                            res.summary
+                        ),
                     },
                     SubAgentRole::Coder => RoutingDecision::TransitionTo {
                         role: SubAgentRole::Debugger,
@@ -97,10 +93,14 @@ impl AgentFsmRouter {
                     SubAgentRole::Debugger => RoutingDecision::TransitionTo {
                         role: SubAgentRole::Reviewer,
                         task_id: "security_review".to_string(),
-                        instruction: "Perform security and quality audit on verified code.".to_string(),
+                        instruction: "Perform security and quality audit on verified code."
+                            .to_string(),
                     },
                     SubAgentRole::Reviewer => RoutingDecision::Complete {
-                        final_summary: format!("Verification and security audit passed: {}", res.summary),
+                        final_summary: format!(
+                            "Verification and security audit passed: {}",
+                            res.summary
+                        ),
                     },
                     SubAgentRole::DevOps => RoutingDecision::Complete {
                         final_summary: format!("DevOps deployment verified: {}", res.summary),
@@ -110,7 +110,10 @@ impl AgentFsmRouter {
             Err(err_msg) => {
                 if retry_count >= self.max_retries {
                     return RoutingDecision::FatalError {
-                        error: format!("Task '{task_id}' exceeded max retries ({}/{}). Error: {err_msg}", retry_count, self.max_retries),
+                        error: format!(
+                            "Task '{task_id}' exceeded max retries ({}/{}). Error: {err_msg}",
+                            retry_count, self.max_retries
+                        ),
                     };
                 }
 
@@ -119,7 +122,9 @@ impl AgentFsmRouter {
                     RoutingDecision::TransitionTo {
                         role: SubAgentRole::Debugger,
                         task_id: "diagnose_fix".to_string(),
-                        instruction: format!("Analyze compiler diagnostic/error and produce fix diff: {err_msg}"),
+                        instruction: format!(
+                            "Analyze compiler diagnostic/error and produce fix diff: {err_msg}"
+                        ),
                     }
                 } else {
                     // Retry with error message
@@ -153,15 +158,33 @@ mod tests {
 
         // Architect -> Coder
         let dec = fsm.evaluate_transition(SubAgentRole::Architect, "arch", Ok(&dummy_result), 0);
-        assert!(matches!(dec, RoutingDecision::TransitionTo { role: SubAgentRole::Coder, .. }));
+        assert!(matches!(
+            dec,
+            RoutingDecision::TransitionTo {
+                role: SubAgentRole::Coder,
+                ..
+            }
+        ));
 
         // Coder -> Debugger
         let dec2 = fsm.evaluate_transition(SubAgentRole::Coder, "code", Ok(&dummy_result), 0);
-        assert!(matches!(dec2, RoutingDecision::TransitionTo { role: SubAgentRole::Debugger, .. }));
+        assert!(matches!(
+            dec2,
+            RoutingDecision::TransitionTo {
+                role: SubAgentRole::Debugger,
+                ..
+            }
+        ));
 
         // Debugger -> Reviewer
         let dec3 = fsm.evaluate_transition(SubAgentRole::Debugger, "verify", Ok(&dummy_result), 0);
-        assert!(matches!(dec3, RoutingDecision::TransitionTo { role: SubAgentRole::Reviewer, .. }));
+        assert!(matches!(
+            dec3,
+            RoutingDecision::TransitionTo {
+                role: SubAgentRole::Reviewer,
+                ..
+            }
+        ));
 
         // Reviewer -> Complete
         let dec4 = fsm.evaluate_transition(SubAgentRole::Reviewer, "review", Ok(&dummy_result), 0);
@@ -173,15 +196,39 @@ mod tests {
         let fsm = AgentFsmRouter::new(3);
 
         // Coder error routes to Debugger
-        let dec = fsm.evaluate_transition(SubAgentRole::Coder, "code", Err("mismatched types E0308"), 0);
-        assert!(matches!(dec, RoutingDecision::TransitionTo { role: SubAgentRole::Debugger, .. }));
+        let dec = fsm.evaluate_transition(
+            SubAgentRole::Coder,
+            "code",
+            Err("mismatched types E0308"),
+            0,
+        );
+        assert!(matches!(
+            dec,
+            RoutingDecision::TransitionTo {
+                role: SubAgentRole::Debugger,
+                ..
+            }
+        ));
 
         // Debugger error retries up to max_retries
-        let dec_retry = fsm.evaluate_transition(SubAgentRole::Debugger, "verify", Err("cargo check failed"), 1);
-        assert!(matches!(dec_retry, RoutingDecision::Retry { attempt: 2, .. }));
+        let dec_retry = fsm.evaluate_transition(
+            SubAgentRole::Debugger,
+            "verify",
+            Err("cargo check failed"),
+            1,
+        );
+        assert!(matches!(
+            dec_retry,
+            RoutingDecision::Retry { attempt: 2, .. }
+        ));
 
         // Exceeded retries -> FatalError
-        let dec_fatal = fsm.evaluate_transition(SubAgentRole::Debugger, "verify", Err("cargo check failed"), 3);
+        let dec_fatal = fsm.evaluate_transition(
+            SubAgentRole::Debugger,
+            "verify",
+            Err("cargo check failed"),
+            3,
+        );
         assert!(matches!(dec_fatal, RoutingDecision::FatalError { .. }));
     }
 }

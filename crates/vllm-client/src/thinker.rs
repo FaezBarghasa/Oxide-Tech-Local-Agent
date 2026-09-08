@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
 use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use config_loader::ModelConfig;
 use crate::client::LlmRouterClient;
+use config_loader::ModelConfig;
 
 // ── Thinker output ────────────────────────────────────────────────────────────
 

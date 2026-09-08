@@ -45,7 +45,14 @@ impl BrowserAgent {
         // Extract main text content from body paragraphs and headers
         let mut markdown_lines = vec![format!("# {}\n\nSource: {}\n", title.trim(), url)];
 
-        for node in doc.find(Name("h1").or(Name("h2")).or(Name("h3")).or(Name("p")).or(Name("pre")).or(Name("code"))) {
+        for node in doc.find(
+            Name("h1")
+                .or(Name("h2"))
+                .or(Name("h3"))
+                .or(Name("p"))
+                .or(Name("pre"))
+                .or(Name("code")),
+        ) {
             let tag = node.name().unwrap_or("");
             let text = node.text();
             let trimmed = text.trim();

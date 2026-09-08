@@ -1,12 +1,8 @@
 // Probe-rs MCP server
 pub mod hitl;
 
-use std::path::PathBuf;
-use serde::Deserialize;
-use schemars::JsonSchema;
-use tracing::info;
+use crate::hitl::HitlGate;
 use rmcp::{
-    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -14,10 +10,13 @@ use rmcp::{
         ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router,
+    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use sandbox::execute_in_sandbox;
-use crate::hitl::HitlGate;
+use schemars::JsonSchema;
+use serde::Deserialize;
+use std::path::PathBuf;
+use tracing::info;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct EmptyInput {}
@@ -76,88 +75,197 @@ impl ProbeRsServer {
     }
 
     #[tool(description = "Read a register via probe-rs (read‑only, auto‑exec)")]
-    async fn read_register(&self, Parameters(input): Parameters<ReadRegisterInput>) -> Result<CallToolResult, McpError> {
+    async fn read_register(
+        &self,
+        Parameters(input): Parameters<ReadRegisterInput>,
+    ) -> Result<CallToolResult, McpError> {
         let dir_str = self.workspace_root.to_string_lossy().to_string();
-        match execute_in_sandbox(&["probe-rs", "read", &input.address, "--chip", &input.chip], &dir_str).await {
+        match execute_in_sandbox(
+            &["probe-rs", "read", &input.address, "--chip", &input.chip],
+            &dir_str,
+        )
+        .await
+        {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
                 if res.exit_code == 0 {
                     Ok(CallToolResult::success(vec![Content::text(text)]))
                 } else {
                     Ok(CallToolResult::error(vec![Content::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Read a memory region via probe-rs (read‑only, auto‑exec)")]
-    async fn read_memory(&self, Parameters(input): Parameters<ReadMemoryInput>) -> Result<CallToolResult, McpError> {
+    async fn read_memory(
+        &self,
+        Parameters(input): Parameters<ReadMemoryInput>,
+    ) -> Result<CallToolResult, McpError> {
         let dir_str = self.workspace_root.to_string_lossy().to_string();
         let length_str = input.length.to_string();
-        match execute_in_sandbox(&["probe-rs", "read", &input.address, "--length", &length_str, "--chip", &input.chip], &dir_str).await {
+        match execute_in_sandbox(
+            &[
+                "probe-rs",
+                "read",
+                &input.address,
+                "--length",
+                &length_str,
+                "--chip",
+                &input.chip,
+            ],
+            &dir_str,
+        )
+        .await
+        {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
-                if res.exit_code == 0 { Ok(CallToolResult::success(vec![Content::text(text)])) } else { Ok(CallToolResult::error(vec![Content::text(text)])) }
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
+                if res.exit_code == 0 {
+                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                } else {
+                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "List connected probe‑rs devices (read‑only)")]
-    async fn list_probes(&self, _input: Parameters<EmptyInput>) -> Result<CallToolResult, McpError> {
+    async fn list_probes(
+        &self,
+        _input: Parameters<EmptyInput>,
+    ) -> Result<CallToolResult, McpError> {
         let dir_str = self.workspace_root.to_string_lossy().to_string();
         match execute_in_sandbox(&["probe-rs", "list"], &dir_str).await {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
-                if res.exit_code == 0 { Ok(CallToolResult::success(vec![Content::text(text)])) } else { Ok(CallToolResult::error(vec![Content::text(text)])) }
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
+                if res.exit_code == 0 {
+                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                } else {
+                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Flash a binary to the target chip (requires human confirmation)")]
-    async fn flash_binary(&self, Parameters(input): Parameters<FlashBinaryInput>) -> Result<CallToolResult, McpError> {
+    async fn flash_binary(
+        &self,
+        Parameters(input): Parameters<FlashBinaryInput>,
+    ) -> Result<CallToolResult, McpError> {
         if !self.require_hitl("flash_binary").await {
-            return Ok(CallToolResult::error(vec![Content::text("HITL confirmation timeout or rejected for flash_binary".to_string())]));
+            return Ok(CallToolResult::error(vec![Content::text(
+                "HITL confirmation timeout or rejected for flash_binary".to_string(),
+            )]));
         }
         let dir_str = self.workspace_root.to_string_lossy().to_string();
-        match execute_in_sandbox(&["probe-rs", "download", &input.binary_path, "--chip", &input.chip], &dir_str).await {
+        match execute_in_sandbox(
+            &[
+                "probe-rs",
+                "download",
+                &input.binary_path,
+                "--chip",
+                &input.chip,
+            ],
+            &dir_str,
+        )
+        .await
+        {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
-                if res.exit_code == 0 { Ok(CallToolResult::success(vec![Content::text(text)])) } else { Ok(CallToolResult::error(vec![Content::text(text)])) }
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
+                if res.exit_code == 0 {
+                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                } else {
+                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Reset the target chip (requires human confirmation)")]
-    async fn reset_target(&self, Parameters(input): Parameters<ResetTargetInput>) -> Result<CallToolResult, McpError> {
+    async fn reset_target(
+        &self,
+        Parameters(input): Parameters<ResetTargetInput>,
+    ) -> Result<CallToolResult, McpError> {
         if !self.require_hitl("reset_target").await {
-            return Ok(CallToolResult::error(vec![Content::text("HITL confirmation timeout or rejected for reset_target".to_string())]));
+            return Ok(CallToolResult::error(vec![Content::text(
+                "HITL confirmation timeout or rejected for reset_target".to_string(),
+            )]));
         }
         let dir_str = self.workspace_root.to_string_lossy().to_string();
         match execute_in_sandbox(&["probe-rs", "reset", "--chip", &input.chip], &dir_str).await {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
-                if res.exit_code == 0 { Ok(CallToolResult::success(vec![Content::text(text)])) } else { Ok(CallToolResult::error(vec![Content::text(text)])) }
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
+                if res.exit_code == 0 {
+                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                } else {
+                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Erase the target chip flash (requires human confirmation)")]
-    async fn erase_chip(&self, Parameters(input): Parameters<EraseChipInput>) -> Result<CallToolResult, McpError> {
+    async fn erase_chip(
+        &self,
+        Parameters(input): Parameters<EraseChipInput>,
+    ) -> Result<CallToolResult, McpError> {
         if !self.require_hitl("erase_chip").await {
-            return Ok(CallToolResult::error(vec![Content::text("HITL confirmation timeout or rejected for erase_chip".to_string())]));
+            return Ok(CallToolResult::error(vec![Content::text(
+                "HITL confirmation timeout or rejected for erase_chip".to_string(),
+            )]));
         }
         let dir_str = self.workspace_root.to_string_lossy().to_string();
         match execute_in_sandbox(&["probe-rs", "erase", "--chip", &input.chip], &dir_str).await {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
-                if res.exit_code == 0 { Ok(CallToolResult::success(vec![Content::text(text)])) } else { Ok(CallToolResult::error(vec![Content::text(text)])) }
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
+                if res.exit_code == 0 {
+                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                } else {
+                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox exec failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox exec failed: {}",
+                e
+            ))])),
         }
     }
 }

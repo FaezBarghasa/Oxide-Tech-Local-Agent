@@ -1,8 +1,8 @@
 use actix_web::{post, web, HttpResponse, Responder};
 use std::fs;
 use std::path::{Path, PathBuf};
-use tree_sitter_service::parser::parse_file;
 use surrealdb_service::client::SurrealClient;
+use tree_sitter_service::parser::parse_file;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ParseRequest {
@@ -31,9 +31,10 @@ fn get_rs_files(dir: &Path, files: &mut Vec<PathBuf>) {
 }
 
 pub async fn run_tree_sitter_parse(req: ParseRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
+
     let path = PathBuf::from(&workspace_path);
     if !path.exists() {
         return Err(format!("Workspace path does not exist: {}", workspace_path));
@@ -56,12 +57,17 @@ pub async fn run_tree_sitter_parse(req: ParseRequest) -> Result<serde_json::Valu
             }
         }
         (all_symbols, files_parsed)
-    }).await.map_err(|e| format!("Parsing thread panicked: {}", e))?;
+    })
+    .await
+    .map_err(|e| format!("Parsing thread panicked: {}", e))?;
 
-    let client = SurrealClient::new().await
+    let client = SurrealClient::new()
+        .await
         .map_err(|e| format!("Failed to connect to database: {}", e))?;
 
-    client.save_symbols(&all_symbols).await
+    client
+        .save_symbols(&all_symbols)
+        .await
         .map_err(|e| format!("Failed to save symbols to database: {}", e))?;
 
     Ok(serde_json::json!({

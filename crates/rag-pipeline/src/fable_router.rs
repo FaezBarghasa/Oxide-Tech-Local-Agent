@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ForestNode {
@@ -16,7 +16,9 @@ pub struct FableForest {
 
 impl FableForest {
     pub fn new() -> Self {
-        Self { nodes: HashMap::new() }
+        Self {
+            nodes: HashMap::new(),
+        }
     }
 
     /// Run the Bi-Path traversal strategy: Balance tree hierarchy with vector matching

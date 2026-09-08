@@ -16,19 +16,14 @@ pub async fn create_project(
         created_at: chrono::Utc::now(),
     };
 
-    let created: Option<Project> = client.db
-        .create("project")
-        .content(project)
-        .await?;
-        
+    let created: Option<Project> = client.db.create("project").content(project).await?;
+
     created.ok_or_else(|| Error::thrown("Failed to create project".to_string()))
 }
 
-pub async fn get_project(
-    client: &SurrealClient,
-    name: &str,
-) -> Result<Option<Project>, Error> {
-    let mut response = client.db
+pub async fn get_project(client: &SurrealClient, name: &str) -> Result<Option<Project>, Error> {
+    let mut response = client
+        .db
         .query("SELECT * FROM project WHERE name = $name")
         .bind(("name", name))
         .await?;
@@ -36,12 +31,8 @@ pub async fn get_project(
     Ok(projects.pop())
 }
 
-pub async fn list_projects(
-    client: &SurrealClient,
-) -> Result<Vec<Project>, Error> {
-    let mut response = client.db
-        .query("SELECT * FROM project")
-        .await?;
+pub async fn list_projects(client: &SurrealClient) -> Result<Vec<Project>, Error> {
+    let mut response = client.db.query("SELECT * FROM project").await?;
     let projects: Vec<Project> = response.take(0)?;
     Ok(projects)
 }

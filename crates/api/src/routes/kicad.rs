@@ -9,19 +9,22 @@ pub struct KicadRequest {
 }
 
 pub async fn run_kicad_load_board(req: KicadRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
+
     let full_path = Path::new(&workspace_path).join(&req.board_path);
     let full_path_clone = full_path.clone();
-    
+
     let metadata_res = tokio::task::spawn_blocking(move || {
         if full_path_clone.exists() {
             Ok(full_path_clone.metadata().map(|m| m.len()).unwrap_or(0))
         } else {
             Err(())
         }
-    }).await.map_err(|e| format!("Task panicked: {}", e))?;
+    })
+    .await
+    .map_err(|e| format!("Task panicked: {}", e))?;
 
     match metadata_res {
         Ok(file_size) => Ok(serde_json::json!({
@@ -34,14 +37,23 @@ pub async fn run_kicad_load_board(req: KicadRequest) -> Result<serde_json::Value
 }
 
 pub async fn run_kicad_run_drc(req: KicadRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
-    let cmd = ["kicad-cli", "pcb", "drc", "--output", "drc_report.json", &req.board_path];
-    
-    let res = execute_in_sandbox(&cmd, &workspace_path).await
+
+    let cmd = [
+        "kicad-cli",
+        "pcb",
+        "drc",
+        "--output",
+        "drc_report.json",
+        &req.board_path,
+    ];
+
+    let res = execute_in_sandbox(&cmd, &workspace_path)
+        .await
         .map_err(|e| format!("Sandbox execution failed: {}", e))?;
-        
+
     if res.exit_code == 127 {
         Ok(serde_json::json!({
             "status": "warning",

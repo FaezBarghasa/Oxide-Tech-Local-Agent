@@ -68,7 +68,12 @@ impl PinchTabClient {
 
     /// Check if PinchTab daemon is reachable
     pub async fn health_check(&self) -> bool {
-        match self.client.get(format!("{}/health", self.endpoint)).send().await {
+        match self
+            .client
+            .get(format!("{}/health", self.endpoint))
+            .send()
+            .await
+        {
             Ok(resp) => resp.status().is_success(),
             Err(_) => false,
         }
@@ -152,7 +157,10 @@ impl PinchTabClient {
 
         let resp = self.client.get(&url).send().await?;
         if !resp.status().is_success() {
-            return Err(anyhow!("PinchTab screenshot failed: HTTP {}", resp.status()));
+            return Err(anyhow!(
+                "PinchTab screenshot failed: HTTP {}",
+                resp.status()
+            ));
         }
 
         let bytes = resp.bytes().await?;

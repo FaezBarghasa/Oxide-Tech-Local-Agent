@@ -1,10 +1,7 @@
 // CargoGatekeeper MCP server
 
-use std::path::PathBuf;
-use serde::Deserialize;
-use schemars::JsonSchema;
+use regex::Regex;
 use rmcp::{
-    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -12,11 +9,13 @@ use rmcp::{
         ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router,
+    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 use sandbox::execute_in_sandbox;
+use schemars::JsonSchema;
+use serde::Deserialize;
+use std::path::PathBuf;
 use tokio::fs;
-use regex::Regex;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct ClippyInput {
@@ -53,7 +52,10 @@ impl CargoGatekeeperServer {
     }
 
     #[tool(description = "Run cargo clippy with -D warnings inside the sandbox")]
-    async fn clippy_gate(&self, Parameters(input): Parameters<ClippyInput>) -> Result<CallToolResult, McpError> {
+    async fn clippy_gate(
+        &self,
+        Parameters(input): Parameters<ClippyInput>,
+    ) -> Result<CallToolResult, McpError> {
         let dir = input
             .workspace
             .as_ref()
@@ -62,19 +64,28 @@ impl CargoGatekeeperServer {
         let dir_str = dir.to_string_lossy().to_string();
         match execute_in_sandbox(&["cargo", "clippy", "--", "-D", "warnings"], &dir_str).await {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
                 if res.exit_code == 0 {
                     Ok(CallToolResult::success(vec![Content::text(text)]))
                 } else {
                     Ok(CallToolResult::error(vec![Content::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox execution failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox execution failed: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Run cargo geiger to report unsafe usage")]
-    async fn geiger_report(&self, Parameters(input): Parameters<GeigerInput>) -> Result<CallToolResult, McpError> {
+    async fn geiger_report(
+        &self,
+        Parameters(input): Parameters<GeigerInput>,
+    ) -> Result<CallToolResult, McpError> {
         let dir = input
             .workspace
             .as_ref()
@@ -83,19 +94,30 @@ impl CargoGatekeeperServer {
         let dir_str = dir.to_string_lossy().to_string();
         match execute_in_sandbox(&["cargo", "geiger", "--output-format", "Ascii"], &dir_str).await {
             Ok(res) => {
-                let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
+                let text = format!(
+                    "exit code: {}\nstdout:\n{}\nstderr:\n{}",
+                    res.exit_code, res.stdout, res.stderr
+                );
                 if res.exit_code == 0 {
                     Ok(CallToolResult::success(vec![Content::text(text)]))
                 } else {
                     Ok(CallToolResult::error(vec![Content::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox execution failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Sandbox execution failed: {}",
+                e
+            ))])),
         }
     }
 
-    #[tool(description = "Audit unsafe blocks for // SAFETY: justification. Fails in medical_device_mode.")]
-    async fn unsafe_audit(&self, Parameters(input): Parameters<UnsafeAuditInput>) -> Result<CallToolResult, McpError> {
+    #[tool(
+        description = "Audit unsafe blocks for // SAFETY: justification. Fails in medical_device_mode."
+    )]
+    async fn unsafe_audit(
+        &self,
+        Parameters(input): Parameters<UnsafeAuditInput>,
+    ) -> Result<CallToolResult, McpError> {
         let base_dir = input
             .workspace
             .as_ref()
@@ -121,8 +143,16 @@ impl CargoGatekeeperServer {
                         let re = Regex::new(r"(?m)^\s*unsafe\s+(fn\s|\{)").unwrap();
                         for mat in re.find_iter(&content) {
                             let line_num = content[..mat.start()].matches('\n').count() + 1;
-                            let start_slice = if mat.start() >= 200 { &content[mat.start() - 200..mat.start()] } else { &content[..mat.start()] };
-                            let has_comment = start_slice.lines().rev().take(3).any(|l| l.trim_start().starts_with("// SAFETY:"));
+                            let start_slice = if mat.start() >= 200 {
+                                &content[mat.start() - 200..mat.start()]
+                            } else {
+                                &content[..mat.start()]
+                            };
+                            let has_comment = start_slice
+                                .lines()
+                                .rev()
+                                .take(3)
+                                .any(|l| l.trim_start().starts_with("// SAFETY:"));
                             if !has_comment || input.medical_device_mode {
                                 violations.push(format!("{}:{}", path.display(), line_num));
                             }
@@ -132,9 +162,15 @@ impl CargoGatekeeperServer {
             }
         }
         if violations.is_empty() {
-            Ok(CallToolResult::success(vec![Content::text("No unsafe violations found".to_string())]))
+            Ok(CallToolResult::success(vec![Content::text(
+                "No unsafe violations found".to_string(),
+            )]))
         } else {
-            let msg = format!("Unsafe violations detected ({}):\n{}", violations.len(), violations.join("\n"));
+            let msg = format!(
+                "Unsafe violations detected ({}):\n{}",
+                violations.len(),
+                violations.join("\n")
+            );
             Ok(CallToolResult::error(vec![Content::text(msg)]))
         }
     }

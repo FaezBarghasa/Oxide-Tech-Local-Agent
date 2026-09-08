@@ -39,8 +39,14 @@ impl GraphTraversalOptimizer {
 
     /// Record a missed dependency event and auto-tune traversal weights
     pub fn record_missed_dependency(&mut self, missed_edge_type: &str) {
-        info!("GraphOptimizer recording missed dependency on edge: {}", missed_edge_type);
-        *self.feedback_history.entry(missed_edge_type.to_string()).or_insert(0) += 1;
+        info!(
+            "GraphOptimizer recording missed dependency on edge: {}",
+            missed_edge_type
+        );
+        *self
+            .feedback_history
+            .entry(missed_edge_type.to_string())
+            .or_insert(0) += 1;
 
         match missed_edge_type {
             "data_flow" | "mutates" => {

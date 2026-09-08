@@ -8,14 +8,16 @@ pub struct SkidlRequest {
 }
 
 pub async fn run_skidl_generate(req: SkidlRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
+
     let cmd = ["python3", &req.script_path];
-    
-    let res = execute_in_sandbox(&cmd, &workspace_path).await
+
+    let res = execute_in_sandbox(&cmd, &workspace_path)
+        .await
         .map_err(|e| format!("Sandbox execution failed: {}", e))?;
-        
+
     Ok(serde_json::json!({
         "status": "success",
         "exit_code": res.exit_code,

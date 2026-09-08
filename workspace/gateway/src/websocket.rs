@@ -1,8 +1,8 @@
-use actix_web::{get, web, HttpRequest, HttpResponse, Error};
+use actix_web::{Error, HttpRequest, HttpResponse, get, web};
 use actix_ws::Message;
 use futures_util::StreamExt;
-use tokio::sync::broadcast;
 use std::sync::Arc;
+use tokio::sync::broadcast;
 
 pub struct WsBroadcaster {
     pub compilation_tx: broadcast::Sender<String>,

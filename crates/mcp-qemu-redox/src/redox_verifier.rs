@@ -53,11 +53,16 @@ impl RedoxKvmVerifier {
             cmd.arg("-cpu").arg("qemu64");
         }
 
-        cmd.arg("-smp").arg("4")
-            .arg("-m").arg("2048M")
-            .arg("-drive").arg(format!("file={},format=raw", self.redox_img_path.display()))
-            .arg("-serial").arg("stdio")
-            .arg("-display").arg("none")
+        cmd.arg("-smp")
+            .arg("4")
+            .arg("-m")
+            .arg("2048M")
+            .arg("-drive")
+            .arg(format!("file={},format=raw", self.redox_img_path.display()))
+            .arg("-serial")
+            .arg("stdio")
+            .arg("-display")
+            .arg("none")
             .arg("-nodefaults")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
@@ -70,7 +75,9 @@ impl RedoxKvmVerifier {
                 return Ok(RedoxTestResult {
                     passed: true,
                     boot_time_ms: 120,
-                    serial_logs: vec!["[QEMU Mock]: Redox OS kernel initialized successfully".to_string()],
+                    serial_logs: vec![
+                        "[QEMU Mock]: Redox OS kernel initialized successfully".to_string()
+                    ],
                     failure_reason: None,
                 });
             }
@@ -96,7 +103,10 @@ impl RedoxKvmVerifier {
                     break;
                 }
 
-                if line.contains(expected_token) || line.contains("redox login:") || line.contains("Redox OS") {
+                if line.contains(expected_token)
+                    || line.contains("redox login:")
+                    || line.contains("Redox OS")
+                {
                     passed = true;
                     break;
                 }
@@ -106,7 +116,10 @@ impl RedoxKvmVerifier {
         match timeout(Duration::from_secs(self.timeout_secs), boot_task).await {
             Ok(_) => {}
             Err(_) => {
-                failure_reason = Some(format!("QEMU KVM execution timed out after {}s", self.timeout_secs));
+                failure_reason = Some(format!(
+                    "QEMU KVM execution timed out after {}s",
+                    self.timeout_secs
+                ));
             }
         }
 

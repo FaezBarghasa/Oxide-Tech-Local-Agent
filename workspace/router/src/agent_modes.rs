@@ -147,22 +147,45 @@ pub fn classify_tool_call(tool_name: &str) -> RiskClass {
         | "ast_query" | "lookup_crate_api" | "check_status" => RiskClass::Read,
 
         // Egress (Outbound Network)
-        "web_search" | "web_fetch" | "fetch_docs" | "perception_deep_research"
-        | "perception_visual_verify" | "kitesurf_fetch" | "scrapling_fetch" | "http_request" => {
-            RiskClass::Egress
-        }
+        "web_search"
+        | "web_fetch"
+        | "fetch_docs"
+        | "perception_deep_research"
+        | "perception_visual_verify"
+        | "kitesurf_fetch"
+        | "scrapling_fetch"
+        | "http_request" => RiskClass::Egress,
 
         // Write Local (Workspace Mutations)
-        "write_file" | "write_to_file" | "replace_file_content" | "multi_replace_file_content"
-        | "apply_diff" | "apply_patch" | "delete_file" | "create_file" => RiskClass::WriteLocal,
+        "write_file"
+        | "write_to_file"
+        | "replace_file_content"
+        | "multi_replace_file_content"
+        | "apply_diff"
+        | "apply_patch"
+        | "delete_file"
+        | "create_file" => RiskClass::WriteLocal,
 
         // Exec (Command & Subprocess Execution)
-        "run_command" | "exec" | "terminal" | "cargo_check" | "cargo_clippy" | "cargo_test"
-        | "kicad_drc" | "qemu_run" | "perception_browser_action" => RiskClass::Exec,
+        "run_command"
+        | "exec"
+        | "terminal"
+        | "cargo_check"
+        | "cargo_clippy"
+        | "cargo_test"
+        | "kicad_drc"
+        | "qemu_run"
+        | "perception_browser_action" => RiskClass::Exec,
 
         // External & Persistent Authority
-        "probe_rs_flash" | "hardware_flash" | "erase_flash" | "remote_ssh_exec" | "save_skill"
-        | "create_scheduled_task" | "update_scheduled_task" | "delete_scheduled_task"
+        "probe_rs_flash"
+        | "hardware_flash"
+        | "erase_flash"
+        | "remote_ssh_exec"
+        | "save_skill"
+        | "create_scheduled_task"
+        | "update_scheduled_task"
+        | "delete_scheduled_task"
         | "bwrap_synthesize_tool" => RiskClass::External,
 
         _ => RiskClass::Exec, // Conservative default
@@ -179,8 +202,17 @@ impl OpaqueConstructGuard {
 
     /// Dangerous flags that convert search/list commands into deletions or executions
     const DANGEROUS_FLAGS: &'static [&'static str] = &[
-        "-exec", "-execdir", "-delete", "-ok", "-okdir", "-fprintf", "-c", "-e", "--eval",
-        "--command", "-Command",
+        "-exec",
+        "-execdir",
+        "-delete",
+        "-ok",
+        "-okdir",
+        "-fprintf",
+        "-c",
+        "-e",
+        "--eval",
+        "--command",
+        "-Command",
     ];
 
     /// Programs that run other programs named in their arguments
@@ -250,7 +282,11 @@ impl ToolPermissions {
                 allow_hardware_flash: false,
                 allow_git_commit: true,
             },
-            AgentMode::Architect | AgentMode::Plan | AgentMode::Review | AgentMode::Ask | AgentMode::Research => Self {
+            AgentMode::Architect
+            | AgentMode::Plan
+            | AgentMode::Review
+            | AgentMode::Ask
+            | AgentMode::Research => Self {
                 allow_read_files: true,
                 allow_write_files: false,
                 allow_terminal_exec: false,
@@ -285,7 +321,14 @@ impl ToolPermissions {
         }
 
         // 2. Read-only modes block all consequential actions
-        if matches!(mode, AgentMode::Plan | AgentMode::Architect | AgentMode::Ask | AgentMode::Review | AgentMode::Research) {
+        if matches!(
+            mode,
+            AgentMode::Plan
+                | AgentMode::Architect
+                | AgentMode::Ask
+                | AgentMode::Review
+                | AgentMode::Research
+        ) {
             return PermissionDecision::Deny {
                 reason: format!(
                     "Tool '{}' with risk {:?} is blocked in {} mode",
@@ -358,7 +401,10 @@ mod tests {
         assert_eq!(classify_tool_call("read_file"), RiskClass::Read);
         assert_eq!(classify_tool_call("grep_search"), RiskClass::Read);
         assert_eq!(classify_tool_call("web_search"), RiskClass::Egress);
-        assert_eq!(classify_tool_call("perception_deep_research"), RiskClass::Egress);
+        assert_eq!(
+            classify_tool_call("perception_deep_research"),
+            RiskClass::Egress
+        );
         assert_eq!(classify_tool_call("write_file"), RiskClass::WriteLocal);
         assert_eq!(classify_tool_call("run_command"), RiskClass::Exec);
         assert_eq!(classify_tool_call("probe_rs_flash"), RiskClass::External);
@@ -367,13 +413,25 @@ mod tests {
 
     #[test]
     fn test_opaque_construct_guard() {
-        assert!(OpaqueConstructGuard::has_opaque_constructs("echo $(cat /etc/passwd)"));
+        assert!(OpaqueConstructGuard::has_opaque_constructs(
+            "echo $(cat /etc/passwd)"
+        ));
         assert!(OpaqueConstructGuard::has_opaque_constructs("echo `whoami`"));
-        assert!(OpaqueConstructGuard::has_opaque_constructs("cat foo > /dev/sda"));
-        assert!(!OpaqueConstructGuard::has_opaque_constructs("cargo check --target thumbv7em-none-eabihf"));
-        assert!(OpaqueConstructGuard::has_dangerous_constructs("find . -name '*.rs' -delete"));
-        assert!(OpaqueConstructGuard::has_dangerous_constructs("sudo systemctl restart"));
-        assert!(OpaqueConstructGuard::has_dangerous_constructs("python -c 'import os; os.system(\"rm -rf /\")'"));
+        assert!(OpaqueConstructGuard::has_opaque_constructs(
+            "cat foo > /dev/sda"
+        ));
+        assert!(!OpaqueConstructGuard::has_opaque_constructs(
+            "cargo check --target thumbv7em-none-eabihf"
+        ));
+        assert!(OpaqueConstructGuard::has_dangerous_constructs(
+            "find . -name '*.rs' -delete"
+        ));
+        assert!(OpaqueConstructGuard::has_dangerous_constructs(
+            "sudo systemctl restart"
+        ));
+        assert!(OpaqueConstructGuard::has_dangerous_constructs(
+            "python -c 'import os; os.system(\"rm -rf /\")'"
+        ));
     }
 
     #[test]

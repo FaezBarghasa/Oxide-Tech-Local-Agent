@@ -12,7 +12,7 @@ impl CloudResponseCapture {
         validation: ValidationResult,
     ) -> Result<(), anyhow::Error> {
         let outcome = validation.cargo_check && validation.clippy;
-        
+
         let _sample = CloudTrainingSampleRecord {
             id: None,
             prompt,
@@ -25,7 +25,7 @@ impl CloudResponseCapture {
 
         // In a real implementation, we would acquire the SurrealDB client and insert the record.
         // surrealdb_service::client::insert("cloud_training_sample", sample).await?;
-        
+
         info!("Captured cloud response for training");
         Ok(())
     }
@@ -40,7 +40,11 @@ impl UserFeedbackTracker {
     }
 
     pub async fn on_modify(sample_id: &str, final_code: &str) -> Result<(), anyhow::Error> {
-        info!("User modified AI suggestion: {}, final code length: {}", sample_id, final_code.len());
+        info!(
+            "User modified AI suggestion: {}, final code length: {}",
+            sample_id,
+            final_code.len()
+        );
         Ok(())
     }
 

@@ -64,11 +64,7 @@ impl ObserverAgent {
             let trimmed = line.trim();
             if let Some(rest) = trimmed.strip_prefix("use ") {
                 if rest.contains("::") {
-                    let root_crate = rest
-                        .split("::")
-                        .next()
-                        .unwrap_or("")
-                        .trim();
+                    let root_crate = rest.split("::").next().unwrap_or("").trim();
 
                     if !root_crate.is_empty()
                         && root_crate != "crate"
@@ -79,7 +75,10 @@ impl ObserverAgent {
                         && root_crate != "alloc"
                         && !self.known_crates.contains(root_crate)
                     {
-                        hallucination_flags.push(format!("Unverified external crate referenced: '{}'", root_crate));
+                        hallucination_flags.push(format!(
+                            "Unverified external crate referenced: '{}'",
+                            root_crate
+                        ));
                     }
                 }
             }

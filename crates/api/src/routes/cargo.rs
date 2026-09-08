@@ -7,12 +7,14 @@ pub struct CargoRequest {
 }
 
 pub async fn run_cargo_check(req: CargoRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
-    let res = execute_in_sandbox(&["cargo", "check"], &workspace_path).await
+
+    let res = execute_in_sandbox(&["cargo", "check"], &workspace_path)
+        .await
         .map_err(|e| format!("Sandbox execution failed: {}", e))?;
-        
+
     Ok(serde_json::json!({
         "status": "success",
         "exit_code": res.exit_code,
@@ -22,12 +24,14 @@ pub async fn run_cargo_check(req: CargoRequest) -> Result<serde_json::Value, Str
 }
 
 pub async fn run_cargo_clippy(req: CargoRequest) -> Result<serde_json::Value, String> {
-    let workspace_path = req.workspace_path
+    let workspace_path = req
+        .workspace_path
         .unwrap_or_else(|| "/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent".to_string());
-    
-    let res = execute_in_sandbox(&["cargo", "clippy"], &workspace_path).await
+
+    let res = execute_in_sandbox(&["cargo", "clippy"], &workspace_path)
+        .await
         .map_err(|e| format!("Sandbox execution failed: {}", e))?;
-        
+
     Ok(serde_json::json!({
         "status": "success",
         "exit_code": res.exit_code,

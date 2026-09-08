@@ -272,9 +272,13 @@ pub async fn start_h3_gateway_on_addr(
             match incoming.accept() {
                 Ok(connecting) => {
                     tokio::spawn(async move {
-                        if let Err(e) =
-                            handle_connection(connecting, config_clone, memory_clone, knowledge_clone)
-                                .await
+                        if let Err(e) = handle_connection(
+                            connecting,
+                            config_clone,
+                            memory_clone,
+                            knowledge_clone,
+                        )
+                        .await
                         {
                             warn!("HTTP/3 connection finished with error: {}", e);
                         }
@@ -299,6 +303,7 @@ pub async fn start_h3_gateway(
     let bind_addr: SocketAddr =
         format!("{}:{}", config.gateway.host, config.gateway.udp_port).parse()?;
     let (_, handle) = start_h3_gateway_on_addr(bind_addr, config, memory, knowledge).await?;
-    handle.await.map_err(|e| anyhow::anyhow!("H3 gateway task failed: {}", e))
+    handle
+        .await
+        .map_err(|e| anyhow::anyhow!("H3 gateway task failed: {}", e))
 }
-

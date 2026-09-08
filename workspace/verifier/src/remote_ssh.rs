@@ -1,6 +1,6 @@
+use crate::{ExecutionResult, execute_in_sandbox};
 use serde::{Deserialize, Serialize};
 use tracing::info;
-use crate::{execute_in_sandbox, ExecutionResult};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SshConfig {

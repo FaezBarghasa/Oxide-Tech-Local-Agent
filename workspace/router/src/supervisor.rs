@@ -77,7 +77,9 @@ pub enum TaskStatus {
     Failed(String),
     Skipped,
     /// Execution is suspended — awaiting human HITL decision.
-    AwaitingHitl { inbox_id: Uuid },
+    AwaitingHitl {
+        inbox_id: Uuid,
+    },
 }
 
 // ── Task Node ─────────────────────────────────────────────────────────────────
@@ -261,7 +263,9 @@ impl SupervisorAgent {
                     "arch_spec",
                     "Design Architecture Specification",
                     SubAgentRole::Architect,
-                    &format!("Analyze goal and create detailed architectural specification for: {goal}"),
+                    &format!(
+                        "Analyze goal and create detailed architectural specification for: {goal}"
+                    ),
                     vec![],
                 );
             }
@@ -349,12 +353,20 @@ impl SupervisorAgent {
     }
 
     /// Detect oscillation if the same error is seen N >= 3 times in a row.
-    pub async fn detect_oscillation(&mut self, dag_id: Uuid, task_id: &str, error_signature: &str) -> bool {
+    pub async fn detect_oscillation(
+        &mut self,
+        dag_id: Uuid,
+        task_id: &str,
+        error_signature: &str,
+    ) -> bool {
         self.error_history.push(error_signature.to_string());
         if self.error_history.len() >= 3 {
             let last_three = &self.error_history[self.error_history.len() - 3..];
             if last_three[0] == last_three[1] && last_three[1] == last_three[2] {
-                warn!("Oscillation detected! Same failure repeated 3 times: {}", error_signature);
+                warn!(
+                    "Oscillation detected! Same failure repeated 3 times: {}",
+                    error_signature
+                );
                 self.journal_append(JournalEvent::OscillationDetected {
                     dag_id,
                     task_id: task_id.to_string(),

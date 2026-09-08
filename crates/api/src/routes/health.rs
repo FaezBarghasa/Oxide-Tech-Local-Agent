@@ -1,7 +1,7 @@
 use actix_web::{get, HttpResponse, Responder};
-use surrealdb_service::client::SurrealClient;
 use qdrant_service::client::QdrantServiceClient;
 use serde_json::json;
+use surrealdb_service::client::SurrealClient;
 
 #[get("/health/live")]
 pub async fn liveness_probe() -> impl Responder {
@@ -18,15 +18,13 @@ pub async fn readiness_probe() -> impl Responder {
 
     // Check SurrealDB
     match SurrealClient::new().await {
-        Ok(client) => {
-            match client.db.query("INFO FOR DB").await {
-                Ok(_) => checks["database"] = json!({"status": "ok"}),
-                Err(e) => {
-                    ready = false;
-                    checks["database"] = json!({"status": "error", "message": e.to_string()});
-                }
+        Ok(client) => match client.db.query("INFO FOR DB").await {
+            Ok(_) => checks["database"] = json!({"status": "ok"}),
+            Err(e) => {
+                ready = false;
+                checks["database"] = json!({"status": "error", "message": e.to_string()});
             }
-        }
+        },
         Err(e) => {
             ready = false;
             checks["database"] = json!({"status": "error", "message": e.to_string()});
@@ -35,15 +33,13 @@ pub async fn readiness_probe() -> impl Responder {
 
     // Check Qdrant
     match QdrantServiceClient::new() {
-        Ok(client) => {
-            match client.health_check().await {
-                Ok(_) => checks["qdrant"] = json!({"status": "ok"}),
-                Err(e) => {
-                    ready = false;
-                    checks["qdrant"] = json!({"status": "error", "message": e.to_string()});
-                }
+        Ok(client) => match client.health_check().await {
+            Ok(_) => checks["qdrant"] = json!({"status": "ok"}),
+            Err(e) => {
+                ready = false;
+                checks["qdrant"] = json!({"status": "error", "message": e.to_string()});
             }
-        }
+        },
         Err(e) => {
             ready = false;
             checks["qdrant"] = json!({"status": "error", "message": e.to_string()});
@@ -51,7 +47,11 @@ pub async fn readiness_probe() -> impl Responder {
     }
 
     // Check vLLM health via direct HTTP ping
-    match reqwest::Client::new().get("http://localhost:8000/health").send().await {
+    match reqwest::Client::new()
+        .get("http://localhost:8000/health")
+        .send()
+        .await
+    {
         Ok(resp) => {
             if resp.status().is_success() {
                 checks["vllm"] = json!({"status": "ok"});
@@ -84,7 +84,7 @@ pub async fn metrics_endpoint() -> impl Responder {
     let metric_families = prometheus::gather();
     let encoder = prometheus::TextEncoder::new();
     let mut buffer = Vec::new();
-    
+
     match encoder.encode(&metric_families, &mut buffer) {
         Ok(_) => HttpResponse::Ok()
             .content_type("text/plain; version=0.0.4; charset=utf-8")

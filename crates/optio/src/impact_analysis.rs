@@ -1,5 +1,5 @@
-use std::collections::{HashSet, VecDeque};
 use serde::{Deserialize, Serialize};
+use std::collections::{HashSet, VecDeque};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImpactSurface {
@@ -34,7 +34,12 @@ impl ImpactAnalyzer {
 
         let recommended_test_targets = affected_files
             .iter()
-            .map(|f| format!("cargo test --test {}", f.replace(".rs", "").replace("src/", "")))
+            .map(|f| {
+                format!(
+                    "cargo test --test {}",
+                    f.replace(".rs", "").replace("src/", "")
+                )
+            })
             .collect();
 
         ImpactSurface {

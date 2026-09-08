@@ -3,8 +3,8 @@ use futures_util::future::{Ready, ready};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
-pub mod rbac;
 pub mod api_keys;
+pub mod rbac;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
 pub enum Role {

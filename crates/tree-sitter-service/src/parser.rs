@@ -1,11 +1,13 @@
-use tree_sitter::{Parser, Node};
-use tree_sitter_rust::language;
 use crate::ast::{ParsedSymbol, SymbolField, SymbolMethod};
+use tree_sitter::{Node, Parser};
+use tree_sitter_rust::language;
 
 pub fn parse_file(content: &str, file_path: &str) -> Result<Vec<ParsedSymbol>, String> {
     let mut parser = Parser::new();
     parser.set_language(language()).map_err(|e| e.to_string())?;
-    let tree = parser.parse(content, None).ok_or("Failed to parse content")?;
+    let tree = parser
+        .parse(content, None)
+        .ok_or("Failed to parse content")?;
     let root_node = tree.root_node();
     let mut symbols = Vec::new();
     traverse_nodes(root_node, content, file_path, &mut symbols);
@@ -16,7 +18,10 @@ fn get_previous_doc_comments(node: Node, content: &str) -> Option<String> {
     let mut current = node;
     let mut comments = Vec::new();
     while let Some(prev) = current.prev_sibling() {
-        let text = content.get(prev.start_byte()..prev.end_byte()).unwrap_or("").trim();
+        let text = content
+            .get(prev.start_byte()..prev.end_byte())
+            .unwrap_or("")
+            .trim();
         if prev.kind() == "line_comment" && text.starts_with("///") {
             comments.push(text.to_string());
             current = prev;
@@ -28,7 +33,7 @@ fn get_previous_doc_comments(node: Node, content: &str) -> Option<String> {
         }
         break;
     }
-    
+
     if comments.is_empty() {
         None
     } else {
@@ -39,11 +44,14 @@ fn get_previous_doc_comments(node: Node, content: &str) -> Option<String> {
 
 fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<ParsedSymbol>) {
     let kind = node.kind();
-    
+
     let get_text = |n: Node| -> String {
-        content.get(n.start_byte()..n.end_byte()).unwrap_or("").to_string()
+        content
+            .get(n.start_byte()..n.end_byte())
+            .unwrap_or("")
+            .to_string()
     };
-    
+
     let start_line = node.start_position().row + 1;
     let end_line = node.end_position().row + 1;
     let node_content = get_text(node);
@@ -53,7 +61,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
         "struct_item" => {
             let mut name = String::new();
             let mut fields = Vec::new();
-            
+
             if let Some(name_node) = node.child_by_field_name("name") {
                 name = get_text(name_node);
             } else {
@@ -65,7 +73,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 if child.kind() == "field_declaration_list" {
@@ -81,13 +89,16 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                                 field_type = get_text(ft_node);
                             }
                             if !field_name.is_empty() {
-                                fields.push(SymbolField { name: field_name, r#type: field_type });
+                                fields.push(SymbolField {
+                                    name: field_name,
+                                    r#type: field_type,
+                                });
                             }
                         }
                     }
                 }
             }
-            
+
             symbols.push(ParsedSymbol {
                 name,
                 kind: "struct".to_string(),
@@ -106,7 +117,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
         "enum_item" => {
             let mut name = String::new();
             let mut variants = Vec::new();
-            
+
             if let Some(name_node) = node.child_by_field_name("name") {
                 name = get_text(name_node);
             } else {
@@ -118,7 +129,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 if child.kind() == "enum_variant_list" {
@@ -132,7 +143,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             symbols.push(ParsedSymbol {
                 name,
                 kind: "enum".to_string(),
@@ -151,7 +162,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
         "trait_item" => {
             let mut name = String::new();
             let mut methods = Vec::new();
-            
+
             if let Some(name_node) = node.child_by_field_name("name") {
                 name = get_text(name_node);
             } else {
@@ -163,16 +174,22 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 if child.kind() == "declaration_list" {
                     let mut dec_cursor = child.walk();
                     for inner in child.children(&mut dec_cursor) {
-                        if inner.kind() == "function_item" || inner.kind() == "function_signature_item" {
+                        if inner.kind() == "function_item"
+                            || inner.kind() == "function_signature_item"
+                        {
                             if let Some(m_name) = inner.child_by_field_name("name") {
                                 let sig = if let Some(body) = inner.child_by_field_name("body") {
-                                    content.get(inner.start_byte()..body.start_byte()).unwrap_or("").trim().to_string()
+                                    content
+                                        .get(inner.start_byte()..body.start_byte())
+                                        .unwrap_or("")
+                                        .trim()
+                                        .to_string()
                                 } else {
                                     get_text(inner)
                                 };
@@ -185,7 +202,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             symbols.push(ParsedSymbol {
                 name,
                 kind: "trait".to_string(),
@@ -205,16 +222,21 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
             let mut implements_trait = None;
             let mut target_type = String::new();
             let mut methods = Vec::new();
-            
+
             let mut is_for = false;
             let mut type_nodes = Vec::new();
-            
+
             for i in 0..node.child_count() {
                 let child = node.child(i).unwrap();
                 if child.kind() == "declaration_list" {
                     break;
                 }
-                if child.kind() == "for" || child.kind() == "type_identifier" || child.kind() == "generic_type" || child.kind() == "primitive_type" || child.kind() == "scoped_type_identifier" {
+                if child.kind() == "for"
+                    || child.kind() == "type_identifier"
+                    || child.kind() == "generic_type"
+                    || child.kind() == "primitive_type"
+                    || child.kind() == "scoped_type_identifier"
+                {
                     if child.kind() == "for" || get_text(child) == "for" {
                         is_for = true;
                     } else {
@@ -222,14 +244,14 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             if is_for && type_nodes.len() >= 2 {
                 implements_trait = Some(get_text(type_nodes[0]));
                 target_type = get_text(type_nodes[1]);
             } else if !type_nodes.is_empty() {
                 target_type = get_text(type_nodes[type_nodes.len() - 1]);
             }
-            
+
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 if child.kind() == "declaration_list" {
@@ -238,7 +260,11 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                         if inner.kind() == "function_item" {
                             if let Some(m_name) = inner.child_by_field_name("name") {
                                 let sig = if let Some(body) = inner.child_by_field_name("body") {
-                                    content.get(inner.start_byte()..body.start_byte()).unwrap_or("").trim().to_string()
+                                    content
+                                        .get(inner.start_byte()..body.start_byte())
+                                        .unwrap_or("")
+                                        .trim()
+                                        .to_string()
                                 } else {
                                     get_text(inner)
                                 };
@@ -251,13 +277,13 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
                     }
                 }
             }
-            
+
             let name = if let Some(ref tr) = implements_trait {
                 format!("impl {} for {}", tr, target_type)
             } else {
                 format!("impl {}", target_type)
             };
-            
+
             symbols.push(ParsedSymbol {
                 name,
                 kind: "impl".to_string(),
@@ -278,14 +304,14 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
             if let Some(name_node) = node.child_by_field_name("name") {
                 name = get_text(name_node);
             }
-            
+
             if !name.is_empty() {
                 let is_standalone = if let Some(parent) = node.parent() {
                     parent.kind() == "source_file"
                 } else {
                     true
                 };
-                
+
                 if is_standalone {
                     symbols.push(ParsedSymbol {
                         name,
@@ -306,7 +332,7 @@ fn traverse_nodes(node: Node, content: &str, file_path: &str, symbols: &mut Vec<
         }
         _ => {}
     }
-    
+
     if kind == "source_file" || kind == "mod_item" {
         let mut cursor = node.walk();
         for child in node.children(&mut cursor) {
@@ -322,7 +348,9 @@ pub struct AstCompactor {
 impl AstCompactor {
     pub fn new() -> Self {
         let mut parser = Parser::new();
-        parser.set_language(language()).expect("Error loading Rust grammar");
+        parser
+            .set_language(language())
+            .expect("Error loading Rust grammar");
         Self { parser }
     }
 
@@ -341,7 +369,10 @@ impl AstCompactor {
                     }
                     "function_item" => {
                         if let Some(body) = child.child_by_field_name("body") {
-                            let sig = code.get(child.start_byte()..body.start_byte()).unwrap_or("").trim();
+                            let sig = code
+                                .get(child.start_byte()..body.start_byte())
+                                .unwrap_or("")
+                                .trim();
                             compacted.push_str(sig);
                             compacted.push_str(" { /* ... */ }\n\n");
                         } else {
@@ -354,14 +385,20 @@ impl AstCompactor {
                         // Include impl header and inner function signatures
                         let mut impl_str = String::new();
                         if let Some(body) = child.child_by_field_name("body") {
-                            let header = code.get(child.start_byte()..body.start_byte()).unwrap_or("").trim();
+                            let header = code
+                                .get(child.start_byte()..body.start_byte())
+                                .unwrap_or("")
+                                .trim();
                             impl_str.push_str(header);
                             impl_str.push_str(" {\n");
                             let mut body_cursor = body.walk();
                             for inner in body.children(&mut body_cursor) {
                                 if inner.kind() == "function_item" {
                                     if let Some(inner_body) = inner.child_by_field_name("body") {
-                                        let sig = code.get(inner.start_byte()..inner_body.start_byte()).unwrap_or("").trim();
+                                        let sig = code
+                                            .get(inner.start_byte()..inner_body.start_byte())
+                                            .unwrap_or("")
+                                            .trim();
                                         impl_str.push_str("    ");
                                         impl_str.push_str(sig);
                                         impl_str.push_str(" { /* ... */ }\n");
@@ -397,4 +434,3 @@ impl Default for AstCompactor {
         Self::new()
     }
 }
-

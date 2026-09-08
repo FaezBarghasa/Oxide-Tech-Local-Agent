@@ -89,11 +89,7 @@ impl GatewayRouter {
     ///   3. If primary is slow/down → probe secondary.
     ///   4. If secondary OK → `OnlineSecondary`.
     ///   5. Otherwise → `Local`.
-    pub async fn select_backend(
-        &self,
-        primary_url: &str,
-        secondary_url: &str,
-    ) -> CoderBackend {
+    pub async fn select_backend(&self, primary_url: &str, secondary_url: &str) -> CoderBackend {
         if is_reachable(primary_url, self.latency_threshold_ms).await {
             info!("Router: primary online coder reachable — using OnlinePrimary");
             self.current_backend
@@ -131,11 +127,7 @@ impl GatewayRouter {
     ///
     /// Returns `Some(CoderBackend)` with a recommended fallback if the current
     /// backend is deemed "unsatisfying", or `None` if quality is acceptable.
-    pub fn evaluate_quality(
-        &self,
-        stderr: &str,
-        current: CoderBackend,
-    ) -> Option<CoderBackend> {
+    pub fn evaluate_quality(&self, stderr: &str, current: CoderBackend) -> Option<CoderBackend> {
         if self.quality_gate.is_satisfying(stderr) {
             return None;
         }

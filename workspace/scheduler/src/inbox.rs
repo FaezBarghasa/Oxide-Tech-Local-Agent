@@ -89,11 +89,7 @@ impl HitlInboxManager {
     }
 
     /// Resolve a pending HITL item (approved or denied) and notify the parked task.
-    pub async fn resolve(
-        &self,
-        inbox_id: Uuid,
-        approved: bool,
-    ) -> Result<bool, anyhow::Error> {
+    pub async fn resolve(&self, inbox_id: Uuid, approved: bool) -> Result<bool, anyhow::Error> {
         let mut channels = self.channels.lock().await;
         if let Some(tx) = channels.remove(&inbox_id) {
             let status = if approved {

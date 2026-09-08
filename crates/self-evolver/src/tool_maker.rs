@@ -32,7 +32,6 @@ pub struct TestResult {
 
 pub type VerificationResult = TestResult;
 
-
 pub struct ToolMaker {
     pub tools_dir: PathBuf,
     pub vllm_endpoint: String,
@@ -79,7 +78,9 @@ Output ONLY a JSON object with this exact structure:
             task_gap_description, sample_inputs
         );
 
-        let tool_spec = self.generate_spec_from_llm(system_prompt, &user_prompt).await?;
+        let tool_spec = self
+            .generate_spec_from_llm(system_prompt, &user_prompt)
+            .await?;
 
         // Write tool to workspace tools directory
         fs::create_dir_all(&self.tools_dir).await?;
@@ -101,7 +102,10 @@ Output ONLY a JSON object with this exact structure:
             ));
         }
 
-        tracing::info!("Successfully synthesized and verified JIT MCP tool: {}", tool_spec.name);
+        tracing::info!(
+            "Successfully synthesized and verified JIT MCP tool: {}",
+            tool_spec.name
+        );
         Ok(tool_spec)
     }
 
@@ -111,13 +115,14 @@ Output ONLY a JSON object with this exact structure:
         task_gap: &str,
         sample_inputs: serde_json::Value,
     ) -> Result<JitToolSpec> {
-        self.synthesize_and_verify_tool(task_gap, sample_inputs).await
+        self.synthesize_and_verify_tool(task_gap, sample_inputs)
+            .await
     }
 
     pub async fn verify_tool_in_sandbox(&self, script_path: &Path) -> Result<VerificationResult> {
-        self.test_generated_tool(script_path, &serde_json::json!({})).await
+        self.test_generated_tool(script_path, &serde_json::json!({}))
+            .await
     }
-
 
     /// Synthesize a native, ultra-fast Mojo v1 MCP Tool
     pub async fn synthesize_mojo_tool(
@@ -144,8 +149,10 @@ Output ONLY a JSON object:
             task_gap_description, sample_inputs
         );
 
-        let spec = self.generate_mojo_spec_from_llm(system_prompt, &user_prompt).await?;
-        
+        let spec = self
+            .generate_mojo_spec_from_llm(system_prompt, &user_prompt)
+            .await?;
+
         // Write Mojo file
         fs::create_dir_all(&self.tools_dir).await?;
         let mojo_path = self.tools_dir.join(format!("{}.mojo", spec.name));
@@ -167,16 +174,26 @@ Output ONLY a JSON object:
                     let stderr = String::from_utf8_lossy(&compile_out.stderr);
                     return Err(anyhow!("Mojo v1 Compilation Failed:\n{}", stderr));
                 }
-                tracing::info!("Successfully compiled JIT Mojo v1 MCP binary: {:?}", bin_path);
+                tracing::info!(
+                    "Successfully compiled JIT Mojo v1 MCP binary: {:?}",
+                    bin_path
+                );
             } else {
-                tracing::warn!("Mojo toolchain not in PATH; wrote .mojo source directly to {:?}", mojo_path);
+                tracing::warn!(
+                    "Mojo toolchain not in PATH; wrote .mojo source directly to {:?}",
+                    mojo_path
+                );
             }
         }
 
         Ok(spec)
     }
 
-    pub async fn generate_spec_from_llm(&self, system: &str, prompt: &str) -> Result<ToolSpecification> {
+    pub async fn generate_spec_from_llm(
+        &self,
+        system: &str,
+        prompt: &str,
+    ) -> Result<ToolSpecification> {
         let client = reqwest::Client::new();
         let req_body = serde_json::json!({
             "model": self.model_name,
@@ -188,7 +205,8 @@ Output ONLY a JSON object:
             "response_format": { "type": "json_object" }
         });
 
-        let res = client.post(format!("{}/v1/chat/completions", self.vllm_endpoint))
+        let res = client
+            .post(format!("{}/v1/chat/completions", self.vllm_endpoint))
             .json(&req_body)
             .send()
             .await?;
@@ -202,7 +220,11 @@ Output ONLY a JSON object:
         Ok(spec)
     }
 
-    pub async fn generate_mojo_spec_from_llm(&self, system: &str, prompt: &str) -> Result<MojoToolSpecification> {
+    pub async fn generate_mojo_spec_from_llm(
+        &self,
+        system: &str,
+        prompt: &str,
+    ) -> Result<MojoToolSpecification> {
         let client = reqwest::Client::new();
         let req_body = serde_json::json!({
             "model": self.model_name,
@@ -214,7 +236,8 @@ Output ONLY a JSON object:
             "response_format": { "type": "json_object" }
         });
 
-        let res = client.post(format!("{}/v1/chat/completions", self.vllm_endpoint))
+        let res = client
+            .post(format!("{}/v1/chat/completions", self.vllm_endpoint))
             .json(&req_body)
             .send()
             .await?;
@@ -228,7 +251,11 @@ Output ONLY a JSON object:
         Ok(spec)
     }
 
-    pub async fn test_generated_tool(&self, script_path: &Path, _sample_inputs: &serde_json::Value) -> Result<TestResult> {
+    pub async fn test_generated_tool(
+        &self,
+        script_path: &Path,
+        _sample_inputs: &serde_json::Value,
+    ) -> Result<TestResult> {
         let parent = script_path.parent().unwrap_or_else(|| Path::new("."));
         let parent_str = parent.to_str().unwrap_or(".");
         let script_str = script_path.to_str().unwrap_or("");

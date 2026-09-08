@@ -1,7 +1,7 @@
-use surrealdb::engine::any::Any;
-use surrealdb::engine::any::connect;
-use surrealdb::Surreal;
 use crate::schema::SymbolRecord;
+use surrealdb::engine::any::connect;
+use surrealdb::engine::any::Any;
+use surrealdb::Surreal;
 use tree_sitter_service::ast::ParsedSymbol;
 
 pub struct SurrealClient {
@@ -10,9 +10,8 @@ pub struct SurrealClient {
 
 impl SurrealClient {
     pub async fn new() -> Result<Self, surrealdb::Error> {
-        let db_url = std::env::var("SURREALDB_URL")
-            .unwrap_or_else(|_| "mem://".to_string());
-        
+        let db_url = std::env::var("SURREALDB_URL").unwrap_or_else(|_| "mem://".to_string());
+
         let db = connect(&db_url).await?;
         db.use_ns("workspace").use_db("ast").await?;
         Ok(Self { db })
@@ -48,10 +47,7 @@ impl SurrealClient {
                 target_type: sym.target_type.clone(),
             };
 
-            let created: Option<SymbolRecord> = self.db
-                .create("symbol")
-                .content(record)
-                .await?;
+            let created: Option<SymbolRecord> = self.db.create("symbol").content(record).await?;
 
             if let Some(rec) = created {
                 if let Some(ref rec_id) = rec.id {
@@ -70,7 +66,9 @@ impl SurrealClient {
                         for other_kind in &["struct", "enum"] {
                             for ((k, name, _), to_id) in &inserted_ids {
                                 if k == other_kind && name == target_type {
-                                    let _ = self.db.query("RELATE $from->belongs_to->$to")
+                                    let _ = self
+                                        .db
+                                        .query("RELATE $from->belongs_to->$to")
                                         .bind(("from", from_id.clone()))
                                         .bind(("to", to_id.clone()))
                                         .await?;
@@ -83,7 +81,9 @@ impl SurrealClient {
                     if let Some(ref implements_trait) = sym.implements_trait {
                         for ((k, name, _), to_id) in &inserted_ids {
                             if k == "trait" && name == implements_trait {
-                                  let _ = self.db.query("RELATE $from->implements->$to")
+                                let _ = self
+                                    .db
+                                    .query("RELATE $from->implements->$to")
                                     .bind(("from", from_id.clone()))
                                     .bind(("to", to_id.clone()))
                                     .await?;
@@ -106,9 +106,13 @@ impl SurrealClient {
             return Ok("Workspace is empty or has not been parsed yet.".to_string());
         }
 
-        let mut files_map: std::collections::BTreeMap<String, Vec<SymbolRecord>> = std::collections::BTreeMap::new();
+        let mut files_map: std::collections::BTreeMap<String, Vec<SymbolRecord>> =
+            std::collections::BTreeMap::new();
         for sym in symbols {
-            files_map.entry(sym.file_path.clone()).or_default().push(sym);
+            files_map
+                .entry(sym.file_path.clone())
+                .or_default()
+                .push(sym);
         }
 
         let mut context = String::new();
@@ -120,7 +124,8 @@ impl SurrealClient {
                         context.push_str(&format!("  struct {}\n", s.name));
                         if let Some(ref fields) = s.fields {
                             for f in fields {
-                                context.push_str(&format!("    - field {}: {}\n", f.name, f.r#type));
+                                context
+                                    .push_str(&format!("    - field {}: {}\n", f.name, f.r#type));
                             }
                         }
                     }
@@ -141,7 +146,9 @@ impl SurrealClient {
                         }
                     }
                     "impl" => {
-                        if let (Some(ref tr), Some(ref target)) = (&s.implements_trait, &s.target_type) {
+                        if let (Some(ref tr), Some(ref target)) =
+                            (&s.implements_trait, &s.target_type)
+                        {
                             context.push_str(&format!("  impl {} for {}\n", tr, target));
                         } else if let Some(ref target) = s.target_type {
                             context.push_str(&format!("  impl {}\n", target));

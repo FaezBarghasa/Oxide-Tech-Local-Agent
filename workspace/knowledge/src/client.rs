@@ -201,8 +201,10 @@ impl KnowledgeClient {
 
         let mut points = Vec::new();
         for (i, (chunk, embedding)) in chunks.into_iter().zip(embeddings.into_iter()).enumerate() {
-            let point_uuid =
-                Uuid::new_v5(&Uuid::NAMESPACE_URL, format!("research://{}#{}", url, i).as_bytes());
+            let point_uuid = Uuid::new_v5(
+                &Uuid::NAMESPACE_URL,
+                format!("research://{}#{}", url, i).as_bytes(),
+            );
 
             let payload: Payload = serde_json::json!({
                 "text": chunk,
@@ -229,10 +231,7 @@ impl KnowledgeClient {
 
         info!(
             "Grounded {} research chunks for {} via engine: {} (confidence: {:.2})",
-            point_count,
-            url,
-            engine,
-            confidence_score
+            point_count, url, engine, confidence_score
         );
         Ok(())
     }

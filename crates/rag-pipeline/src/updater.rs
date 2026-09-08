@@ -1,7 +1,7 @@
-use tracing::{info, warn, error};
+use crate::RagPipeline;
 use serde::{Deserialize, Serialize};
 use surrealdb_types::SurrealValue;
-use crate::RagPipeline;
+use tracing::{error, info, warn};
 
 #[derive(Debug, Deserialize)]
 struct CratesIoCrate {
@@ -27,17 +27,27 @@ pub async fn fetch_latest_crates_io_version(
     crate_name: &str,
 ) -> Result<String, anyhow::Error> {
     let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
-    let resp = client.get(&url)
-        .header("User-Agent", "Oxide-Tech-Local-Agent/0.1.0 (contact: info@oxide.tech)")
+    let resp = client
+        .get(&url)
+        .header(
+            "User-Agent",
+            "Oxide-Tech-Local-Agent/0.1.0 (contact: info@oxide.tech)",
+        )
         .send()
         .await?;
 
     if !resp.status().is_success() {
-        anyhow::bail!("crates.io API error for {}: status {}", crate_name, resp.status());
+        anyhow::bail!(
+            "crates.io API error for {}: status {}",
+            crate_name,
+            resp.status()
+        );
     }
 
     let parsed: CratesIoResponse = resp.json().await?;
-    let version = parsed.krate.max_stable_version
+    let version = parsed
+        .krate
+        .max_stable_version
         .or(parsed.krate.max_version)
         .ok_or_else(|| anyhow::anyhow!("No version found for crate {}", crate_name))?;
 
@@ -62,13 +72,17 @@ pub async fn check_and_update_crates(
         let latest_version = match fetch_latest_crates_io_version(&http_client, crate_name).await {
             Ok(ver) => ver,
             Err(e) => {
-                warn!("Failed to fetch crates.io version for {}: {}", crate_name, e);
+                warn!(
+                    "Failed to fetch crates.io version for {}: {}",
+                    crate_name, e
+                );
                 continue;
             }
         };
 
         // Query SurrealDB for stored version using raw SQL and owned String bindings
-        let existing: Option<CrateVersionRecord> = match db.db
+        let existing: Option<CrateVersionRecord> = match db
+            .db
             .query("SELECT version, updated_at FROM type::thing('crate_version', $name)")
             .bind(("name", crate_name.to_string()))
             .await
@@ -89,18 +103,27 @@ pub async fn check_and_update_crates(
                     );
                     true
                 } else {
-                    info!("Crate {} is up to date (version: {})", crate_name, latest_version);
+                    info!(
+                        "Crate {} is up to date (version: {})",
+                        crate_name, latest_version
+                    );
                     false
                 }
             }
             None => {
-                info!("Crate {} not found in stored versions — downloading first-time", crate_name);
+                info!(
+                    "Crate {} not found in stored versions — downloading first-time",
+                    crate_name
+                );
                 true
             }
         };
 
         if needs_update {
-            match pipeline.ingest_crate_docs(crate_name, &latest_version).await {
+            match pipeline
+                .ingest_crate_docs(crate_name, &latest_version)
+                .await
+            {
                 Ok(()) => {
                     // Update stored version in SurrealDB using raw SQL and owned String bindings
                     let query_res = db.db
@@ -111,7 +134,10 @@ pub async fn check_and_update_crates(
                         .await;
 
                     if let Err(e) = query_res {
-                        error!("Failed to save updated crate version for {} in SurrealDB: {}", crate_name, e);
+                        error!(
+                            "Failed to save updated crate version for {} in SurrealDB: {}",
+                            crate_name, e
+                        );
                     }
                 }
                 Err(e) => {

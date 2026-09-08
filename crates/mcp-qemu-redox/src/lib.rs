@@ -2,18 +2,8 @@
 pub mod redox_verifier;
 pub use redox_verifier::{RedoxKvmVerifier, RedoxTestResult};
 
-use std::process::Stdio;
-use std::sync::Arc;
-use std::path::PathBuf;
-use std::time::Duration;
-use tokio::process::{Command, Child};
-use tokio::sync::Mutex;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use regex::Regex;
-use serde::Deserialize;
-use schemars::JsonSchema;
 use rmcp::{
-    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -21,8 +11,17 @@ use rmcp::{
         ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router,
+    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
+use schemars::JsonSchema;
+use serde::Deserialize;
+use std::path::PathBuf;
+use std::process::Stdio;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::process::{Child, Command};
+use tokio::sync::Mutex;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct EmptyInput {}
@@ -46,7 +45,7 @@ pub struct PanicTestInput {
 #[derive(Clone)]
 pub struct QemuRedoxServer {
     workspace_root: PathBuf,
-    state: Arc<Mutex<QemuState>>, 
+    state: Arc<Mutex<QemuState>>,
     tool_router: ToolRouter<Self>,
 }
 
@@ -64,16 +63,23 @@ impl QemuRedoxServer {
         let full_image = self.workspace_root.join(image_path);
         let image_str = full_image.to_string_lossy();
         let mut cmd = Command::new("qemu-system-x86_64");
-        cmd.arg("-machine").arg("q35")
-            .arg("-m").arg("512")
-            .arg("-drive").arg(format!("file={},format=raw", image_str))
+        cmd.arg("-machine")
+            .arg("q35")
+            .arg("-m")
+            .arg("512")
+            .arg("-drive")
+            .arg(format!("file={},format=raw", image_str))
             .arg("-nographic")
-            .arg("-serial").arg("stdio")
-            .arg("-monitor").arg("none")
+            .arg("-serial")
+            .arg("stdio")
+            .arg("-monitor")
+            .arg("none")
             .stdout(Stdio::piped())
             .stdin(Stdio::piped())
             .stderr(Stdio::piped());
-        let mut child = cmd.spawn().map_err(|e| McpError::internal_error(format!("Failed to spawn QEMU: {}", e), None))?;
+        let mut child = cmd
+            .spawn()
+            .map_err(|e| McpError::internal_error(format!("Failed to spawn QEMU: {}", e), None))?;
         let stdout = child.stdout.take().unwrap();
         let mut reader = BufReader::new(stdout).lines();
         let log_arc = self.state.clone();
@@ -94,54 +100,99 @@ impl QemuRedoxServer {
     pub fn new(workspace_root: PathBuf) -> Self {
         Self {
             workspace_root,
-            state: Arc::new(Mutex::new(QemuState { child: None, log: String::new() })),
+            state: Arc::new(Mutex::new(QemuState {
+                child: None,
+                log: String::new(),
+            })),
             tool_router: Self::tool_router(),
         }
     }
 
-    #[tool(description = "Boot a Redox OS image in QEMU (headless). Returns success if QEMU started.")]
-    async fn boot_redox(&self, Parameters(input): Parameters<BootInput>) -> Result<CallToolResult, McpError> {
+    #[tool(
+        description = "Boot a Redox OS image in QEMU (headless). Returns success if QEMU started."
+    )]
+    async fn boot_redox(
+        &self,
+        Parameters(input): Parameters<BootInput>,
+    ) -> Result<CallToolResult, McpError> {
         self.spawn_qemu(&input.image_path).await?;
-        Ok(CallToolResult::success(vec![Content::text("QEMU booted successfully".to_string())]))
+        Ok(CallToolResult::success(vec![Content::text(
+            "QEMU booted successfully".to_string(),
+        )]))
     }
 
     #[tool(description = "Send a line to QEMU UART (stdin).")]
-    async fn send_uart(&self, Parameters(input): Parameters<UartInput>) -> Result<CallToolResult, McpError> {
+    async fn send_uart(
+        &self,
+        Parameters(input): Parameters<UartInput>,
+    ) -> Result<CallToolResult, McpError> {
         let mut state = self.state.lock().await;
         if let Some(child) = &mut state.child {
             if let Some(mut stdin) = child.stdin.take() {
-                stdin.write_all(input.message.as_bytes()).await.map_err(|e| McpError::internal_error(format!("Failed writing to QEMU stdin: {}", e), None))?;
-                stdin.write_all(b"\n").await.map_err(|e| McpError::internal_error(format!("Failed writing newline: {}", e), None))?;
+                stdin
+                    .write_all(input.message.as_bytes())
+                    .await
+                    .map_err(|e| {
+                        McpError::internal_error(
+                            format!("Failed writing to QEMU stdin: {}", e),
+                            None,
+                        )
+                    })?;
+                stdin.write_all(b"\n").await.map_err(|e| {
+                    McpError::internal_error(format!("Failed writing newline: {}", e), None)
+                })?;
                 child.stdin = Some(stdin);
-                return Ok(CallToolResult::success(vec![Content::text("UART message sent".to_string())]));
+                return Ok(CallToolResult::success(vec![Content::text(
+                    "UART message sent".to_string(),
+                )]));
             }
         }
-        Ok(CallToolResult::error(vec![Content::text("QEMU not running".to_string())]))
+        Ok(CallToolResult::error(vec![Content::text(
+            "QEMU not running".to_string(),
+        )]))
     }
 
     #[tool(description = "Read accumulated QEMU serial log.")]
-    async fn read_serial_log(&self, _input: Parameters<EmptyInput>) -> Result<CallToolResult, McpError> {
+    async fn read_serial_log(
+        &self,
+        _input: Parameters<EmptyInput>,
+    ) -> Result<CallToolResult, McpError> {
         let state = self.state.lock().await;
         let log = state.log.clone();
         Ok(CallToolResult::success(vec![Content::text(log)]))
     }
 
     #[tool(description = "Shutdown the running QEMU instance.")]
-    async fn shutdown_qemu(&self, _input: Parameters<EmptyInput>) -> Result<CallToolResult, McpError> {
+    async fn shutdown_qemu(
+        &self,
+        _input: Parameters<EmptyInput>,
+    ) -> Result<CallToolResult, McpError> {
         let mut state = self.state.lock().await;
         if let Some(mut child) = state.child.take() {
             let _ = child.kill().await;
             let _ = child.wait().await;
             state.log.clear();
-            return Ok(CallToolResult::success(vec![Content::text("QEMU shutdown".to_string())]));
+            return Ok(CallToolResult::success(vec![Content::text(
+                "QEMU shutdown".to_string(),
+            )]));
         }
-        Ok(CallToolResult::error(vec![Content::text("No QEMU instance to shut down".to_string())]))
+        Ok(CallToolResult::error(vec![Content::text(
+            "No QEMU instance to shut down".to_string(),
+        )]))
     }
 
-    #[tool(description = "Run a kernel panic test: boot image, send trigger command, capture and parse stack trace.")]
-    async fn run_panic_test(&self, Parameters(input): Parameters<PanicTestInput>) -> Result<CallToolResult, McpError> {
+    #[tool(
+        description = "Run a kernel panic test: boot image, send trigger command, capture and parse stack trace."
+    )]
+    async fn run_panic_test(
+        &self,
+        Parameters(input): Parameters<PanicTestInput>,
+    ) -> Result<CallToolResult, McpError> {
         self.spawn_qemu(&input.image_path).await?;
-        self.send_uart(Parameters(UartInput { message: input.trigger_cmd })).await?;
+        self.send_uart(Parameters(UartInput {
+            message: input.trigger_cmd,
+        }))
+        .await?;
         tokio::time::sleep(Duration::from_secs(5)).await;
         let log = {
             let state = self.state.lock().await;
@@ -154,9 +205,14 @@ impl QemuRedoxServer {
             panic_msg.push('\n');
         }
         if panic_msg.is_empty() {
-            return Ok(CallToolResult::error(vec![Content::text("No panic detected in QEMU output".to_string())]));
+            return Ok(CallToolResult::error(vec![Content::text(
+                "No panic detected in QEMU output".to_string(),
+            )]));
         }
-        Ok(CallToolResult::success(vec![Content::text(format!("Panic detected:\n{}", panic_msg))]))
+        Ok(CallToolResult::success(vec![Content::text(format!(
+            "Panic detected:\n{}",
+            panic_msg
+        ))]))
     }
 }
 
@@ -193,8 +249,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_redox_verifier_creation() {
-        let verifier = RedoxKvmVerifier::new(PathBuf::from("workspace/images/redox.iso"))
-            .with_timeout(1);
+        let verifier =
+            RedoxKvmVerifier::new(PathBuf::from("workspace/images/redox.iso")).with_timeout(1);
         let res = verifier.run_boot_smoke_test("redox login:").await.unwrap();
         assert!(res.boot_time_ms > 0 || res.passed);
     }

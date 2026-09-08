@@ -1,8 +1,8 @@
+pub mod agent;
 pub mod cargo;
-pub mod tree_sitter;
+pub mod health;
 pub mod kicad;
+pub mod repository;
 pub mod skidl;
 pub mod thermal;
-pub mod agent;
-pub mod health;
-pub mod repository;
+pub mod tree_sitter;

@@ -61,7 +61,11 @@ impl KitesurfClient {
         let base = self
             .endpoint_template
             .replace("{account_id}", &self.account_id);
-        format!("{}/{}", base.trim_end_matches('/'), path.trim_start_matches('/'))
+        format!(
+            "{}/{}",
+            base.trim_end_matches('/'),
+            path.trim_start_matches('/')
+        )
     }
 
     /// Extract rendered DOM/Markdown via Cloudflare Browser Run V8 isolate
@@ -128,7 +132,11 @@ impl KitesurfClient {
         if !resp.status().is_success() {
             let status = resp.status();
             let err_text = resp.text().await.unwrap_or_default();
-            return Err(anyhow!("Kitesurf screenshot error HTTP {}: {}", status, err_text));
+            return Err(anyhow!(
+                "Kitesurf screenshot error HTTP {}: {}",
+                status,
+                err_text
+            ));
         }
 
         let bytes = resp.bytes().await?;
@@ -153,7 +161,10 @@ impl KitesurfClient {
             .await?;
 
         if !resp.status().is_success() {
-            return Err(anyhow!("Kitesurf PDF export failed: HTTP {}", resp.status()));
+            return Err(anyhow!(
+                "Kitesurf PDF export failed: HTTP {}",
+                resp.status()
+            ));
         }
 
         let bytes = resp.bytes().await?;

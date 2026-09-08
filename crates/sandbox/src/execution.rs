@@ -1,6 +1,6 @@
 use std::path::Path;
-use tokio::process::Command;
 use tokio::io::{AsyncReadExt, BufReader};
+use tokio::process::Command;
 use tokio::time::{timeout, Duration};
 use tracing::{error, info, warn};
 
@@ -29,17 +29,17 @@ pub struct ExecutionResult {
 /// - `RLIMIT_CPU` caps CPU time at `CPU_TIME_LIMIT_SECS`.
 /// - A `tokio::time::timeout` of `EXECUTION_TIMEOUT` provides a wall-clock
 ///   deadline; on expiry the entire process group is killed.
-pub async fn execute_in_sandbox(
-    cmd: &[&str],
-    work_dir: &str,
-) -> Result<ExecutionResult, String> {
+pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
     if cmd.is_empty() {
         return Err("Empty command provided to sandbox".to_string());
     }
 
     let work_dir_path = Path::new(work_dir);
     if !work_dir_path.exists() {
-        return Err(format!("Sandbox working directory does not exist: {}", work_dir));
+        return Err(format!(
+            "Sandbox working directory does not exist: {}",
+            work_dir
+        ));
     }
 
     info!("Sandbox executing {:?} in {:?}", cmd, work_dir);
@@ -120,7 +120,10 @@ pub async fn execute_in_sandbox(
                     exit_code, cmd
                 );
             } else {
-                info!("Sandbox process completed successfully for command {:?}", cmd);
+                info!(
+                    "Sandbox process completed successfully for command {:?}",
+                    cmd
+                );
             }
 
             Ok(ExecutionResult {
@@ -162,7 +165,10 @@ mod tests {
         // Test that execution inside non-existent or invalid working directories is rejected
         let invalid_workdir = "/root/forbidden_directory_xyz_123";
         let res = execute_in_sandbox(&["echo", "pwned"], invalid_workdir).await;
-        assert!(res.is_err(), "Sandbox must reject execution in nonexistent/forbidden directory");
+        assert!(
+            res.is_err(),
+            "Sandbox must reject execution in nonexistent/forbidden directory"
+        );
 
         // Test that empty commands are rejected
         let empty_cmd: Vec<&str> = vec![];
@@ -177,4 +183,3 @@ mod tests {
         assert!(out.stdout.contains("sandbox_secure"));
     }
 }
-

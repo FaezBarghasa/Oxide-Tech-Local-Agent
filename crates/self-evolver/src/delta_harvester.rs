@@ -1,9 +1,9 @@
-use similar::{ChangeTag, TextDiff};
-use serde::{Serialize, Deserialize};
-use surrealdb_types::SurrealValue;
-use surrealdb::Surreal;
-use surrealdb::engine::local::Db;
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use similar::{ChangeTag, TextDiff};
+use surrealdb::engine::local::Db;
+use surrealdb::Surreal;
+use surrealdb_types::SurrealValue;
 
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct VerificationDelta {

@@ -46,7 +46,11 @@ impl PerceptionRouter {
     }
 
     /// Primary intelligent perception dispatch: Tier 1 (Scrapling/DocsRs) -> Tier 2 (PinchTab) -> Tier 3 (Kitesurf)
-    pub async fn fetch_research(&self, url: &str, force_engine: Option<&str>) -> Result<ResearchResult> {
+    pub async fn fetch_research(
+        &self,
+        url: &str,
+        force_engine: Option<&str>,
+    ) -> Result<ResearchResult> {
         let cache_lock = self.cache.lock().await;
         if let Some(cached) = cache_lock.get(url) {
             return Ok(cached.clone());
@@ -73,7 +77,10 @@ impl PerceptionRouter {
         match self.execute_scrapling_fetch(url).await {
             Ok(res) if res.success => return Ok(res),
             Ok(blocked_res) => {
-                warn!("Tier 1 Scrapling flagged/blocked for {}: {:?}", url, blocked_res.error);
+                warn!(
+                    "Tier 1 Scrapling flagged/blocked for {}: {:?}",
+                    url, blocked_res.error
+                );
                 if !self.config.auto_escalate_on_block {
                     return Ok(blocked_res);
                 }
@@ -88,7 +95,10 @@ impl PerceptionRouter {
 
         // Step 2: Try Tier 2 (PinchTab Local Daemon) if available
         if self.pinchtab.health_check().await {
-            info!("Escalating perception to Tier 2 (PinchTab Daemon) for {}", url);
+            info!(
+                "Escalating perception to Tier 2 (PinchTab Daemon) for {}",
+                url
+            );
             if let Ok(res) = self.execute_pinchtab_fetch(url).await {
                 if res.success {
                     return Ok(res);
@@ -98,7 +108,10 @@ impl PerceptionRouter {
 
         // Step 3: Try Tier 3 (Cloudflare Kitesurf Cloud Isolates)
         if self.kitesurf.is_configured() {
-            info!("Escalating perception to Tier 3 (Cloudflare Kitesurf V8) for {}", url);
+            info!(
+                "Escalating perception to Tier 3 (Cloudflare Kitesurf V8) for {}",
+                url
+            );
             return self.execute_kitesurf_fetch(url).await;
         }
 
@@ -117,7 +130,9 @@ impl PerceptionRouter {
 
     async fn execute_scrapling_fetch(&self, url: &str) -> Result<ResearchResult> {
         let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(self.config.scrapling.request_timeout_secs))
+            .timeout(std::time::Duration::from_secs(
+                self.config.scrapling.request_timeout_secs,
+            ))
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
             .build()?;
 
@@ -193,7 +208,9 @@ impl PerceptionRouter {
             let _ = self.pinchtab.navigate(url).await?;
             self.pinchtab.capture_screenshot(None).await
         } else {
-            Err(anyhow::anyhow!("Neither Kitesurf nor PinchTab available for visual screenshot verification"))
+            Err(anyhow::anyhow!(
+                "Neither Kitesurf nor PinchTab available for visual screenshot verification"
+            ))
         }
     }
 }

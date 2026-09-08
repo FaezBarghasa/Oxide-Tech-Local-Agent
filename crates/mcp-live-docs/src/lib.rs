@@ -1,15 +1,14 @@
 // Live Docs & Perception Research MCP Server
-pub mod scraper;
-pub mod pinchtab;
 pub mod kitesurf;
 pub mod perception_router;
+pub mod pinchtab;
+pub mod scraper;
 
-use std::path::PathBuf;
-use std::sync::Arc;
-use serde::Deserialize;
-use schemars::JsonSchema;
+use crate::perception_router::PerceptionRouter;
+use crate::pinchtab::ActionRequest;
+use crate::scraper::{ApiSurface, DocsRsScraper};
+use config_loader::{AppConfig, PerceptionConfig};
 use rmcp::{
-    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -17,13 +16,13 @@ use rmcp::{
         ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router,
+    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
+use schemars::JsonSchema;
+use serde::Deserialize;
+use std::path::PathBuf;
+use std::sync::Arc;
 use tokio::sync::Mutex;
-use config_loader::{AppConfig, PerceptionConfig};
-use crate::scraper::{DocsRsScraper, ApiSurface};
-use crate::pinchtab::ActionRequest;
-use crate::perception_router::PerceptionRouter;
 
 #[derive(Deserialize, JsonSchema)]
 pub struct CrateLookupInput {
@@ -85,35 +84,59 @@ impl LiveDocsServer {
     }
 
     #[tool(description = "Lookup the public API surface of a crate (latest version if omitted)")]
-    async fn lookup_crate_api(&self, Parameters(input): Parameters<CrateLookupInput>) -> Result<CallToolResult, McpError> {
+    async fn lookup_crate_api(
+        &self,
+        Parameters(input): Parameters<CrateLookupInput>,
+    ) -> Result<CallToolResult, McpError> {
         let version = if let Some(v) = input.version.clone() {
             v
         } else {
             match self.scraper.fetch_latest_version(&input.crate_name).await {
                 Ok(v) => v,
                 Err(e) => {
-                    return Ok(CallToolResult::error(vec![Content::text(format!("Failed to get latest version: {}", e))]));
+                    return Ok(CallToolResult::error(vec![Content::text(format!(
+                        "Failed to get latest version: {}",
+                        e
+                    ))]));
                 }
             }
         };
         let cache_lock = self.cache.lock().await;
         if let Some(api) = cache_lock.get(&(input.crate_name.clone(), version.clone())) {
-            return Ok(CallToolResult::success(vec![Content::text(api.markdown.clone())]));
+            return Ok(CallToolResult::success(vec![Content::text(
+                api.markdown.clone(),
+            )]));
         }
         drop(cache_lock);
-        match self.scraper.fetch_and_parse(&input.crate_name, &version).await {
+        match self
+            .scraper
+            .fetch_and_parse(&input.crate_name, &version)
+            .await
+        {
             Ok(api) => {
                 let mut cache_lock = self.cache.lock().await;
                 cache_lock.insert((input.crate_name.clone(), version.clone()), api.clone());
                 Ok(CallToolResult::success(vec![Content::text(api.markdown)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Docs scrape failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Docs scrape failed: {}",
+                e
+            ))])),
         }
     }
 
-    #[tool(description = "Deep research and perceive any web URL using the Tri-Engine Perception router (Scrapling / PinchTab / Cloudflare Kitesurf)")]
-    async fn perception_deep_research(&self, Parameters(input): Parameters<ResearchInput>) -> Result<CallToolResult, McpError> {
-        match self.router.fetch_research(&input.url, input.engine.as_deref()).await {
+    #[tool(
+        description = "Deep research and perceive any web URL using the Tri-Engine Perception router (Scrapling / PinchTab / Cloudflare Kitesurf)"
+    )]
+    async fn perception_deep_research(
+        &self,
+        Parameters(input): Parameters<ResearchInput>,
+    ) -> Result<CallToolResult, McpError> {
+        match self
+            .router
+            .fetch_research(&input.url, input.engine.as_deref())
+            .await
+        {
             Ok(res) => {
                 let formatted = format!(
                     "### Perception Research Result\n- **URL**: {}\n- **Engine**: {}\n- **Confidence**: {:.2}\n\n{}\n",
@@ -121,12 +144,18 @@ impl LiveDocsServer {
                 );
                 Ok(CallToolResult::success(vec![Content::text(formatted)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Perception research error: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Perception research error: {}",
+                e
+            ))])),
         }
     }
 
     #[tool(description = "Execute local interactive browser action via PinchTab daemon")]
-    async fn perception_browser_action(&self, Parameters(input): Parameters<BrowserActionInput>) -> Result<CallToolResult, McpError> {
+    async fn perception_browser_action(
+        &self,
+        Parameters(input): Parameters<BrowserActionInput>,
+    ) -> Result<CallToolResult, McpError> {
         let req = ActionRequest {
             action: input.action,
             selector: input.selector,
@@ -136,19 +165,37 @@ impl LiveDocsServer {
         };
 
         match self.router.interactive_action(req).await {
-            Ok(res) => Ok(CallToolResult::success(vec![Content::text(format!("PinchTab Action: {}", res.message))])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("PinchTab Action Error: {}", e))])),
+            Ok(res) => Ok(CallToolResult::success(vec![Content::text(format!(
+                "PinchTab Action: {}",
+                res.message
+            ))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "PinchTab Action Error: {}",
+                e
+            ))])),
         }
     }
 
-    #[tool(description = "Capture visual snapshot and rendered verification screenshot using Kitesurf or PinchTab")]
-    async fn perception_visual_verify(&self, Parameters(input): Parameters<VisualVerifyInput>) -> Result<CallToolResult, McpError> {
+    #[tool(
+        description = "Capture visual snapshot and rendered verification screenshot using Kitesurf or PinchTab"
+    )]
+    async fn perception_visual_verify(
+        &self,
+        Parameters(input): Parameters<VisualVerifyInput>,
+    ) -> Result<CallToolResult, McpError> {
         match self.router.visual_verify_screenshot(&input.url).await {
             Ok(bytes) => {
-                let msg = format!("Captured visual verification screenshot ({} bytes) for {}", bytes.len(), input.url);
+                let msg = format!(
+                    "Captured visual verification screenshot ({} bytes) for {}",
+                    bytes.len(),
+                    input.url
+                );
                 Ok(CallToolResult::success(vec![Content::text(msg)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Visual verify failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+                "Visual verify failed: {}",
+                e
+            ))])),
         }
     }
 }

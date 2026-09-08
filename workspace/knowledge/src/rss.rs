@@ -1,6 +1,6 @@
+use regex::Regex;
 use select::document::Document;
 use select::predicate::Name;
-use regex::Regex;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FeedEntry {
@@ -72,10 +72,22 @@ pub fn parse_feed(content: &str) -> Vec<FeedEntry> {
 
         for cap in item_re.captures_iter(content) {
             let block = &cap[1];
-            let title = title_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
-            let link = link_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
-            let summary = desc_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
-            let published = pub_re.captures(block).map(|c| c[1].trim().to_string()).unwrap_or_default();
+            let title = title_re
+                .captures(block)
+                .map(|c| c[1].trim().to_string())
+                .unwrap_or_default();
+            let link = link_re
+                .captures(block)
+                .map(|c| c[1].trim().to_string())
+                .unwrap_or_default();
+            let summary = desc_re
+                .captures(block)
+                .map(|c| c[1].trim().to_string())
+                .unwrap_or_default();
+            let published = pub_re
+                .captures(block)
+                .map(|c| c[1].trim().to_string())
+                .unwrap_or_default();
 
             if !title.is_empty() && !link.is_empty() {
                 entries.push(FeedEntry {

@@ -195,9 +195,7 @@ impl LlmRouterClient {
         expect_json: bool,
     ) -> Result<String, anyhow::Error> {
         match self.provider {
-            LlmProvider::Ollama => {
-                self.complete_ollama(system_prompt, user_prompt).await
-            }
+            LlmProvider::Ollama => self.complete_ollama(system_prompt, user_prompt).await,
             // Groq, Mistral, Google (Gemini shim), and vLLM all speak
             // OpenAI-compatible /chat/completions.
             _ => {
@@ -287,13 +285,19 @@ impl LlmRouterClient {
             LlmProvider::Cerebras => env::var("CEREBRAS_API_KEY").ok(),
             LlmProvider::OpenRouter => env::var("OPENROUTER_API_KEY").ok(),
             LlmProvider::DeepSeek => env::var("DEEPSEEK_API_KEY").ok(),
-            LlmProvider::GitHubModels => env::var("GITHUB_TOKEN").or_else(|_| env::var("GITHUB_API_KEY")).ok(),
+            LlmProvider::GitHubModels => env::var("GITHUB_TOKEN")
+                .or_else(|_| env::var("GITHUB_API_KEY"))
+                .ok(),
             LlmProvider::SambaNova => env::var("SAMBANOVA_API_KEY").ok(),
             LlmProvider::Nvidia => env::var("NVIDIA_API_KEY").ok(),
-            LlmProvider::Cloudflare => env::var("CLOUDFLARE_API_KEY").or_else(|_| env::var("CLOUDFLARE_API_TOKEN")).ok(),
+            LlmProvider::Cloudflare => env::var("CLOUDFLARE_API_KEY")
+                .or_else(|_| env::var("CLOUDFLARE_API_TOKEN"))
+                .ok(),
             LlmProvider::Cohere => env::var("COHERE_API_KEY").ok(),
             LlmProvider::Pollinations => None,
-            LlmProvider::Zhipu => env::var("ZHIPU_API_KEY").or_else(|_| env::var("ZHIPUAI_API_KEY")).ok(),
+            LlmProvider::Zhipu => env::var("ZHIPU_API_KEY")
+                .or_else(|_| env::var("ZHIPUAI_API_KEY"))
+                .ok(),
             LlmProvider::Agnes => env::var("AGNES_API_KEY").ok(),
         }
     }

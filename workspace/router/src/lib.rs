@@ -1,22 +1,23 @@
 use serde::{Deserialize, Serialize};
 
-pub mod srae;
+pub mod agent_fsm;
+pub mod agent_modes;
+pub mod cloud_response_capture;
+pub mod feedback;
 pub mod hub_routing;
 pub mod local_first_router;
-pub mod feedback;
-pub mod cloud_response_capture;
-pub mod agent_modes;
-pub mod supervisor;
 pub mod lora_router;
 pub mod observer;
-pub mod agent_fsm;
+pub mod srae;
+pub mod supervisor;
 
-pub use agent_modes::{AgentMode, ToolPermissions, RiskClass, PermissionDecision, classify_tool_call};
-pub use supervisor::{SupervisorAgent, TaskDag, TaskNode, TaskStatus, SubAgentRole};
-pub use lora_router::{DynamicLoraRouter, LoraAdapterType, LoraAdapterConfig};
-pub use observer::{ObserverAgent, LoopObservationReport, LoopRecommendation};
 pub use agent_fsm::{AgentFsmRouter, RoutingDecision};
-
+pub use agent_modes::{
+    AgentMode, PermissionDecision, RiskClass, ToolPermissions, classify_tool_call,
+};
+pub use lora_router::{DynamicLoraRouter, LoraAdapterConfig, LoraAdapterType};
+pub use observer::{LoopObservationReport, LoopRecommendation, ObserverAgent};
+pub use supervisor::{SubAgentRole, SupervisorAgent, TaskDag, TaskNode, TaskStatus};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModelInfo {
