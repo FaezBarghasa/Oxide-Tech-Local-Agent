@@ -126,3 +126,49 @@ graph LR
         Bwrap --> Mounted[Mount to Agent Tool Registry]
     end
 ```
+
+---
+
+## 5. Cyclic Agent FSM Lifecycle & State Transitions
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending : Task Initialized
+    Pending --> Executing : Start Task
+    Executing --> Executing : Iterative Step Execution
+    Executing --> Diagnosing : Tool / Build Error & Retry Exceeded
+    Executing --> Reviewing : All Steps Finished
+    Diagnosing --> Executing : Apply Diagnosis Fix
+    Diagnosing --> NeedsApproval : Escalated Issue
+    NeedsApproval --> Executing : Operator Approved
+    NeedsApproval --> Failed : Operator Rejected
+    Reviewing --> Completed : Validation Passed
+    Completed --> [*]
+    Failed --> [*]
+```
+
+---
+
+## 6. Human-in-the-Loop (HITL) Inbox Suspension & Resumption Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Agent as Agent Execution Task
+    participant Guard as Risk Gating (AgentMode)
+    participant Inbox as HitlInboxManager (Scheduler)
+    participant Journal as AgentJournal
+    actor Human as Human Operator (Studio UI)
+
+    Agent->>Guard: Attempt Execution (e.g. `rm -rf` / `cargo flash`)
+    Guard->>Guard: Classify Risk == Consequential / NeedsApproval
+    Guard->>Inbox: submit_request(action, payload)
+    Inbox->>Journal: Append JournalEvent::HumanInterruptRequested
+    Inbox-->>Agent: oneshot::Receiver (Task Suspended / Parked)
+
+    Human->>Inbox: GET /api/inbox/pending
+    Inbox-->>Human: Return Pending Request & Context
+    Human->>Inbox: POST /api/inbox/resolve (decision = Approve / Reject)
+    Inbox->>Journal: Append JournalEvent::ToolCallFinished
+    Inbox-->>Agent: Send resolve signal (Task Resumed)
+```

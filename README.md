@@ -65,15 +65,18 @@
 
 | Crate / Module | Path | Description |
 |---|---|---|
+| `agent-journal` | `crates/agent-journal/` | Durable event-sourced execution journaling, state snapshots, and deterministic DAG replay. |
+| `telemetry` | `crates/telemetry/` | Distributed OpenTelemetry OTLP gRPC export, span attributes, and non-blocking tracing layer. |
 | `knowledge` | `workspace/knowledge/` | Multi-modal code graph, Tree-sitter AST extraction (`AstGraphExtractor`), impact blast radius, and subgraph context pruning. |
-| `memory` | `workspace/memory/` | Ephemeral ring buffers (editor, terminal logs, stack traces) and temporal git churn / co-change tracking. |
-| `router` | `workspace/router/` | Multi-persona supervisor swarm, meta-cognitive observer agent, and dynamic LoRA adapter hot-swapping. |
+| `memory` | `workspace/memory/` | Dual-tier scoped working memory (`Global`, `Session`, `Task`, `Scratchpad`), ephemeral ring buffers, and temporal git history. |
+| `router` | `workspace/router/` | Cyclic FSM routing, parallel DAG execution tiers, multi-domain LoRA adapter selection, supervisor swarm, and mode enforcement. |
+| `scheduler` | `workspace/scheduler/` | Human-in-the-Loop (HITL) inbox suspend/resume channels, cron jobs, and GPU resource management. |
 | `optio` | `crates/optio/` | ReAct DAG engine, oscillation guard, impact analysis, context slicing, and persona orchestrator. |
 | `verifier` | `workspace/verifier/` | Atomic checkpoint snapshotting (`git stash create`), rollback engine, and deterministic firmware validation. |
 | `self-evolver` | `crates/self-evolver/` | Delta-based reinforcement harvester (`grpo_training_pool`), JIT MCP tool synthesizer (`bwrap`), and workflow skill crystallization. |
 | `surrealdb-service` | `crates/surrealdb-service/` | SurrealDB v3 schema definitions (`code_node`, `calls`, `defines`, `implements`, `references`, `data_flows_to`). |
 | `qdrant-service` | `crates/qdrant-service/` | High-dimensional semantic-structural hybrid vector indexer. |
-| `vllm-client` | `crates/vllm-client/` | SGLang TP=2 runtime client and `/v1/lora/activate` hot-swap dispatcher. |
+| `vllm-client` | `crates/vllm-client/` | SGLang TP=2 runtime client, instrumented inference spans, and `/v1/lora/activate` hot-swap dispatcher. |
 | `gateway` | `workspace/gateway/` | High-performance dual-protocol gateway (Actix-web TCP + Quinn QUIC HTTP/3 on port `8080`). |
 | `oxide-agent-studio` | `ui/oxide-agent-studio/` | React 19 + Vite web studio with interactive Graph Engineering, Agent Loops, Verifiers, and LoRA controllers. |
 

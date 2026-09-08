@@ -4,6 +4,41 @@ All notable changes to the Oxide-Tech Local Agent OS (NexusForge) codebase are d
 
 ---
 
+## [v0.4.0-agentic] - 2026-09-08
+ 
+This release delivers comprehensive architectural improvements inspired by state-of-the-art agentic orchestration engines (LangGraph, CrewAI, AutoGen, Restate, OpenWorker):
+ 
+### Major Upgrades & Enhancements
+ 
+#### 1. Durable Event-Sourced Journaling (`crates/agent-journal`)
+- **Event-Sourced Task Ledger**: Implemented `AgentJournal` & `JournalEvent` (`TaskSpawned`, `StepStarted`, `ToolCallDispatched`, `ToolCallFinished`, `HumanInterruptRequested`, `Completed`, `Failed`).
+- **Crash Recovery Replay**: Added `ReplayedDagState::from_entries()` enabling deterministic state reconstruction and task continuation after node or daemon restarts.
+ 
+#### 2. Distributed Observability & OpenTelemetry (`crates/telemetry`)
+- **Distributed OTLP gRPC Tracing**: Added structured span export to Jaeger, Honeycomb, and OpenTelemetry collectors.
+- **Trace Context Propagation & Attribution**: Instrumented LLM calls and tool dispatches with standard semantic conventions (`agent.id`, `dag.task_id`, `llm.model`, `llm.tokens`).
+ 
+#### 3. Cyclic FSM Routing & Self-Correction (`workspace/router/src/agent_fsm.rs`)
+- **Cyclic Agent FSM**: Implemented `AgentFsmRouter` with dynamic state transitions (`Pending` $\leftrightarrow$ `Executing` $\leftrightarrow$ `Diagnosing` $\leftrightarrow$ `Reviewing`).
+- **Automated Diagnosis Escalation**: Configurable retry budgets automatically routing stubborn errors to dedicated diagnostic personas or human approval.
+ 
+#### 4. Human-in-the-Loop (HITL) Inbox Protocol (`workspace/scheduler/src/inbox.rs`)
+- **Suspension & Resume Channels**: Built `HitlInboxManager` with `tokio::sync::oneshot` channels to park execution on high-risk operations and resume on operator feedback.
+ 
+#### 5. Parallel DAG Execution Engine (`workspace/router/src/supervisor.rs`)
+- **Topological Tier Slicing**: Implemented `parallel_execution_tiers()` grouping independent task branches into concurrent execution waves.
+ 
+#### 6. Scoped Working Memory (`workspace/memory/src/working_memory.rs`)
+- **Multi-Tier Scopes**: Added `Global`, `Session`, `Task`, and `Scratchpad` scopes with token budgeting and automatic TTL eviction.
+ 
+#### 7. Multi-Domain Dynamic LoRA Matching (`workspace/router/src/lora_router.rs`)
+- **Domain Keyword Scoring**: Enhanced adapter classification across STM32, Redox OS, Tauri/Slint, WebAssembly, and systems programming domains.
+ 
+#### 8. Operational Modes & Guardrails (`workspace/router/src/agent_modes.rs`)
+- **Mode Enforcement**: Added `Plan`, `Code`, `Review`, `Debug`, `Architect`, and `Research` operational modes with strict write and execution controls.
+ 
+---
+ 
 ## [v0.3.0-nexusforge] - 2026-08-23
 
 This major release completes the implementation of the **NexusForge 5-Layer Core Architecture**, featuring multi-modal graph engineering, semantic-structural hybrid indexing, dynamic LoRA hot-swapping, atomic checkpointer rollbacks, and tri-fold self-evolution.

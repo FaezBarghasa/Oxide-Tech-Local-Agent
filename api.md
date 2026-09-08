@@ -24,8 +24,25 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
 
 ### C. Multi-Agent Orchestration & Planning
 - **`POST /api/agent/plan`**:
-  - Request: `{ "goal": "Build STM32 DMA SPI driver in no_std", "context": "..." }`
-  - Response: `{ "thought": "...", "steps": [{ "step_id": 1, "description": "...", "assigned_persona": "Architect", "tool_calls": [...] }] }`
+  - Request: `{ "goal": "Build STM32 DMA SPI driver in no_std", "context": "...", "mode": "Code" }`
+  - Response: `{ "thought": "...", "steps": [{ "step_id": 1, "description": "...", "assigned_persona": "Architect", "tool_calls": [...] }], "execution_tiers": [[1], [2, 3], [4]] }`
+- **`POST /api/agent/fsm/transition`**:
+  - Request: `{ "task_id": "task-123", "current_state": "Executing", "outcome": "Failure", "error": "compiler error", "retry_count": 3 }`
+  - Response: `{ "new_state": "Diagnosing", "assigned_role": "Debugger", "diagnostic_prompt": "..." }`
+
+### D. Human-in-the-Loop (HITL) Inbox
+- **`GET /api/inbox/pending`**:
+  - Response: `[{ "id": "req-987", "task_id": "task-123", "agent_id": "coder-1", "action": "cargo build --release", "risk_class": "Exec", "status": "Pending" }]`
+- **`POST /api/inbox/resolve`**:
+  - Request: `{ "id": "req-987", "approved": true, "feedback": "Proceed with optimized flags" }`
+  - Response: `{ "status": "resolved", "id": "req-987" }`
+
+### E. Durable Event-Sourced Journal
+- **`GET /api/journal/entries?task_id=task-123`**:
+  - Response: `[{ "seq": 1, "event": "TaskSpawned", "timestamp": "2026-09-08T10:00:00Z" }, { "seq": 2, "event": "ToolCallDispatched", "tool": "file_write" }]`
+- **`POST /api/journal/replay`**:
+  - Request: `{ "task_id": "task-123" }`
+  - Response: `{ "status": "replayed", "current_state": "Executing", "completed_steps": [1, 2], "pending_steps": [3] }`
 
 ---
 

@@ -76,16 +76,23 @@ graph TD
 - **Impact Analysis (`impact_analysis.rs`)**: $K$-hop topological BFS determining downstream breaking blast radiuses, affected files, and recommended test targets.
 - **Subgraph Slicer (`subgraph_pruner.rs` & `context_slicer.rs`)**: Extracts minimal 1-hop and 2-hop topological subgraphs as JSON slices to reduce LLM prompt tokens by 75%–89%.
 
-### Layer 3: Context & Memory Layer (`workspace/memory`)
+### Layer 3: Context & Memory Layer (`workspace/memory` & `crates/agent-journal`)
+- **Scoped Working Memory (`working_memory.rs`)**: Hierarchical isolation across `Global`, `Session`, `Task`, and `Scratchpad` scopes with token budgeting and automatic TTL expiry.
+- **Event-Sourced Journal (`crates/agent-journal`)**: Append-only log recording task lifecycles, tool invocations, and state checkpoints for deterministic crash recovery and re-execution.
 - **Ephemeral Buffers (`ephemeral.rs`)**: Lock-free concurrent ring buffers capturing terminal stream logs, active editor dirty buffers, and panic stack traces.
 - **Temporal History (`temporal_git.rs`)**: Analyzes git commit churn rates and file-pair co-change coupling matrices.
 - **Dual-State Persistence (`surrealdb-service` & `qdrant-service`)**: SurrealDB v3 property graph schema coupled with high-dimensional Qdrant vector points with strict research provenance (URL, engine, timestamp, confidence).
 
-### Layer 4: Agent Engineering Layer (`workspace/router` & `crates/optio`)
+### Layer 4: Agent Engineering Layer (`workspace/router`, `crates/telemetry` & `crates/optio`)
+- **Distributed Observability (`crates/telemetry`)**: OTLP gRPC distributed tracing providing span attribution across LLM completions and tool calls.
+- **Cyclic FSM Router (`agent_fsm.rs`)**: State-driven routing engine managing cyclic repair loops, diagnostic escalations, and human review gates.
+- **Parallel DAG Scheduler (`supervisor.rs`)**: Topological tier slicing dividing independent task branches into parallel concurrent execution tiers.
 - **Multi-Persona Supervisor (`supervisor.rs` & `persona_loop.rs`)**: Dynamic DAG task decomposition and delegation across personas (`Lead Architect`, `Researcher`, `Bare-Metal Firmware Coder`, `EDA Schematic Engineer`, `DRC Reviewer`).
-- **Dynamic LoRA Hot-Swapper (`lora_router.rs`)**: Real-time task intent prediction and adapter activation (`lora_embedded_rust_v2`, `lora_kicad_schgen_v3`, `lora_cad_b3d_v1`) via SGLang runtime `/v1/lora/activate`.
+- **Dynamic LoRA Hot-Swapper (`lora_router.rs`)**: Multi-domain keyword scoring and adapter activation (`lora_embedded_rust_v2`, `lora_kicad_schgen_v3`, `lora_cad_b3d_v1`) via SGLang runtime `/v1/lora/activate`.
+- **Operational Mode Enforcement (`agent_modes.rs`)**: Strict permission gating for `Plan`, `Code`, `Review`, `Debug`, `Architect`, and `Research` modes.
 
-### Layer 5: Loop & Execution Layer (`crates/optio` & `workspace/verifier`)
+### Layer 5: Loop & Execution Layer (`crates/optio`, `workspace/scheduler` & `workspace/verifier`)
+- **Human-in-the-Loop (HITL) Inbox (`workspace/scheduler/src/inbox.rs`)**: Async parking and resumption channels for human operator verification of critical commands.
 - **Meta-Cognitive Observer (`observer.rs`)**: Evaluates token generation loop efficiency, flags hallucinations, and stops redundant repetitive tool calls.
 - **Oscillation Guard (`oscillation.rs`)**: Prevents circular repair loops and infinite retry states.
 - **Atomic Checkpointer (`checkpoint.rs`)**: Captures instantaneous working tree states (`git stash create`) and performs instant rollbacks on verification failures.

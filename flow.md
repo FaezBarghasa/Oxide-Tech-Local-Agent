@@ -85,7 +85,49 @@ This document details the step-by-step logic, runtime control loops, and executi
 
 ---
 
-## 5. JIT MCP Tool Synthesis & Sandbox Flow
+## 5. Cyclic FSM & Self-Correction Routing Flow
+
+```
+[Task Initiated] ───────► [FSM: Pending]
+                               │
+                               ▼
+                       [FSM: Executing] ◄─────────────────────────┐
+                               │                                  │
+                 ┌─────────────┴─────────────┐                    │
+                 ▼                           ▼                    │
+          [Success / Done]           [Error / Compile Fail]       │
+                 │                           │                    │
+                 ▼                           ▼                    │
+         [FSM: Reviewing]           [Retry Count < Max?]          │
+                 │                     ├────────► Yes ────────────┘
+                 │                     ▼ No
+                 │              [FSM: Diagnosing]
+                 │                     │
+                 │              (Root Cause Analysis)
+                 │                     │
+                 ▼                     ▼
+          [FSM: Completed]      [FSM: NeedsHumanApproval / Escalated]
+```
+
+---
+
+## 6. Human-in-the-Loop (HITL) Inbox Protocol Flow
+
+1. **Risk Assessment**: `AgentMode` evaluates tool invocation risk level (`Exec`, `FsWrite`, `NetworkWrite`, `Consequential`).
+2. **Approval Suspension**:
+   - If action exceeds permission boundary, an `InboxEntry` is placed in `HitlInboxManager`.
+   - The executing Tokio task awaits the dedicated `oneshot::Receiver<bool>`.
+   - System logs event `JournalEvent::HumanInterruptRequested` in `AgentJournal`.
+3. **Operator Resolution**:
+   - Operator reviews the command payload and contextual diff via Oxide Agent Studio.
+   - Operator responds with `Approved` or `Rejected` (with optional corrective guidance).
+4. **Execution Continuation**:
+   - `resolve_entry(id, decision)` completes the oneshot channel.
+   - Task resumes execution seamlessly or shifts to FSM rollback/diagnostic routing.
+
+---
+
+## 7. JIT MCP Tool Synthesis & Sandbox Flow
 
 ```
 [Agent Identifies Missing Tool (e.g. specialized SIMD CRC / Netlist Parser / Web Extractor)]
