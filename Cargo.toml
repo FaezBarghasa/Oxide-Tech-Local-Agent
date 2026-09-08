@@ -38,7 +38,7 @@ resolver = "2"
 
 [workspace.dependencies]
 rmcp = { version = "3.2.0", features = ["server", "transport-io"] }
-reqwest = { version = "0.13.4", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
 tokio = { version = "1.52", features = ["full"] }
 tokio-stream = "0.1"
 anyhow = "1.0"

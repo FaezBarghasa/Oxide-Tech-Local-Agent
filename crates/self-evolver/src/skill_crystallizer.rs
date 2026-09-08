@@ -63,26 +63,67 @@ impl SkillCrystallizer {
     /// Compose multiple crystallized skills into a composite higher-order workflow
     pub fn compose_skills(
         &self,
-        composite_name: &str,
-        composite_desc: &str,
-        sub_skills: &[&CrystallizedSkill],
+        name: &str,
+        description: &str,
+        skills: &[&CrystallizedSkill],
     ) -> CrystallizedSkill {
-        let mut combined_steps = Vec::new();
-        let mut combined_tags = vec!["composite".to_string()];
+        let mut composite_steps = Vec::new();
+        let mut all_tags = vec!["composite".to_string()];
 
-        for skill in sub_skills {
-            combined_tags.extend(skill.tags.clone());
-            combined_steps.push(format!("Execute sub-skill: `{}`", skill.name));
-            combined_steps.extend(skill.step_sequence.clone());
+        for skill in skills {
+            composite_steps.push(format!("### Phase: {}", skill.name));
+            composite_steps.extend(skill.step_sequence.clone());
+            for tag in &skill.tags {
+                if !all_tags.contains(tag) {
+                    all_tags.push(tag.clone());
+                }
+            }
         }
 
         CrystallizedSkill {
-            name: composite_name.to_string(),
-            description: composite_desc.to_string(),
-            tags: combined_tags,
-            prompt_template: format!("Composite goal: {}", composite_desc),
-            step_sequence: combined_steps,
-            source_task_id: "composite_orchestrator".to_string(),
+            name: name.to_string(),
+            description: description.to_string(),
+            tags: all_tags,
+            prompt_template: format!("Execute composite pipeline: {}", name),
+            step_sequence: composite_steps,
+            source_task_id: "composite_orchestration".to_string(),
         }
+    }
+
+    /// Crystallize a high-frequency composite skill into a high-performance Wasm tool manifest
+    pub async fn crystallize_wasm_super_tool(
+        &self,
+        skill: &CrystallizedSkill,
+        wasm_bytes: &[u8],
+    ) -> Result<PathBuf, String> {
+        info!("Crystallizing Wasm super-tool for skill: {}", skill.name);
+        let tool_folder = self.skills_dir.join("wasm_tools").join(&skill.name);
+        tokio::fs::create_dir_all(&tool_folder)
+            .await
+            .map_err(|e| format!("Failed to create tool directory: {}", e))?;
+
+        let wasm_file = tool_folder.join(format!("{}.wasm", skill.name));
+        tokio::fs::write(&wasm_file, wasm_bytes)
+            .await
+            .map_err(|e| format!("Failed to write wasm binary: {}", e))?;
+
+        let manifest_file = tool_folder.join("manifest.json");
+        let manifest = serde_json::json!({
+            "name": skill.name,
+            "description": skill.description,
+            "wasm_binary": format!("{}.wasm", skill.name),
+            "tags": skill.tags,
+            "step_count": skill.step_sequence.len()
+        });
+
+        tokio::fs::write(
+            &manifest_file,
+            serde_json::to_string_pretty(&manifest)
+                .map_err(|e| format!("Failed to serialize manifest: {}", e))?,
+        )
+        .await
+        .map_err(|e| format!("Failed to write manifest.json: {}", e))?;
+
+        Ok(wasm_file)
     }
 }
