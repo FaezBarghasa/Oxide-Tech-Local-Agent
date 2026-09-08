@@ -29,7 +29,7 @@ impl MctsBranch {
 }
 
 pub struct MctsDecisionEngine {
-    exploration_constant: f64,
+    pub exploration_constant: f64,
 }
 
 impl Default for MctsDecisionEngine {
