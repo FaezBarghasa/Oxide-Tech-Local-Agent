@@ -275,4 +275,46 @@ Output ONLY a JSON object:
             }),
         }
     }
+
+    /// Test a synthesized WebAssembly tool inside the Wasm sandbox
+    pub async fn test_wasm_tool(&self, wasm_bytes: &[u8], sample_inputs: &[u8]) -> Result<TestResult> {
+        match sandbox::execute_wasm_sandbox(wasm_bytes, sample_inputs, 1_000_000).await {
+            Ok(exec_res) => Ok(TestResult {
+                passed: exec_res.exit_code == 0,
+                stdout: exec_res.stdout,
+                stderr: exec_res.stderr,
+            }),
+            Err(e) => Ok(TestResult {
+                passed: false,
+                stdout: String::new(),
+                stderr: e,
+            }),
+        }
+    }
+}
+
+/// Dynamic registry of hot synthesized WebAssembly tools
+#[derive(Default)]
+pub struct WasmToolRegistry {
+    tools: std::collections::HashMap<String, Vec<u8>>,
+}
+
+impl WasmToolRegistry {
+    pub fn new() -> Self {
+        Self {
+            tools: std::collections::HashMap::new(),
+        }
+    }
+
+    pub fn register_tool(&mut self, name: &str, wasm_bytes: Vec<u8>) {
+        self.tools.insert(name.to_string(), wasm_bytes);
+    }
+
+    pub fn get_tool(&self, name: &str) -> Option<&[u8]> {
+        self.tools.get(name).map(|v| v.as_slice())
+    }
+
+    pub fn list_tools(&self) -> Vec<String> {
+        self.tools.keys().cloned().collect()
+    }
 }

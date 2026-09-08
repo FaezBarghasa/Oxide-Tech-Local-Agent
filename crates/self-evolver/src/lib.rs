@@ -14,7 +14,7 @@ pub use skill_crystallizer::{CrystallizedSkill, SkillCrystallizer};
 pub use skill_curator::{SkillCurator, SkillPerformance};
 pub use tool_maker::{
     JitToolSpec, MojoToolSpecification, TestResult, ToolMaker, ToolSpecification,
-    VerificationResult,
+    VerificationResult, WasmToolRegistry,
 };
 
 #[cfg(test)]

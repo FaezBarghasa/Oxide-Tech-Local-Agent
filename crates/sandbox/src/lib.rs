@@ -1,8 +1,10 @@
 pub mod docker_sandbox;
 pub mod execution;
+pub mod wasm_compiler;
 
 pub use docker_sandbox::DockerSandbox;
-pub use execution::{execute_in_sandbox, ExecutionResult};
+pub use execution::{execute_in_sandbox, execute_wasm_sandbox, ExecutionResult};
+pub use wasm_compiler::WasmCompiler;
 
 #[cfg(test)]
 mod tests {
