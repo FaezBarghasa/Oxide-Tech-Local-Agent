@@ -91,6 +91,10 @@ impl FableForest {
 
         // Traversal path 2: Retain high-scoring semantic nodes only
         candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
-        candidates.into_iter().take(max_results).map(|(id, _)| id).collect()
+        candidates
+            .into_iter()
+            .take(max_results)
+            .map(|(id, _)| id)
+            .collect()
     }
 }

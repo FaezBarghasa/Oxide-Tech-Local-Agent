@@ -1,5 +1,5 @@
-use cad_forge::{CadBuilder, VoxelGrid, compute_iou};
 use cad_forge::verifier::generate_diff_map;
+use cad_forge::{CadBuilder, VoxelGrid, compute_iou};
 use glam::Vec3;
 
 #[test]
@@ -49,6 +49,6 @@ fn test_csg_subtraction_voxelization() {
 
     let diff = generate_diff_map(&drilled_box, &solid_box);
     assert_eq!(diff.false_positive_count, 0); // Drilled box contains no voxels outside the solid box
-    assert!(diff.false_negative_count > 0);   // The drilled hole voxels are the difference
+    assert!(diff.false_negative_count > 0); // The drilled hole voxels are the difference
     assert!(diff.iou > 0.7 && diff.iou < 1.0);
 }

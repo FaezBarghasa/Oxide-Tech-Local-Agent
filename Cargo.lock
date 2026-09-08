@@ -1232,6 +1232,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "circuit-forge"
+version = "0.1.0"
+dependencies = [
+ "petgraph 0.8.3",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"

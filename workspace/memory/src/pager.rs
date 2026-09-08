@@ -8,9 +8,9 @@ use tracing::info;
 /// Status of a memory page in the virtual memory hierarchy.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PageTier {
-    Hot,   // In-memory LRU cache
-    Warm,  // SurrealDB working context table
-    Cold,  // Qdrant vector archive
+    Hot,  // In-memory LRU cache
+    Warm, // SurrealDB working context table
+    Cold, // Qdrant vector archive
 }
 
 /// A discrete unit of virtualized conversational or task context.
@@ -55,9 +55,12 @@ impl MemoryPager {
         let mut evicted = Vec::new();
 
         // Evict until we have space for the new page
-        while self.current_hot_tokens + page.token_count > self.max_hot_tokens && !self.lru_cache.is_empty() {
+        while self.current_hot_tokens + page.token_count > self.max_hot_tokens
+            && !self.lru_cache.is_empty()
+        {
             if let Some((_k, mut oldest)) = self.lru_cache.pop_lru() {
-                self.current_hot_tokens = self.current_hot_tokens.saturating_sub(oldest.token_count);
+                self.current_hot_tokens =
+                    self.current_hot_tokens.saturating_sub(oldest.token_count);
                 oldest.tier = PageTier::Warm;
                 info!("Evicting virtual page {} to Warm tier", oldest.page_id);
                 evicted.push(oldest);

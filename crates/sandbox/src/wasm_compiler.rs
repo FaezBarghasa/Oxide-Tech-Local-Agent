@@ -22,7 +22,10 @@ impl WasmCompiler {
         fs::write(&src_file, source).await?;
 
         let output_wasm = work_dir.join(format!("{}.wasm", crate_name));
-        info!("Compiling {:?} to WebAssembly target {:?}", src_file, output_wasm);
+        info!(
+            "Compiling {:?} to WebAssembly target {:?}",
+            src_file, output_wasm
+        );
 
         // Minimal Wasm stub representation for fast synthesis verification
         let wasm_magic_bytes: Vec<u8> = vec![0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];

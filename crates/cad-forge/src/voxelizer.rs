@@ -26,11 +26,18 @@ impl VoxelGrid {
                 let half = *size * 0.5;
                 let min = *center - half;
                 let max = *center + half;
-                pt.x >= min.x && pt.x <= max.x &&
-                pt.y >= min.y && pt.y <= max.y &&
-                pt.z >= min.z && pt.z <= max.z
+                pt.x >= min.x
+                    && pt.x <= max.x
+                    && pt.y >= min.y
+                    && pt.y <= max.y
+                    && pt.z >= min.z
+                    && pt.z <= max.z
             }
-            Primitive::Cylinder { center, radius, height } => {
+            Primitive::Cylinder {
+                center,
+                radius,
+                height,
+            } => {
                 let half_h = *height * 0.5;
                 if pt.z < center.z - half_h || pt.z > center.z + half_h {
                     return false;
@@ -58,19 +65,21 @@ impl VoxelGrid {
                 let half = *size * 0.5;
                 (*center - half, *center + half)
             }
-            Primitive::Cylinder { center, radius, height } => {
+            Primitive::Cylinder {
+                center,
+                radius,
+                height,
+            } => {
                 let half_h = *height * 0.5;
                 (
                     Vec3::new(center.x - radius, center.y - radius, center.z - half_h),
                     Vec3::new(center.x + radius, center.y + radius, center.z + half_h),
                 )
             }
-            Primitive::Sphere { center, radius } => {
-                (
-                    *center - Vec3::splat(*radius),
-                    *center + Vec3::splat(*radius),
-                )
-            }
+            Primitive::Sphere { center, radius } => (
+                *center - Vec3::splat(*radius),
+                *center + Vec3::splat(*radius),
+            ),
         };
 
         let min_vox = (min / resolution).floor().as_ivec3();
@@ -100,7 +109,10 @@ impl VoxelGrid {
             occupied.extend(slice);
         }
 
-        Self { occupied, resolution }
+        Self {
+            occupied,
+            resolution,
+        }
     }
 
     /// Voxelize a full CAD script with CSG boolean operations
@@ -126,7 +138,10 @@ impl VoxelGrid {
                     }
                 }
                 crate::dsl::BoolOp::Subtract(target, tool) => {
-                    if target < primitive_grids.len() && tool < primitive_grids.len() && target != tool {
+                    if target < primitive_grids.len()
+                        && tool < primitive_grids.len()
+                        && target != tool
+                    {
                         let tool_set = primitive_grids[tool].clone();
                         primitive_grids[target].retain(|vox| !tool_set.contains(vox));
                     }

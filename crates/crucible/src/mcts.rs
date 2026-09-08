@@ -23,7 +23,8 @@ impl MctsBranch {
             return f64::MAX;
         }
         let exploitation = self.cumulative_reward / (self.visits as f64);
-        let exploration = exploration_constant * ((total_parent_visits as f64).ln() / (self.visits as f64)).sqrt();
+        let exploration = exploration_constant
+            * ((total_parent_visits as f64).ln() / (self.visits as f64)).sqrt();
         exploitation + exploration
     }
 }
@@ -42,7 +43,9 @@ impl Default for MctsDecisionEngine {
 
 impl MctsDecisionEngine {
     pub fn new(exploration_constant: f64) -> Self {
-        Self { exploration_constant }
+        Self {
+            exploration_constant,
+        }
     }
 
     /// Parallel simulation of candidate actions across Rayon threads using zero-copy state branches.
@@ -79,6 +82,8 @@ impl MctsDecisionEngine {
             })
             .collect();
 
-        evaluated.into_iter().max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+        evaluated
+            .into_iter()
+            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
     }
 }

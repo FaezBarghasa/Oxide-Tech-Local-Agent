@@ -1,7 +1,7 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
+use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::EdgeRef;
-use petgraph::Direction;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -53,7 +53,12 @@ impl ActionGraph {
     }
 
     /// Link two actions causally.
-    pub fn add_causal_link(&mut self, from_id: &str, to_id: &str, edge_type: ActionEdgeType) -> Result<()> {
+    pub fn add_causal_link(
+        &mut self,
+        from_id: &str,
+        to_id: &str,
+        edge_type: ActionEdgeType,
+    ) -> Result<()> {
         let from_idx = self
             .index_map
             .get(from_id)

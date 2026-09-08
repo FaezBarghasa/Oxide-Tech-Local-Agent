@@ -35,8 +35,16 @@ impl BenchmarkSuite for ArcAgiHarness {
 
     async fn run_eval(&self) -> Result<BenchmarkScore> {
         let total = self.tasks.len();
-        let passed = self.tasks.iter().filter(|t| !t.train_inputs.is_empty()).count();
-        let accuracy = if total > 0 { passed as f64 / total as f64 } else { 0.0 };
+        let passed = self
+            .tasks
+            .iter()
+            .filter(|t| !t.train_inputs.is_empty())
+            .count();
+        let accuracy = if total > 0 {
+            passed as f64 / total as f64
+        } else {
+            0.0
+        };
 
         Ok(BenchmarkScore {
             total_tasks: total,

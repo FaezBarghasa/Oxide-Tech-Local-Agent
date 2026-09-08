@@ -1,15 +1,20 @@
 #[cfg(test)]
 mod tests {
-    use crucible::{WorkspaceSnapshot, MctsDecisionEngine};
+    use crucible::{MctsDecisionEngine, WorkspaceSnapshot};
 
     #[test]
     fn test_zero_copy_roundtrip() {
         let mut snapshot = WorkspaceSnapshot::new("task-42", 1);
-        snapshot.registers.push(("reg0".to_string(), "0xCAFE".to_string()));
-        snapshot.file_digests.push(("src/lib.rs".to_string(), [1u8; 32]));
+        snapshot
+            .registers
+            .push(("reg0".to_string(), "0xCAFE".to_string()));
+        snapshot
+            .file_digests
+            .push(("src/lib.rs".to_string(), [1u8; 32]));
 
         let bytes = snapshot.archive_to_bytes().expect("archive must succeed");
-        let restored = WorkspaceSnapshot::from_archived_bytes(&bytes).expect("restore must succeed");
+        let restored =
+            WorkspaceSnapshot::from_archived_bytes(&bytes).expect("restore must succeed");
 
         assert_eq!(snapshot, restored);
     }

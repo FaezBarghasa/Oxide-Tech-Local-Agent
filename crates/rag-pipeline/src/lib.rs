@@ -382,7 +382,11 @@ fn chunk_text(text: &str, chunk_size: usize, overlap: usize) -> Vec<String> {
         return Vec::new();
     }
 
-    let step = if chunk_size > overlap { chunk_size - overlap } else { 1 };
+    let step = if chunk_size > overlap {
+        chunk_size - overlap
+    } else {
+        1
+    };
     let estimated_chunks = (words.len() + step - 1) / step;
     let mut chunks = Vec::with_capacity(estimated_chunks);
 

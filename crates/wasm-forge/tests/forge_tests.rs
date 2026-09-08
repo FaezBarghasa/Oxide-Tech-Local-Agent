@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use wasm_forge::{WasmEngine, SkillCrystallizer};
+    use wasm_forge::{SkillCrystallizer, WasmEngine};
 
     #[tokio::test]
     async fn test_wat_compilation_and_crystallization() {
@@ -18,11 +18,10 @@ mod tests {
         assert!(!bytes.is_empty());
 
         let crystallizer = SkillCrystallizer::new();
-        let tool = crystallizer.crystallize_from_wat(
-            "fast_add",
-            "Hardware fast addition module",
-            wat_src
-        ).await.expect("crystallization failed");
+        let tool = crystallizer
+            .crystallize_from_wat("fast_add", "Hardware fast addition module", wat_src)
+            .await
+            .expect("crystallization failed");
 
         assert_eq!(tool.name, "fast_add");
         assert_eq!(tool.wasm_bytes, bytes);

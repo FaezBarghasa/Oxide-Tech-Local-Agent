@@ -1,7 +1,7 @@
 pub mod dsl;
-pub mod voxelizer;
 pub mod verifier;
+pub mod voxelizer;
 
-pub use dsl::{CadBuilder, Primitive, BoolOp, CadScript};
+pub use dsl::{BoolOp, CadBuilder, CadScript, Primitive};
+pub use verifier::{VoxelDiffMap, compute_iou};
 pub use voxelizer::VoxelGrid;
-pub use verifier::{compute_iou, VoxelDiffMap};

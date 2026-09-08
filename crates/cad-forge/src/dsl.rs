@@ -51,18 +51,26 @@ impl CadBuilder {
 
     pub fn add_cylinder(mut self, center: Vec3, radius: f32, height: f32) -> (Self, usize) {
         let idx = self.script.primitives.len();
-        self.script.primitives.push(Primitive::Cylinder { center, radius, height });
+        self.script.primitives.push(Primitive::Cylinder {
+            center,
+            radius,
+            height,
+        });
         (self, idx)
     }
 
     pub fn add_sphere(mut self, center: Vec3, radius: f32) -> (Self, usize) {
         let idx = self.script.primitives.len();
-        self.script.primitives.push(Primitive::Sphere { center, radius });
+        self.script
+            .primitives
+            .push(Primitive::Sphere { center, radius });
         (self, idx)
     }
 
     pub fn subtract(mut self, target_idx: usize, tool_idx: usize) -> Self {
-        self.script.operations.push(BoolOp::Subtract(target_idx, tool_idx));
+        self.script
+            .operations
+            .push(BoolOp::Subtract(target_idx, tool_idx));
         self
     }
 

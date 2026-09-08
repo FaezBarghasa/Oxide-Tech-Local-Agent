@@ -38,7 +38,9 @@ impl SkillCrystallizer {
         description: &str,
         wat_source: &str,
     ) -> Result<CrystallizedTool, String> {
-        let bytecode = self.engine.compile_wat(wat_source)
+        let bytecode = self
+            .engine
+            .compile_wat(wat_source)
             .map_err(|e| format!("Compilation failed: {e:?}"))?;
 
         let tool = CrystallizedTool {

@@ -36,6 +36,7 @@ members = [
     "crates/edge-swarm",
     "crates/ebpf-sentinel",
     "crates/cad-forge",
+    "crates/circuit-forge",
 ]
 
 

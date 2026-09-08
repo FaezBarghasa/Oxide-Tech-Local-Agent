@@ -17,10 +17,15 @@ pub fn generate_kani_proof_harness(target: &KaniHarnessTarget) -> String {
     harness.push_str(&format!("fn verify_{}_bounds() {{\n", target.function_name));
 
     for (var_name, type_str) in &target.input_bounds {
-        harness.push_str(&format!("    let {}: {} = kani::any();\n", var_name, type_str));
+        harness.push_str(&format!(
+            "    let {}: {} = kani::any();\n",
+            var_name, type_str
+        ));
     }
 
-    harness.push_str(&format!("    // Call target function with non-deterministic inputs\n"));
+    harness.push_str(&format!(
+        "    // Call target function with non-deterministic inputs\n"
+    ));
     harness.push_str(&format!("    let _res = {}();\n", target.function_name));
     harness.push_str("}\n");
 

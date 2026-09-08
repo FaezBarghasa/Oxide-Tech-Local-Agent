@@ -277,7 +277,11 @@ Output ONLY a JSON object:
     }
 
     /// Test a synthesized WebAssembly tool inside the Wasm sandbox
-    pub async fn test_wasm_tool(&self, wasm_bytes: &[u8], sample_inputs: &[u8]) -> Result<TestResult> {
+    pub async fn test_wasm_tool(
+        &self,
+        wasm_bytes: &[u8],
+        sample_inputs: &[u8],
+    ) -> Result<TestResult> {
         match sandbox::execute_wasm_sandbox(wasm_bytes, sample_inputs, 1_000_000).await {
             Ok(exec_res) => Ok(TestResult {
                 passed: exec_res.exit_code == 0,

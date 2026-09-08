@@ -7,7 +7,10 @@ use tracing::info;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ComputeDevice {
     /// NVIDIA CUDA Cores via cuBLAS / TensorRT / FlashAttention
-    Cuda { gpu_id: usize, flash_attention: bool },
+    Cuda {
+        gpu_id: usize,
+        flash_attention: bool,
+    },
     /// AMD CPU Driver compatibility (optimized AVX2 / AVX-512, Zen4/Zen5 ZenDNN architecture)
     AmdCpuZen { threads: usize, use_avx512: bool },
     /// Fallback standard multi-threaded CPU executor
@@ -24,7 +27,9 @@ impl ComputeDevice {
     /// Dynamically detect host hardware: check for CUDA runtime or AMD Zen CPU topology
     pub fn detect_optimal_hardware() -> Self {
         // Check for NVIDIA CUDA environment variables or device nodes
-        if std::env::var("CUDA_VISIBLE_DEVICES").is_ok() || std::path::Path::new("/dev/nvidia0").exists() {
+        if std::env::var("CUDA_VISIBLE_DEVICES").is_ok()
+            || std::path::Path::new("/dev/nvidia0").exists()
+        {
             return ComputeDevice::Cuda {
                 gpu_id: 0,
                 flash_attention: true,

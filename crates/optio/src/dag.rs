@@ -46,7 +46,8 @@ impl TaskDag {
     }
 
     pub fn add_critic_edge(&mut self, task_id: &str, critic_task_id: &str) {
-        self.critic_edges.push((task_id.to_string(), critic_task_id.to_string()));
+        self.critic_edges
+            .push((task_id.to_string(), critic_task_id.to_string()));
     }
 
     pub fn record_reflection(&mut self, id: &str, round: ReflectionRound) {

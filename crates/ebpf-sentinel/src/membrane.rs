@@ -40,18 +40,23 @@ impl ConstitutionalMembrane {
         for rule in rules.iter() {
             if &rule.category == category {
                 if *category == SyscallCategory::FileWrite {
-                    let allowed = rule.path_whitelist.iter().any(|prefix| target.starts_with(prefix));
+                    let allowed = rule
+                        .path_whitelist
+                        .iter()
+                        .any(|prefix| target.starts_with(prefix));
                     if !allowed {
                         let violation = RuleViolation {
                             pid,
                             syscall_name: "openat/write".to_string(),
-                            reason: format!("Path '{target}' is not in the constitutional whitelist"),
+                            reason: format!(
+                                "Path '{target}' is not in the constitutional whitelist"
+                            ),
                             timestamp_epoch_ms: std::time::SystemTime::now()
                                 .duration_since(std::time::UNIX_EPOCH)
                                 .unwrap_or_default()
                                 .as_millis() as u64,
                         };
-                        
+
                         let mut v_lock = self.violations.write().await;
                         v_lock.push(violation.clone());
                         error!(target: "ebpf_sentinel", "Constitutional violation detected: {:?}", violation);

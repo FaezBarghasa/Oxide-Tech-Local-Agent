@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use formal_verify::{solve_task_schedule, generate_kani_proof_harness, TaskConstraint, KaniHarnessTarget};
+    use formal_verify::{
+        KaniHarnessTarget, TaskConstraint, generate_kani_proof_harness, solve_task_schedule,
+    };
 
     #[test]
     fn test_schedule_feasibility() {
@@ -28,14 +30,12 @@ mod tests {
 
     #[test]
     fn test_impossible_deadline() {
-        let tasks = vec![
-            TaskConstraint {
-                task_id: "heavy_task".to_string(),
-                duration_cycles: 100,
-                deadline_cycles: 50,
-                priority: 1,
-            },
-        ];
+        let tasks = vec![TaskConstraint {
+            task_id: "heavy_task".to_string(),
+            duration_cycles: 100,
+            deadline_cycles: 50,
+            priority: 1,
+        }];
 
         let result = solve_task_schedule(&tasks, 1);
         assert!(result.is_err());
