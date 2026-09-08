@@ -104,9 +104,25 @@ graph TD
 
 ---
 
-## 3. Dual-GPU Hardware Offload Architecture
+## 3. Master Engineering Phases & Roadmap
 
-| Device | Role | VRAM Allocation |
-|---|---|---|
-| **GPU 0 (PCIe 4.0 x16)** | SGLang Tensor Parallel Rank 0 (Qwen3.8-35B), Fast Intent Router (Gemma-4-9B / Ornith-1.0), Mojo SIMD Vector Engine | ~22 GB |
-| **GPU 1 (PCIe 4.0 x16)** | SGLang Tensor Parallel Rank 1 (Qwen3.8-35B), Dynamic LoRA Adapter Pool, SF3D / B-Rep Latent Geometry Diffusion Engine | ~22 GB |
+1. **Phase 0: Foundation & Environment Standardization** (Dual-GPU resource partitioning: SGLang on GPU 0, vLLM on GPU 1; unified dependency lock-in).
+2. **Phase 1: Dual-Engine Inference & Smart Routing** (`crates/inference-router` with Mojo SIMD sub-millisecond classification and speculative decoding bridging).
+3. **Phase 2: Task-Specific Scoring & Evaluation Harness** (`crates/task-evaluator` with `TaskVerifier` for Rust compiler, KiCad DRC, and semantic diff scoring).
+4. **Phase 3: Advanced Local Memory Architecture & Pager** (`crates/memory-pager` with hierarchical scoping `Global` $\to$ `Project` $\to$ `Task` $\to$ `Scratchpad` and Mojo hybrid vector scoring).
+5. **Phase 4: Self-Evolution & QLoRA Fine-Tuning Loop** (Automated GRPO trajectory harvesting, Unsloth 4-bit QLoRA fine-tuning, zero-downtime hot-swapping).
+6. **Phase 5: JIT Tool Synthesis via WebAssembly** (`crates/wasm-sandbox` powered by Wasmtime for sub-millisecond WASI preview 2 tool execution).
+7. **Phase 6: Python-to-Mojo/Rust Migration** (Zero-FFI latency in real-time execution hot paths).
+
+---
+
+## 4. Dual-GPU Hardware Offload Architecture
+
+```
+┌─────────────────────────────────────────────────┐   ┌──────────────────────────────────────────────────┐
+│         GPU 0 (PCIe 4.0 x16 - 24GB VRAM)        │   │         GPU 1 (PCIe 4.0 x16 - 24GB VRAM)         │
+│ - SGLang Tensor Parallel Rank 0 (Qwen3.8-35B)   │◄──┼►- SGLang Tensor Parallel Rank 1 (Qwen3.8-35B)    │
+│ - Fast Intent Router (Gemma-4-9B / Ornith-1.0)  │NCC│ - Long-Context RAG / Batch Trajectory (vLLM)     │
+│ - Mojo SIMD Vector & Netlist Acceleration Core  │ L │ - Dynamic LoRA Adapter Cache (Rust/KiCad/CAD)    │
+└─────────────────────────────────────────────────┘   └──────────────────────────────────────────────────┘
+```
