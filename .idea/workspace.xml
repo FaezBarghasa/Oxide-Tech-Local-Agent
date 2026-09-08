@@ -8,7 +8,13 @@
       <package file="$PROJECT_DIR$">
         <feature name="default" enabled="true" />
       </package>
+      <package file="$PROJECT_DIR$/crates/agent-journal">
+        <feature name="default" enabled="true" />
+      </package>
       <package file="$PROJECT_DIR$/crates/api">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/benchmark-harness">
         <feature name="default" enabled="true" />
       </package>
       <package file="$PROJECT_DIR$/workspace/blog">
@@ -75,6 +81,9 @@
         <feature name="default" enabled="true" />
       </package>
       <package file="$PROJECT_DIR$/crates/surrealdb-service">
+        <feature name="default" enabled="true" />
+      </package>
+      <package file="$PROJECT_DIR$/crates/telemetry">
         <feature name="default" enabled="true" />
       </package>
       <package file="$PROJECT_DIR$/workspace/thinker">
