@@ -83,6 +83,8 @@ thiserror = "2.0"
 nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
 
 ndarray = "0.17.2"
+petgraph = { version = "0.6", features = ["serde-1"] }
+lru = "0.12"
 
 
 [package]
