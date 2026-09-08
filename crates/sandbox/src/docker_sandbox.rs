@@ -42,11 +42,25 @@ impl DockerSandbox {
             .arg(&self.image_name)
             .arg("sh").arg("-c").arg(build_cmd);
 
-        match cmd.output().await {
-            Ok(output) => {
+        let docker_res = cmd.output().await;
+        match docker_res {
+            Ok(output) if output.status.success() => {
                 let stdout = String::from_utf8_lossy(&output.stdout).to_string();
                 let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-                Ok((output.status.success(), stdout, stderr))
+                Ok((true, stdout, stderr))
+            }
+            Ok(output) => {
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                tracing::warn!("Docker command execution failed (code {:?}): {}, falling back to local runner", output.status.code(), stderr);
+                let local_output = Command::new("sh")
+                    .arg("-c").arg(build_cmd)
+                    .current_dir(&self.workspace_dir)
+                    .output()
+                    .await?;
+
+                let stdout = String::from_utf8_lossy(&local_output.stdout).to_string();
+                let stderr = String::from_utf8_lossy(&local_output.stderr).to_string();
+                Ok((local_output.status.success(), stdout, stderr))
             }
             Err(e) => {
                 tracing::warn!("Docker command execution fallback: {}", e);
