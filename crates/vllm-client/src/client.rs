@@ -45,6 +45,10 @@ pub enum LlmProvider {
     Zhipu,
     /// Agnes AI — OpenAI-compatible endpoint.
     Agnes,
+    /// Local llama.cpp / GGUF direct engine.
+    LlamaCpp,
+    /// Native Candle Rust engine with QLoRA adapter support.
+    Candle,
 }
 
 impl LlmProvider {
@@ -65,6 +69,8 @@ impl LlmProvider {
             "pollinations" | "pollinations-ai" => Self::Pollinations,
             "zhipu" | "zhipuai" | "z.ai" => Self::Zhipu,
             "agnes" | "agnes-ai" | "agnesai" => Self::Agnes,
+            "llamacpp" | "llama-cpp" | "llama.cpp" | "gguf" => Self::LlamaCpp,
+            "candle" | "candle-core" => Self::Candle,
             _ => Self::Vllm,
         }
     }
@@ -299,6 +305,7 @@ impl LlmRouterClient {
                 .or_else(|_| env::var("ZHIPUAI_API_KEY"))
                 .ok(),
             LlmProvider::Agnes => env::var("AGNES_API_KEY").ok(),
+            LlmProvider::LlamaCpp | LlmProvider::Candle => None,
         }
     }
 

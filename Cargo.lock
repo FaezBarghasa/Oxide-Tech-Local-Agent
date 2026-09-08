@@ -8452,6 +8452,7 @@ name = "vllm-client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "config-loader",
  "reqwest 0.12.28",
  "serde",
