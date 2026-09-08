@@ -5154,6 +5154,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "parametric-forge"
+version = "0.1.0"
+dependencies = [
+ "glam",
+ "petgraph 0.8.3",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "parking"
 version = "2.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

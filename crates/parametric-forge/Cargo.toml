@@ -1,0 +1,14 @@
+[package]
+name = "parametric-forge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+petgraph = { workspace = true }
+glam = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["serde"] }
+tokio = { workspace = true }
