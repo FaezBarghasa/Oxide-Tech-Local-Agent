@@ -192,7 +192,7 @@ async fn complete_llm(
         let content = parsed
             .get("choices")
             .and_then(|c| c.as_array())
-            .and_then(|a| a.get(0))
+            .and_then(|a| a.first())
             .and_then(|choice| choice.get("message"))
             .and_then(|m| m.get("content"))
             .and_then(|c| c.as_str())

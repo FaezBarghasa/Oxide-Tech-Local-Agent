@@ -8,7 +8,7 @@ use tracing::{error, info, warn};
 const EXECUTION_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Memory ceiling for the child process (1 GiB virtual address space).
-const MEMORY_LIMIT_BYTES: u64 = 1 * 1024 * 1024 * 1024;
+const MEMORY_LIMIT_BYTES: u64 = 1024 * 1024 * 1024;
 
 /// CPU time ceiling (seconds of CPU the process may consume before SIGKILL).
 const CPU_TIME_LIMIT_SECS: u64 = 60;
@@ -53,7 +53,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
             .pre_exec(|| {
                 // Place child in a new session so we can kill the entire group.
                 nix::unistd::setsid()
-                    .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                    .map_err(std::io::Error::other)?;
 
                 // Cap virtual memory (RLIMIT_AS).
                 let mem_limit = nix::sys::resource::rlim_t::from(MEMORY_LIMIT_BYTES);
@@ -62,7 +62,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                     mem_limit,
                     mem_limit,
                 )
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                .map_err(std::io::Error::other)?;
 
                 // Cap CPU time (RLIMIT_CPU).
                 let cpu_limit = nix::sys::resource::rlim_t::from(CPU_TIME_LIMIT_SECS);
@@ -71,7 +71,7 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                     cpu_limit,
                     cpu_limit,
                 )
-                .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+                .map_err(std::io::Error::other)?;
 
                 Ok(())
             })
