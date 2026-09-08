@@ -1,16 +1,17 @@
-use std::collections::HashMap;
 use petgraph::algo::toposort;
 use petgraph::graph::{Graph, NodeIndex};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use uuid::Uuid;
 
-use crate::constraint_solver::GeometricConstraint;
 use crate::ParametricError;
+use crate::constraint_solver::GeometricConstraint;
 
 /// Coordinate reference plane for 2D sketches.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 #[serde(tag = "plane_type", rename_all = "snake_case")]
 pub enum Plane {
+    #[default]
     XY,
     XZ,
     YZ,
@@ -18,12 +19,6 @@ pub enum Plane {
         origin: [f64; 3],
         normal: [f64; 3],
     },
-}
-
-impl Default for Plane {
-    fn default() -> Self {
-        Plane::XY
-    }
 }
 
 /// 3D Boolean CSG operation type.
@@ -39,8 +34,15 @@ pub enum BooleanType {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "entity_type", rename_all = "snake_case")]
 pub enum SketchEntity {
-    Point { id: usize, x: f64, y: f64 },
-    Line { p1: usize, p2: usize },
+    Point {
+        id: usize,
+        x: f64,
+        y: f64,
+    },
+    Line {
+        p1: usize,
+        p2: usize,
+    },
     Arc {
         center: usize,
         radius: f64,
@@ -153,7 +155,8 @@ impl FeatureDAG {
 
         for parent_id in parent_ids {
             if let Some(&parent_idx) = self.node_map.get(&parent_id) {
-                self.graph.add_edge(parent_idx, idx, DependencyEdge::ParentChild);
+                self.graph
+                    .add_edge(parent_idx, idx, DependencyEdge::ParentChild);
             }
         }
 

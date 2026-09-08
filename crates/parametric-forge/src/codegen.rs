@@ -1,6 +1,6 @@
+use crate::ParametricError;
 use crate::dag::{CadOperation, FeatureDAG};
 use crate::patcher::DeltaPatch;
-use crate::ParametricError;
 
 /// Macro codegen for crystallizing parametric CAD edits and construction history into Rust macros.
 pub struct MacroCodegen;

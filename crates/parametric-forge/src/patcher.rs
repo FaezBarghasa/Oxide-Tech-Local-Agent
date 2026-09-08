@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::ParametricError;
 use crate::constraint_solver::GeometricConstraint;
 use crate::dag::{CadOperation, FeatureDAG, Plane};
-use crate::ParametricError;
 
 /// The target level in the CAD hierarchy being modified by a delta patch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

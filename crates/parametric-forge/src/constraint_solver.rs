@@ -79,8 +79,8 @@ impl ConstraintSolver {
             for i in 0..n {
                 for j in 0..n {
                     let mut sum = 0.0f64;
-                    for k in 0..m {
-                        sum += jacobian[k][i] * jacobian[k][j];
+                    for jac_k in jacobian.iter().take(m) {
+                        sum += jac_k[i] * jac_k[j];
                     }
                     if i == j {
                         sum += lambda;
@@ -89,8 +89,8 @@ impl ConstraintSolver {
                 }
 
                 let mut sum_f = 0.0f64;
-                for k in 0..m {
-                    sum_f += jacobian[k][i] * residuals[k];
+                for (k, jac_k) in jacobian.iter().enumerate().take(m) {
+                    sum_f += jac_k[i] * residuals[k];
                 }
                 jtf[i] = -sum_f;
             }
@@ -143,7 +143,11 @@ impl ConstraintSolver {
 
         for c in constraints {
             match c {
-                GeometricConstraint::FixPoint { point, x: fx, y: fy } => {
+                GeometricConstraint::FixPoint {
+                    point,
+                    x: fx,
+                    y: fy,
+                } => {
                     if *point < num_points {
                         residuals.push(x[2 * point] - fx);
                         residuals.push(x[2 * point + 1] - fy);
@@ -228,14 +232,12 @@ impl ConstraintSolver {
         jacobian
     }
 
-    /// Solves $A x = b$ via Gaussian Elimination with Partial Pivoting.
+    /// Solves linear system A * x = b via Gaussian elimination with partial pivoting.
+    #[allow(clippy::needless_range_loop)]
     fn solve_linear_system(a: &[Vec<f64>], b: &[f64]) -> Option<Vec<f64>> {
         let n = b.len();
-        if a.len() != n {
-            return None;
-        }
-
         let mut aug = vec![vec![0.0f64; n + 1]; n];
+
         for i in 0..n {
             for j in 0..n {
                 aug[i][j] = a[i][j];

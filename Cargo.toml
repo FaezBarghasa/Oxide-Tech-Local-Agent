@@ -40,6 +40,7 @@ members = [
     "crates/web-forge",
     "crates/scene-forge",
     "crates/parametric-forge",
+    "crates/visual-forge",
 ]
 
 
@@ -107,6 +108,8 @@ rumqttc = "0.25"
 mqtt-async-embedded = { git = "https://github.com/FaezBarghasa/mqtt-async-embedded" }
 miette = { version = "7.2", features = ["fancy"] }
 glam = { version = "0.30", features = ["std", "serde"] }
+parametric-forge = { path = "crates/parametric-forge" }
+visual-forge = { path = "crates/visual-forge" }
 
 
 [package]
