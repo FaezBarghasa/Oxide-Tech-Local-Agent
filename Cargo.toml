@@ -38,6 +38,7 @@ members = [
     "crates/cad-forge",
     "crates/circuit-forge",
     "crates/web-forge",
+    "crates/scene-forge",
 ]
 
 

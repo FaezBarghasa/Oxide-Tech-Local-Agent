@@ -7013,6 +7013,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "scene-forge"
+version = "0.1.0"
+dependencies = [
+ "glam",
+ "postcard",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "schannel"
 version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
