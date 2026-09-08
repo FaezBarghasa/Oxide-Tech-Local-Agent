@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 common = { path = "../common" }
 memory = { path = "../memory" }
+agent-journal = { path = "../../crates/agent-journal" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 ndarray = { workspace = true }
@@ -16,6 +17,7 @@ tracing = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 regex = { workspace = true }
+fastembed = { workspace = true }
 surrealdb-service = { path = "../../crates/surrealdb-service" }
 
 [dev-dependencies]

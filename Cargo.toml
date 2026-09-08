@@ -27,6 +27,8 @@ members = [
     "crates/mcp-live-docs",
     "crates/self-evolver",
     "crates/optio",
+    "crates/agent-journal",
+    "crates/telemetry",
 ]
 
 
