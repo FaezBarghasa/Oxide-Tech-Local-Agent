@@ -378,23 +378,33 @@ fn extract_text_from_html(html: &str) -> String {
 
 fn chunk_text(text: &str, chunk_size: usize, overlap: usize) -> Vec<String> {
     let words: Vec<&str> = text.split_whitespace().collect();
-    let mut chunks = Vec::new();
-
     if words.is_empty() {
-        return chunks;
+        return Vec::new();
     }
+
+    let step = if chunk_size > overlap { chunk_size - overlap } else { 1 };
+    let estimated_chunks = (words.len() + step - 1) / step;
+    let mut chunks = Vec::with_capacity(estimated_chunks);
 
     let mut i = 0;
     while i < words.len() {
         let end = (i + chunk_size).min(words.len());
-        let chunk = words[i..end].join(" ");
+        // Estimate byte capacity for joining slice
+        let byte_len: usize = words[i..end].iter().map(|w| w.len() + 1).sum();
+        let mut chunk = String::with_capacity(byte_len);
+        for (idx, word) in words[i..end].iter().enumerate() {
+            if idx > 0 {
+                chunk.push(' ');
+            }
+            chunk.push_str(word);
+        }
         chunks.push(chunk);
 
         if end == words.len() {
             break;
         }
 
-        i += chunk_size - overlap;
+        i += step;
     }
 
     chunks

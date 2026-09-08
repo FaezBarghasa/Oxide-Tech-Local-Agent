@@ -4,7 +4,7 @@ pub mod lora_hot_swap;
 pub mod lora_router;
 pub mod thinker;
 
-pub use candle_engine::{CandleEngine, CandleEngineConfig};
+pub use candle_engine::{CandleEngine, CandleEngineConfig, ComputeDevice};
 pub use client::{LlmProvider, LlmRouterClient};
 pub use lora_hot_swap::LoraHotSwapManager;
 pub use lora_router::DynamicLoraRouter;

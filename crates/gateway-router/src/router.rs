@@ -81,36 +81,30 @@ impl GatewayRouter {
         }
     }
 
-    /// Probe the network and return the best available coder backend.
-    ///
-    /// Decision tree:
-    ///   1. Probe primary online endpoint.
-    ///   2. If latency OK → `OnlinePrimary`.
-    ///   3. If primary is slow/down → probe secondary.
-    ///   4. If secondary OK → `OnlineSecondary`.
-    ///   5. Otherwise → `Local`.
+    /// Probe the network concurrently and return the best available coder backend with minimal latency.
     pub async fn select_backend(&self, primary_url: &str, secondary_url: &str) -> CoderBackend {
-        if is_reachable(primary_url, self.latency_threshold_ms).await {
+        // Parallel non-blocking probe race across primary and secondary endpoints
+        let (primary_ok, secondary_ok) = tokio::join!(
+            is_reachable(primary_url, self.latency_threshold_ms),
+            is_reachable(secondary_url, self.latency_threshold_ms)
+        );
+
+        if primary_ok {
             info!("Router: primary online coder reachable — using OnlinePrimary");
             self.current_backend
-                .store(STATE_ONLINE_PRIMARY, Ordering::Relaxed);
+                .store(STATE_ONLINE_PRIMARY, Ordering::Release);
             return CoderBackend::OnlinePrimary;
         }
 
-        warn!(
-            "Router: primary online coder unreachable or too slow (>{} ms) — trying secondary",
-            self.latency_threshold_ms
-        );
-
-        if is_reachable(secondary_url, self.latency_threshold_ms).await {
+        if secondary_ok {
             info!("Router: secondary online coder reachable — using OnlineSecondary");
             self.current_backend
-                .store(STATE_ONLINE_SECONDARY, Ordering::Relaxed);
+                .store(STATE_ONLINE_SECONDARY, Ordering::Release);
             return CoderBackend::OnlineSecondary;
         }
 
         warn!("Router: both online coders unreachable — falling back to Local");
-        self.current_backend.store(STATE_LOCAL, Ordering::Relaxed);
+        self.current_backend.store(STATE_LOCAL, Ordering::Release);
         CoderBackend::Local
     }
 
