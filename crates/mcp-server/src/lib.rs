@@ -7,12 +7,13 @@ use schemars::JsonSchema;
 use tracing::{info, warn};
 
 use rmcp::{
-    ServerHandler, Error as McpError,
-    tool, tool_router,
-    model::{CallToolRequestParam, CallToolResult, ListToolsResult, PaginatedRequestParam, ServerInfo, Content},
+    handler::server::tool::{ToolCallContext, ToolRouter},
+    model::{
+        CallToolRequestParam, CallToolResponse, CallToolResult, ContentBlock, ListToolsResult,
+        PaginatedRequestParam, ServerInfo,
+    },
     service::RequestContext,
-    handler::server::tool::{ToolRouter, ToolCallContext},
-    RoleServer,
+    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
 };
 
 // ── Tool Input Parameter Structs ──────────────────────────────────────────────
@@ -142,8 +143,8 @@ impl McpServer {
     async fn read_file(&self, input: ReadFileInput) -> Result<CallToolResult, McpError> {
         let full_path = self.workspace_root.join(&input.path);
         match tokio::fs::read_to_string(&full_path).await {
-            Ok(content) => Ok(CallToolResult::success(vec![Content::text(content)])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Failed to read file: {}", e))])),
+            Ok(content) => Ok(CallToolResult::success(vec![ContentBlock::text(content)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to read file: {}", e))])),
         }
     }
 
@@ -154,8 +155,8 @@ impl McpServer {
             let _ = tokio::fs::create_dir_all(parent).await;
         }
         match tokio::fs::write(&full_path, &input.content).await {
-            Ok(()) => Ok(CallToolResult::success(vec![Content::text(format!("File written successfully to {}", input.path))])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Failed to write file: {}", e))])),
+            Ok(()) => Ok(CallToolResult::success(vec![ContentBlock::text(format!("File written successfully to {}", input.path))])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to write file: {}", e))])),
         }
     }
 
@@ -164,15 +165,15 @@ impl McpServer {
         let full_path = self.workspace_root.join(&input.path);
         let content = match tokio::fs::read_to_string(&full_path).await {
             Ok(c) => c,
-            Err(e) => return Ok(CallToolResult::error(vec![Content::text(format!("Failed to read file: {}", e))])),
+            Err(e) => return Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to read file: {}", e))])),
         };
         if !content.contains(&input.search) {
-            return Ok(CallToolResult::error(vec![Content::text("Search block not found in file".to_string())]));
+            return Ok(CallToolResult::error(vec![ContentBlock::text("Search block not found in file".to_string())]));
         }
         let new_content = content.replacen(&input.search, &input.replace, 1);
         match tokio::fs::write(&full_path, new_content).await {
-            Ok(()) => Ok(CallToolResult::success(vec![Content::text("Diff applied successfully".to_string())])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Failed to write file: {}", e))])),
+            Ok(()) => Ok(CallToolResult::success(vec![ContentBlock::text("Diff applied successfully".to_string())])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to write file: {}", e))])),
         }
     }
 
@@ -184,12 +185,12 @@ impl McpServer {
             Ok(res) => {
                 let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
                 if res.exit_code == 0 {
-                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
                 } else {
-                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                    Ok(CallToolResult::error(vec![ContentBlock::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox execution failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Sandbox execution failed: {}", e))])),
         }
     }
 
@@ -201,12 +202,12 @@ impl McpServer {
             Ok(res) => {
                 let text = format!("exit code: {}\nstdout:\n{}\nstderr:\n{}", res.exit_code, res.stdout, res.stderr);
                 if res.exit_code == 0 {
-                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
                 } else {
-                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                    Ok(CallToolResult::error(vec![ContentBlock::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Sandbox execution failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Sandbox execution failed: {}", e))])),
         }
     }
 
@@ -221,12 +222,12 @@ impl McpServer {
                         text.push_str(&format!("Result {}:\nSource: {}\nCrate: {:?} v{:?}\nFile: {:?}\nContent:\n{}\n\n",
                             i + 1, chunk.source, chunk.crate_name, chunk.version, chunk.file_path, chunk.text));
                     }
-                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
                 }
-                Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("RAG search failed: {}", e))])),
+                Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("RAG search failed: {}", e))])),
             }
         } else {
-            Ok(CallToolResult::error(vec![Content::text("RAG pipeline is not initialized".to_string())]))
+            Ok(CallToolResult::error(vec![ContentBlock::text("RAG pipeline is not initialized".to_string())]))
         }
     }
 
@@ -242,7 +243,7 @@ impl McpServer {
                         .map_err(|e| McpError::internal_error(format!("Failed to build reqwest client: {}", e), None))?;
                     match rag_pipeline::updater::fetch_latest_crates_io_version(&client, &input.crate_name).await {
                         Ok(v) => v,
-                        Err(e) => return Ok(CallToolResult::error(vec![Content::text(format!("Failed to get latest version: {}", e))])),
+                        Err(e) => return Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to get latest version: {}", e))])),
                     }
                 }
             };
@@ -251,11 +252,11 @@ impl McpServer {
             let crate_name = input.crate_name.clone();
             
             match rp_clone.ingest_crate_docs(&crate_name, &version).await {
-                Ok(()) => Ok(CallToolResult::success(vec![Content::text(format!("Successfully ingested docs for {} v{}", crate_name, version))])),
-                Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Doc ingestion failed: {}", e))])),
+                Ok(()) => Ok(CallToolResult::success(vec![ContentBlock::text(format!("Successfully ingested docs for {} v{}", crate_name, version))])),
+                Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Doc ingestion failed: {}", e))])),
             }
         } else {
-            Ok(CallToolResult::error(vec![Content::text("RAG pipeline is not initialized".to_string())]))
+            Ok(CallToolResult::error(vec![ContentBlock::text("RAG pipeline is not initialized".to_string())]))
         }
     }
 
@@ -264,7 +265,7 @@ impl McpServer {
         let full_path = self.workspace_root.join(&input.file);
         let content = match tokio::fs::read_to_string(&full_path).await {
             Ok(c) => c,
-            Err(e) => return Ok(CallToolResult::error(vec![Content::text(format!("Failed to read file: {}", e))])),
+            Err(e) => return Ok(CallToolResult::error(vec![ContentBlock::text(format!("Failed to read file: {}", e))])),
         };
         match tree_sitter_service::parser::parse_file(&content, &input.file) {
             Ok(symbols) => {
@@ -273,55 +274,55 @@ impl McpServer {
                     text.push_str(&format!("Name: {}\nKind: {}\nLines: {}-{}\nImplements Trait: {:?}\nTarget Type: {:?}\n\n",
                         sym.name, sym.kind, sym.start_line, sym.end_line, sym.implements_trait, sym.target_type));
                 }
-                Ok(CallToolResult::success(vec![Content::text(text)]))
+                Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!("Tree-sitter parse failed: {}", e))])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Tree-sitter parse failed: {}", e))])),
         }
     }
 
     #[tool(description = "Flash binary to hardware using probe-rs (requires human confirmation)")]
     async fn probe_rs_flash(&self, input: ProbeRsFlashInput) -> Result<CallToolResult, McpError> {
         if !input.confirmed {
-            return Ok(CallToolResult::error(vec![Content::text("Safety guard: Flash requires human confirmation.".to_string())]));
+            return Ok(CallToolResult::error(vec![ContentBlock::text("Safety guard: Flash requires human confirmation.".to_string())]));
         }
         info!("Flashing binary {} to chip {}", input.binary_path, input.chip);
-        Ok(CallToolResult::success(vec![Content::text(format!("Successfully flashed {} to {}", input.binary_path, input.chip))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("Successfully flashed {} to {}", input.binary_path, input.chip))]))
     }
 
     #[tool(description = "Read RTT logs from target chip using probe-rs")]
     async fn probe_rs_read_rtt(&self, input: ProbeRsReadRttInput) -> Result<CallToolResult, McpError> {
         info!("Reading RTT logs from target chip {}", input.chip);
-        Ok(CallToolResult::success(vec![Content::text(format!("RTT connection established for {}", input.chip))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("RTT connection established for {}", input.chip))]))
     }
 
     #[tool(description = "Boot OS image in QEMU")]
     async fn qemu_boot(&self, input: QemuBootInput) -> Result<CallToolResult, McpError> {
         info!("Booting image {} in QEMU...", input.image_path);
-        Ok(CallToolResult::success(vec![Content::text(format!("QEMU booted successfully with image {}", input.image_path))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("QEMU booted successfully with image {}", input.image_path))]))
     }
 
     #[tool(description = "Send command to QEMU serial port UART")]
     async fn qemu_send_uart(&self, input: QemuUartInput) -> Result<CallToolResult, McpError> {
         info!("Sending message to QEMU UART: {}", input.message);
-        Ok(CallToolResult::success(vec![Content::text(format!("UART message sent: {}", input.message))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("UART message sent: {}", input.message))]))
     }
 
     #[tool(description = "Load platform description script in Renode")]
     async fn renode_load_platform(&self, input: RenodeLoadInput) -> Result<CallToolResult, McpError> {
         info!("Loading Renode script: {}", input.script_path);
-        Ok(CallToolResult::success(vec![Content::text(format!("Renode script {} loaded", input.script_path))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("Renode script {} loaded", input.script_path))]))
     }
 
     #[tool(description = "Generate schematic and run Design Rule Checks in KiCad")]
     async fn kicad_process_schematic(&self, input: KiCadSchematicInput) -> Result<CallToolResult, McpError> {
         info!("KiCad: processing schematic {}", input.schematic_path);
-        Ok(CallToolResult::success(vec![Content::text("Schematic processed, ERC/DRC passed".to_string())]))
+        Ok(CallToolResult::success(vec![ContentBlock::text("Schematic processed, ERC/DRC passed".to_string())]))
     }
 
     #[tool(description = "Generate 3D mesh object in Blender")]
     async fn blender_generate_mesh(&self, input: BlenderMeshInput) -> Result<CallToolResult, McpError> {
         info!("Blender: generating mesh {} with dims {:?}", input.mesh_name, input.dimensions);
-        Ok(CallToolResult::success(vec![Content::text(format!("Blender mesh {} generated", input.mesh_name))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!("Blender mesh {} generated", input.mesh_name))]))
     }
 
     #[tool(description = "Scrape docs.rs for crate updates and updates RAG index")]
@@ -329,11 +330,11 @@ impl McpServer {
         info!("Scraping docs.rs for crate: {}", input.crate_name);
         if let Some(ref rp) = self.rag {
             if let Err(e) = rp.ingest_crate_docs(&input.crate_name, "latest").await {
-                return Ok(CallToolResult::error(vec![Content::text(format!("Docs scraping failed: {}", e))]));
+                return Ok(CallToolResult::error(vec![ContentBlock::text(format!("Docs scraping failed: {}", e))]));
             }
-            Ok(CallToolResult::success(vec![Content::text(format!("Crate {} crawled and indexed successfully", input.crate_name))]))
+            Ok(CallToolResult::success(vec![ContentBlock::text(format!("Crate {} crawled and indexed successfully", input.crate_name))]))
         } else {
-            Ok(CallToolResult::error(vec![Content::text("RAG not initialized".to_string())]))
+            Ok(CallToolResult::error(vec![ContentBlock::text("RAG not initialized".to_string())]))
         }
     }
 }
@@ -356,6 +357,7 @@ impl ServerHandler for McpServer {
         Ok(ListToolsResult {
             tools: self.tool_router.list_all(),
             next_cursor: None,
+            ..Default::default()
         })
     }
 
@@ -363,7 +365,7 @@ impl ServerHandler for McpServer {
         &self,
         request: CallToolRequestParam,
         context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let call_ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(call_ctx).await
     }

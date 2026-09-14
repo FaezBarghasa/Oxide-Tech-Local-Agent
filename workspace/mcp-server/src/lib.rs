@@ -10,8 +10,8 @@ use rmcp::{
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
-        CallToolRequestParams, CallToolResult, Content, ListToolsResult, PaginatedRequestParams,
-        ServerInfo,
+        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, ListToolsResult,
+        PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
     tool, tool_router,
@@ -377,7 +377,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["check"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -388,7 +388,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["test"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -403,7 +403,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -418,7 +418,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -429,7 +429,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["audit"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -444,7 +444,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -455,7 +455,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["tree"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -466,7 +466,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["update"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -477,7 +477,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["bench"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -488,7 +488,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_cargo(&["llvm-cov"], input.workspace_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -499,7 +499,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_git(&["status"], input.repo_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -510,7 +510,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_git(&["diff"], input.repo_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -525,7 +525,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -536,7 +536,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_git(&["branch"], input.repo_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -551,7 +551,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -566,7 +566,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -581,7 +581,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -597,7 +597,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -608,7 +608,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::run_git(&["tag", &input.tag], input.repo_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -619,7 +619,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_read(&input.path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -630,7 +630,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_write(&input.path, &input.content, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -641,7 +641,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_move(&input.src, &input.dest, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -652,7 +652,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_delete(&input.path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -663,7 +663,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_search(&input.query, input.sub_dir, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -674,7 +674,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         foundation::fs_glob(&input.pattern, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -690,7 +690,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -705,7 +705,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         web::google_search(&input.query)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -716,7 +716,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         web::github_latest_release(&input.repo)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -731,7 +731,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         knowledge_mcp::docs_rs_lookup(&input.query, input.limit, &self.rag)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -742,7 +742,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         knowledge_mcp::rust_book_search(&input.query)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -753,7 +753,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         knowledge_mcp::crates_io_search(&input.query)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -764,7 +764,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         knowledge_mcp::github_api_query(&input.repo, &input.endpoint)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -775,7 +775,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         knowledge_mcp::changelog_diff(&input.crate_name, &input.from_version, &input.to_version)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -790,7 +790,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         embedded::embassy_lookup(&input.query, &self.rag)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -801,7 +801,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         embedded::stm32_lookup(&input.query, &self.rag)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -812,7 +812,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         embedded::esp32_lookup(&input.query, &self.rag)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -827,7 +827,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         pcb::kicad_project_op(&input.project_path, &input.op_type, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -842,7 +842,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -853,7 +853,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         pcb::component_search(&input.part_number)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -864,7 +864,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         pcb::bom_pricing(&input.bom_path, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -885,7 +885,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -902,7 +902,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -919,7 +919,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -936,7 +936,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -947,7 +947,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         cad::freecad_op(&input.param_name, input.param_val, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -959,7 +959,7 @@ impl McpServer {
         cad::freecad_op("length", 10.0, &self.workspace_root)
             .await
             .map(|r| {
-                CallToolResult::success(vec![Content::text(format!(
+                CallToolResult::success(vec![ContentBlock::text(format!(
                     "Exported {} successfully: {}",
                     input.model_name, r
                 ))])
@@ -978,7 +978,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         ai_infra::qdrant_op(&input.op_type, &input.text, &self.rag)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -989,7 +989,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         ai_infra::surrealdb_op(&input.memory_type, &input.query, &self.surreal)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1000,7 +1000,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         ai_infra::knowledge_graph_view(&input.entity_id, &self.surreal)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -1019,7 +1019,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1030,7 +1030,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         verification::pcb_verify(&input.project_path, &input.check_type, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1041,7 +1041,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         verification::cad_verify(&input.model_name, &input.check_type, &self.workspace_root)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1056,7 +1056,7 @@ impl McpServer {
             &self.workspace_root,
         )
         .await
-        .map(|r| CallToolResult::success(vec![Content::text(r)]))
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
         .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1067,7 +1067,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         verification::model_router_route(&input.task_description)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 
@@ -1078,7 +1078,7 @@ impl McpServer {
     ) -> Result<CallToolResult, McpError> {
         verification::experience_learning_extract(&input.task_outcome, &self.surreal)
             .await
-            .map(|r| CallToolResult::success(vec![Content::text(r)]))
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))
     }
 }
@@ -1099,6 +1099,7 @@ impl ServerHandler for McpServer {
             tools: self.tool_router.list_all(),
             next_cursor: None,
             meta: None,
+            ..Default::default()
         })
     }
 
@@ -1106,7 +1107,7 @@ impl ServerHandler for McpServer {
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let call_ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(call_ctx).await
     }
