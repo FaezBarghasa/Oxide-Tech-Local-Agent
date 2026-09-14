@@ -153,7 +153,10 @@ mod tests {
     #[tokio::test]
     async fn test_evidence_bundle_export() {
         let temp_dir = std::env::temp_dir().join(format!("evidence_test_{}", uuid::Uuid::new_v4()));
-        let mut bundle = EvidenceBundle::new("task-42", "diff --git a/src/main.rs b/src/main.rs\n+fn main() {}");
+        let mut bundle = EvidenceBundle::new(
+            "task-42",
+            "diff --git a/src/main.rs b/src/main.rs\n+fn main() {}",
+        );
         bundle.add_report(VerifierReport {
             stage: "cargo_check".to_string(),
             passed: true,

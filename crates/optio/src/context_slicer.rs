@@ -83,8 +83,8 @@ impl GraphContextSlicer {
         let mut p_next = vec![0.0; n];
 
         for _ in 0..max_iters {
-            for v in 0..n {
-                p_next[v] = (1.0 - damping) * if v == target_idx.index() { 1.0 } else { 0.0 };
+            for (v, item) in p_next.iter_mut().enumerate() {
+                *item = (1.0 - damping) * if v == target_idx.index() { 1.0 } else { 0.0 };
             }
 
             for u_idx in self.graph.node_indices() {

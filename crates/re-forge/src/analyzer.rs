@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use goblin::Object;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -60,9 +60,11 @@ impl BinaryAnalyzer {
                 let mut functions = Vec::new();
 
                 // Look for executable .text section
-                if let Some(text_section) = elf.section_headers.iter().find(|s| {
-                    elf.shdr_strtab.get_at(s.sh_name) == Some(".text")
-                }) {
+                if let Some(text_section) = elf
+                    .section_headers
+                    .iter()
+                    .find(|s| elf.shdr_strtab.get_at(s.sh_name) == Some(".text"))
+                {
                     let offset = text_section.sh_offset as usize;
                     let size = text_section.sh_size as usize;
                     let addr = text_section.sh_addr;

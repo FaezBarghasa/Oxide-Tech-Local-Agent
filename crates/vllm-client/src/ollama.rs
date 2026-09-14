@@ -130,11 +130,17 @@ impl InferenceProvider for OllamaProvider {
         let chunk_stream = byte_stream.map(|item| -> Result<StreamChunk> {
             let bytes = item.context("Stream read error")?;
             if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&bytes) {
-                let delta = val["message"]["content"].as_str().unwrap_or_default().to_string();
+                let delta = val["message"]["content"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_string();
                 let is_final = val["done"].as_bool().unwrap_or(false);
                 Ok(StreamChunk { delta, is_final })
             } else {
-                Ok(StreamChunk { delta: String::new(), is_final: false })
+                Ok(StreamChunk {
+                    delta: String::new(),
+                    is_final: false,
+                })
             }
         });
 

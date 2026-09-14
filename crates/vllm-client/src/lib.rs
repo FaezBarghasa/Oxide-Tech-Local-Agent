@@ -13,8 +13,8 @@ pub use lora_hot_swap::LoraHotSwapManager;
 pub use lora_router::DynamicLoraRouter;
 pub use ollama::OllamaProvider;
 pub use provider::{
-    BackendHealth, ChatMessage, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
-    ProviderKind, StreamChunk, StreamResult,
+    BackendHealth, ChatMessage, ChatRequest, ChatResponse, InferenceCapabilities,
+    InferenceProvider, ProviderKind, StreamChunk, StreamResult,
 };
 pub use safetensors_loader::{SafetensorModelLoader, SafetensorModelSummary, TensorMeta};
 pub use thinker::{ThinkerClient, ThinkerOutput};

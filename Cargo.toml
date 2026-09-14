@@ -110,6 +110,7 @@ rumqttc = "0.25"
 mqtt-async-embedded = { git = "https://github.com/FaezBarghasa/mqtt-async-embedded" }
 miette = { version = "7.2", features = ["fancy"] }
 glam = { version = "0.33.7", features = ["std", "serde"] }
+clap = { version = "4.5", features = ["derive", "env"] }
 parametric-forge = { path = "crates/parametric-forge" }
 visual-forge = { path = "crates/visual-forge" }
 
@@ -120,6 +121,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+clap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
+gateway = { path = "workspace/gateway" }
+common = { path = "workspace/common" }
+config-loader = { path = "crates/config-loader" }
+re-forge = { path = "crates/re-forge" }
+verifier = { path = "workspace/verifier" }
+reqwest = { workspace = true }
 
 [profile.release]
 opt-level = 3            # Enable maximum performance optimizations

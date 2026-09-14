@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TensorCorePattern {
     pub instruction: String,
-    pub shape: String,      // e.g. "m16n8k16"
-    pub precision: String,  // e.g. "f32.tf32.tf32.f32", "f16"
+    pub shape: String,     // e.g. "m16n8k16"
+    pub precision: String, // e.g. "f32.tf32.tf32.f32", "f16"
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,8 +39,10 @@ impl PtxParser {
 
         let arch_re = Regex::new(r"\.target\s+([a-zA-Z0-9_]+)").unwrap();
         let entry_re = Regex::new(r"\.entry\s+([a-zA-Z0-9_]+)").unwrap();
-        let shared_re = Regex::new(r"\.shared\s+\.align\s+\d+\s+\.b8\s+[a-zA-Z0-9_]+\[(\d+)\]").unwrap();
-        let mma_re = Regex::new(r"mma\.sync\.aligned\.([a-zA-Z0-9]+)\.row\.col\.([a-zA-Z0-9\.]+)").unwrap();
+        let shared_re =
+            Regex::new(r"\.shared\s+\.align\s+\d+\s+\.b8\s+[a-zA-Z0-9_]+\[(\d+)\]").unwrap();
+        let mma_re =
+            Regex::new(r"mma\.sync\.aligned\.([a-zA-Z0-9]+)\.row\.col\.([a-zA-Z0-9\.]+)").unwrap();
 
         if let Some(caps) = arch_re.captures(ptx_code)
             && let Some(m) = caps.get(1)
@@ -74,10 +76,19 @@ impl PtxParser {
         }
 
         for caps in mma_re.captures_iter(ptx_code) {
-            let shape = caps.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
-            let precision = caps.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+            let shape = caps
+                .get(1)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
+            let precision = caps
+                .get(2)
+                .map(|m| m.as_str().to_string())
+                .unwrap_or_default();
             tensor_core_patterns.push(TensorCorePattern {
-                instruction: caps.get(0).map(|m| m.as_str().to_string()).unwrap_or_default(),
+                instruction: caps
+                    .get(0)
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or_default(),
                 shape,
                 precision,
             });
@@ -85,7 +96,8 @@ impl PtxParser {
 
         let inferred_operation = if !tensor_core_patterns.is_empty() {
             if uses_async_copy {
-                "Ampere/Hopper Tensor Core Tiled GEMM with Asynchronous Copy (cuDNN / Cutlass)".to_string()
+                "Ampere/Hopper Tensor Core Tiled GEMM with Asynchronous Copy (cuDNN / Cutlass)"
+                    .to_string()
             } else {
                 "Tensor Core Matrix Multiplication (GEMM / Conv2d)".to_string()
             }

@@ -57,7 +57,11 @@ impl NeuralCudaLifter {
             kernel.name,
             analysis.target_arch,
             analysis.memory_pattern.shared_memory_bytes,
-            if !analysis.tensor_core_patterns.is_empty() { "Yes" } else { "No" },
+            if !analysis.tensor_core_patterns.is_empty() {
+                "Yes"
+            } else {
+                "No"
+            },
             analysis.inferred_operation,
             ptx
         );

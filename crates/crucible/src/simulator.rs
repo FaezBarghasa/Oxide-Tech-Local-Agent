@@ -17,16 +17,9 @@ pub trait CausalSimulator: Send + Sync {
     ) -> Option<SimulationEvaluation>;
 }
 
+#[derive(Default)]
 pub struct CrucibleEngine {
     engine: MctsDecisionEngine,
-}
-
-impl Default for CrucibleEngine {
-    fn default() -> Self {
-        Self {
-            engine: MctsDecisionEngine::default(),
-        }
-    }
 }
 
 impl CrucibleEngine {

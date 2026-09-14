@@ -220,7 +220,8 @@ impl LlmRouterClient {
                         Err(e) => Err(anyhow::anyhow!("Failed to open safetensors at {:?}: {}", path, e)),
                     }
                 } else {
-                    self.complete_openai_compatible(system_prompt, user_prompt, expect_json).await
+                    self.complete_openai_compatible(system_prompt, user_prompt, expect_json)
+                        .await
                 }
             }
             // Groq, Mistral, Google (Gemini shim), and vLLM all speak

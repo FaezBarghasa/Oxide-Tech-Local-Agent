@@ -1,8 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use re_forge::{
-    CudaAnalyzer, CudaGraphBridge, CudaKernel, NeuralCudaLifter, PtxParser,
-};
+use re_forge::{CudaAnalyzer, CudaGraphBridge, CudaKernel, NeuralCudaLifter, PtxParser};
 use std::sync::Arc;
 use vllm_client::{
     BackendHealth, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
@@ -100,6 +98,10 @@ async fn test_cuda_ptx_tensor_core_analysis_and_lifting() {
 
     let result = lifter.lift_kernel(&kernel, &analysis).await.unwrap();
     assert_eq!(result.kernel_name, "cudnn_tiled_gemm_kernel");
-    assert!(result.cuda_source_code.contains("__global__ void cudnn_tiled_gemm"));
+    assert!(
+        result
+            .cuda_source_code
+            .contains("__global__ void cudnn_tiled_gemm")
+    );
     assert!(result.explanation.contains("Implicit GEMM"));
 }

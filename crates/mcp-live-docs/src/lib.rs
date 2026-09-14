@@ -116,7 +116,9 @@ impl LiveDocsServer {
             Ok(api) => {
                 let mut cache_lock = self.cache.lock().await;
                 cache_lock.insert((input.crate_name.clone(), version.clone()), api.clone());
-                Ok(CallToolResult::success(vec![ContentBlock::text(api.markdown)]))
+                Ok(CallToolResult::success(vec![ContentBlock::text(
+                    api.markdown,
+                )]))
             }
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Docs scrape failed: {}",
