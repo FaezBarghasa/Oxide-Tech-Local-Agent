@@ -11,3 +11,4 @@ tracing = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 reqwest = { workspace = true }
+petgraph = { workspace = true }
