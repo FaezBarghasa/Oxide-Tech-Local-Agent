@@ -2,6 +2,8 @@ pub mod candle_engine;
 pub mod client;
 pub mod lora_hot_swap;
 pub mod lora_router;
+pub mod ollama;
+pub mod provider;
 pub mod safetensors_loader;
 pub mod thinker;
 
@@ -9,6 +11,11 @@ pub use candle_engine::{CandleEngine, CandleEngineConfig, ComputeDevice};
 pub use client::{LlmProvider, LlmRouterClient};
 pub use lora_hot_swap::LoraHotSwapManager;
 pub use lora_router::DynamicLoraRouter;
+pub use ollama::OllamaProvider;
+pub use provider::{
+    BackendHealth, ChatMessage, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
+    ProviderKind, StreamChunk, StreamResult,
+};
 pub use safetensors_loader::{SafetensorModelLoader, SafetensorModelSummary, TensorMeta};
 pub use thinker::{ThinkerClient, ThinkerOutput};
 

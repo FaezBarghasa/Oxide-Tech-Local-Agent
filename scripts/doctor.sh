@@ -29,14 +29,14 @@ check_cmd() {
         local ver
         ver=$($cmd --version 2>&1 | head -n 1 || echo "installed")
         echo -e "  [${GREEN}OK${NC}] $name: $ver"
-        ((PASS_COUNT++))
+        PASS_COUNT=$((PASS_COUNT + 1))
     else
         if [ "$required" = "true" ]; then
             echo -e "  [${RED}FAIL${NC}] $name ($cmd) is NOT installed."
-            ((FAIL_COUNT++))
+            FAIL_COUNT=$((FAIL_COUNT + 1))
         else
             echo -e "  [${YELLOW}WARN${NC}] $name ($cmd) not found (optional)."
-            ((WARN_COUNT++))
+            WARN_COUNT=$((WARN_COUNT + 1))
         fi
     fi
 }
@@ -66,7 +66,7 @@ echo -e "${BLUE}4. Hardware Acceleration (GPU):${NC}"
 if command -v nvidia-smi &>/dev/null; then
     gpu_info=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null || echo "NVIDIA GPU Detected")
     echo -e "  [${GREEN}OK${NC}] NVIDIA GPU: $gpu_info"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 else
     echo -e "  [${YELLOW}INFO${NC}] No NVIDIA GPU detected. System will operate in CPU Lite Mode (Ollama/llama.cpp)."
 fi
@@ -76,10 +76,10 @@ echo ""
 echo -e "${BLUE}5. System Security & Permissions:${NC}"
 if [ -f "/etc/udev/rules.d/99-probe-rs.rules" ] || [ -f "/usr/lib/udev/rules.d/69-probe-rs.rules" ]; then
     echo -e "  [${GREEN}OK${NC}] probe-rs udev rules present."
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 else
     echo -e "  [${YELLOW}WARN${NC}] probe-rs udev rules not found. Hardware flashing may require sudo unless scripts/install_udev_rules.sh is run."
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 fi
 
 echo ""
