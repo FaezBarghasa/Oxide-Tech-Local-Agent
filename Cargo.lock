@@ -1739,6 +1739,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "cross-domain-verifier"
+version = "0.1.0"
+dependencies = [
+ "cad-forge",
+ "circuit-forge",
+ "glam",
+ "oxide-protocol",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4490,6 +4505,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "common",
+ "oxide-protocol",
  "prost 0.12.6",
  "rmcp 0.2.1",
  "serde",
@@ -5299,6 +5315,19 @@ dependencies = [
  "hmac-sha256",
  "lzma-rust2",
  "ureq",
+]
+
+[[package]]
+name = "oxide-protocol"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -7268,6 +7297,7 @@ dependencies = [
  "common",
  "knowledge",
  "memory",
+ "oxide-protocol",
  "reqwest 0.12.28",
  "serde",
  "serde_json",

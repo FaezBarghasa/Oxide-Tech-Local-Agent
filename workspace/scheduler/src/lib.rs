@@ -7,10 +7,12 @@ use surrealdb::engine::any::Any;
 use tracing::{error, info, warn};
 
 pub mod cloud_budget;
+pub mod dtx_coordinator;
 pub mod gpu_resource_manager;
 pub mod hitl;
 pub mod inbox;
 
+pub use dtx_coordinator::DtxCoordinator;
 pub use hitl::{HitlApprovalChannel, HitlDecision, HitlRequest, RiskLevel};
 pub use inbox::{HitlInboxManager, InboxEntry, InboxStatus};
 

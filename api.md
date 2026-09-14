@@ -11,7 +11,41 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
 - **`GET /health/ready`**: Readiness probe checking SurrealDB, Qdrant, and SGLang connections.
 - **`GET /metrics`**: Prometheus metrics for token latency, GPU offload memory, and active agent sessions.
 
-### B. Graph Engineering & Impact Analysis
+### B. The Oxide Protocol & Distributed Transactions
+- **`POST /api/dtx/begin`**:
+  - Request: `{ "title": "Optimize IoT enclosure", "initiator": "local-agent", "domains": ["firmware_ide", "oxide_eda", "oxide_3d"] }`
+  - Response: `{ "dtx_id": "0192a3b4-c5d6-7e8f-9a0b-c1d2e3f4a5b6", "status": "pending" }`
+- **`POST /api/dtx/commit`**:
+  - Request: `{ "dtx_id": "0192a3b4-c5d6-7e8f-9a0b-c1d2e3f4a5b6" }`
+  - Response: `{ "status": "committed" }`
+- **`POST /api/dtx/rollback`**:
+  - Request: `{ "dtx_id": "0192a3b4-c5d6-7e8f-9a0b-c1d2e3f4a5b6", "reason": "Silicon exceeded 85C" }`
+  - Response: `{ "status": "rolled_back" }`
+
+### C. Cross-Domain Multi-Physics Verification
+- **`POST /api/verify/co-simulation`**:
+  - Request:
+    ```json
+    {
+      "dtx_id": "0192a3b4-c5d6-7e8f-9a0b-c1d2e3f4a5b6",
+      "firmware_duty_cycle": 0.85,
+      "mcu_base_watts": 1.2,
+      "enclosure_material": "Aluminum_6061"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "dtx_id": "0192a3b4-c5d6-7e8f-9a0b-c1d2e3f4a5b6",
+      "passed": true,
+      "firmware_power_watts": 1.056,
+      "peak_temperature_c": 57.3,
+      "clearance_margin_mm": 2.0,
+      "recommended_action": null
+    }
+    ```
+
+### D. Graph Engineering & Impact Analysis
 - **`POST /api/graph/parse`**:
   - Request: `{ "file_path": "src/driver.rs", "content": "..." }`
   - Response: `{ "nodes": [...], "edges": [...] }`
@@ -22,45 +56,16 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
   - Request: `{ "focal_node": "fn:src/driver.rs:init_dma", "max_hops": 2 }`
   - Response: `{ "pruned_subgraph_json": "...", "token_savings_pct": 82.4 }`
 
-### C. Multi-Agent Orchestration & Planning
-- **`POST /api/agent/plan`**:
-  - Request: `{ "goal": "Build STM32 DMA SPI driver in no_std", "context": "...", "mode": "Code" }`
-  - Response: `{ "thought": "...", "steps": [{ "step_id": 1, "description": "...", "assigned_persona": "Architect", "tool_calls": [...] }], "execution_tiers": [[1], [2, 3], [4]] }`
-- **`POST /api/agent/fsm/transition`**:
-  - Request: `{ "task_id": "task-123", "current_state": "Executing", "outcome": "Failure", "error": "compiler error", "retry_count": 3 }`
-  - Response: `{ "new_state": "Diagnosing", "assigned_role": "Debugger", "diagnostic_prompt": "..." }`
-
-### D. Human-in-the-Loop (HITL) Inbox
+### E. Human-in-the-Loop (HITL) Inbox
 - **`GET /api/inbox/pending`**:
   - Response: `[{ "id": "req-987", "task_id": "task-123", "agent_id": "coder-1", "action": "cargo build --release", "risk_class": "Exec", "status": "Pending" }]`
 - **`POST /api/inbox/resolve`**:
   - Request: `{ "id": "req-987", "approved": true, "feedback": "Proceed with optimized flags" }`
   - Response: `{ "status": "resolved", "id": "req-987" }`
 
-### E. Durable Event-Sourced Journal
-- **`GET /api/journal/entries?task_id=task-123`**:
-  - Response: `[{ "seq": 1, "event": "TaskSpawned", "timestamp": "2026-09-08T10:00:00Z" }, { "seq": 2, "event": "ToolCallDispatched", "tool": "file_write" }]`
-- **`POST /api/journal/replay`**:
-  - Request: `{ "task_id": "task-123" }`
-  - Response: `{ "status": "replayed", "current_state": "Executing", "completed_steps": [1, 2], "pending_steps": [3] }`
-
 ---
 
-## 2. Inference & Dynamic LoRA Serving Endpoints (`:30000`)
-
-### A. Dynamic LoRA Activation
-- **`POST /v1/lora/activate`**:
-  - Request: `{ "adapter_name": "lora_embedded_rust_v2", "action": "activate" }`
-  - Response: `{ "status": "success", "active_adapter": "lora_embedded_rust_v2" }`
-
-### B. OpenAI-Compatible Chat Completions
-- **`POST /v1/chat/completions`**:
-  - Request: `{ "model": "ornith-1.0-9b", "messages": [...], "temperature": 0.1, "max_tokens": 512 }`
-  - Response: standard OpenAI completion format with latency metadata.
-
----
-
-## 3. Self-Evolution Endpoints
+## 2. Self-Evolution Endpoints
 
 ### A. Delta Harvester Record
 - **`POST /api/self-evolve/record-delta`**:

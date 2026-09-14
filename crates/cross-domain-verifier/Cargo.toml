@@ -1,0 +1,15 @@
+[package]
+name = "cross-domain-verifier"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+oxide-protocol = { path = "../oxide-protocol" }
+circuit-forge = { path = "../circuit-forge" }
+cad-forge = { path = "../cad-forge" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+glam = { workspace = true }

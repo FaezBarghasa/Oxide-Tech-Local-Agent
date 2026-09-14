@@ -1,5 +1,6 @@
 pub mod action_graph;
 pub mod client;
+pub mod cross_domain_packer;
 pub mod ephemeral;
 pub mod pager;
 pub mod schema;
@@ -8,6 +9,7 @@ pub mod working_memory;
 
 pub use action_graph::{ActionEdgeType, ActionGraph, ActionNode};
 pub use client::SurrealClient;
+pub use cross_domain_packer::{CrossDomainContextPacker, CrossDomainContextSlice, CrossDomainLink};
 pub use ephemeral::{ActiveStackTrace, EphemeralMemory, OpenEditorBuffer, TerminalBufferEntry};
 pub use pager::{MemoryPager, PageTier, SharedMemoryPager, VirtualPage};
 pub use schema::*;

@@ -42,6 +42,8 @@ members = [
     "crates/parametric-forge",
     "crates/visual-forge",
     "crates/re-forge",
+    "crates/oxide-protocol",
+    "crates/cross-domain-verifier",
 ]
 
 

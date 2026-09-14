@@ -9,6 +9,7 @@ knowledge = { path = "../knowledge" }
 blog = { path = "../blog" }
 thinker = { path = "../thinker" }
 memory = { path = "../memory" }
+oxide-protocol = { path = "../../crates/oxide-protocol" }
 tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

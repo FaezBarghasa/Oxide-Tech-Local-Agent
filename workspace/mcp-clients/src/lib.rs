@@ -64,10 +64,24 @@ impl EiosMcpClient {
         name: &str,
         arguments: serde_json::Value,
     ) -> Result<CallToolResult> {
-        let obj = arguments
+        self.call_tool_with_dtx(name, arguments, None).await
+    }
+
+    /// Call a specific tool with DTX header for distributed transaction tracking
+    pub async fn call_tool_with_dtx(
+        &self,
+        name: &str,
+        arguments: serde_json::Value,
+        dtx_id: Option<oxide_protocol::DtxId>,
+    ) -> Result<CallToolResult> {
+        let mut obj = arguments
             .as_object()
             .ok_or_else(|| EiosError::Internal("Arguments must be a JSON object".to_string()))?
             .clone();
+
+        if let Some(dtx) = dtx_id {
+            obj.insert("dtx_id".to_string(), serde_json::json!(dtx.to_string()));
+        }
 
         let req = CallToolRequestParam {
             name: name.to_string().into(),

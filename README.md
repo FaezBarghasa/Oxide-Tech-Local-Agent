@@ -1,12 +1,12 @@
 # Oxide-Tech Local Agent OS
 
-**Oxide-Tech Local Agent OS** is a local-first, graph-aware, sandboxed agentic engineering operating system for deterministic software, embedded firmware, open-source EDA, and high-performance binary/GPU reverse engineering workflows.
+**Oxide-Tech Local Agent OS** is a local-first, graph-aware, sandboxed agentic engineering operating system designed for deterministic software, embedded firmware, open-source EDA, high-performance binary/GPU reverse engineering, and multi-physics co-simulation workflows.
 
 ---
 
 ## 🎯 Strategic Positioning & Operating Profiles
 
-Oxide-Tech provides 5 target operating modes to adapt from ultra-lightweight laptop environments to multi-GPU enterprise air-gapped clusters:
+Oxide-Tech provides 5 target operating modes adapting from lightweight laptop environments to multi-GPU enterprise air-gapped clusters:
 
 | Operating Profile | Flag | Inference Backend | Default Model | Storage & Sandboxing |
 |---|---|---|---|---|
@@ -18,42 +18,46 @@ Oxide-Tech provides 5 target operating modes to adapt from ultra-lightweight lap
 
 ---
 
-## 🏗️ Architectural Topology
+## 🏗️ Architectural Topology & The Oxide Protocol
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│ User Interfaces (React 19 Studio, CLI / TUI, IDE Adapters) │
-└──────────────────────────────┬─────────────────────────────┘
-                               │ JSON-RPC 2.0 / SSE / QUIC HTTP/3
-┌──────────────────────────────▼─────────────────────────────┐
-│ Gateway & Control Plane (crates/api, workspace/gateway)   │
-│ - Actix-Web + Quinn HTTP/3, Auth tokens, Task budgets     │
-└──────────────────────────────┬─────────────────────────────┘
-                               │
-┌──────────────────────────────▼─────────────────────────────┐
-│ Orchestration & State Machine (crates/optio, router)       │
-│ - Predetermined DAG workflows, Oscillation guard, HITL FSM │
-└───────┬──────────────┬──────────────┬──────────────┬───────┘
-        │              │              │              │
-┌───────▼──────┐ ┌─────▼─────┐ ┌──────▼──────┐ ┌────▼─────┐
-│ Knowledge    │ │ Memory/RAG│ │ Verifier    │ │ Evolver  │
-│ Graph AST    │ │ SurrealKV │ │ Sandbox     │ │ Skills   │
-│ (SurrealDB)  │ │ + Qdrant  │ │ (bwrap/wasm)│ │ Manifests│
-└───────┬──────┘ └─────┬─────┘ └──────┬──────┘ └────┬─────┘
-        │              │              │              │
-┌───────▼──────────────▼──────────────▼──────────────▼──────┐
-│ Tool Execution & Domain Engineering Stack                  │
-│ - re-forge: Pure-Rust Binary RE (CPU + CUDA/cuDNN PTX/SASS)│
-│ - circuit-forge: Schematic EDA ERC/DRC & KiCad S-Expr      │
-│ - mcp-probe-rs: Hardware-in-the-Loop RTT & STM32 flashing  │
-│ - mcp-qemu-redox: QEMU simulation & kernel panic analysis  │
-│ - mcp-cargo-gatekeeper: Dependency audit & policy checks   │
-└────────────────────────────────────────────────────────────┘
-        │              │              │              │
-┌───────▼──────────────▼──────────────▼──────────────▼──────┐
-│ Infrastructure & Storage                                   │
-│ - SurrealDB / SurrealKV, Qdrant, agent-journal, telemetry │
-└────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│ User Interfaces (React 19 Studio, oxide-agent CLI, IDE Adapters)      │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ JSON-RPC 2.0 / SSE / QUIC HTTP/3
+┌───────────────────────────────────▼────────────────────────────────────┐
+│ Gateway & Control Plane (workspace/gateway, :8080)                     │
+│ - Actix-Web + Quinn HTTP/3, JWT Guards, Prometheus /metrics            │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+┌───────────────────────────────────▼────────────────────────────────────┐
+│ The Oxide Protocol & Distributed Transactions (UUIDv7 DTX)             │
+│ - DtxCoordinator (Atomic Multi-Domain Commits & rollback_dtx)          │
+└───────┬──────────────┬──────────────┬──────────────┬───────────┬───────┘
+        │              │              │              │           │
+┌───────▼──────┐ ┌─────▼─────┐ ┌──────▼──────┐ ┌────▼─────┐ ┌────▼──────┐
+│ Knowledge    │ │ Memory/RAG│ │ Verifier    │ │ Evolver  │ │ Hardware  │
+│ Graph AST    │ │ SurrealKV │ │ Multi-      │ │ Skills   │ │ Simulator │
+│ (SurrealDB)  │ │ + Qdrant  │ │ Physics     │ │ Manifests│ │ probe-rs  │
+│              │ │ Context   │ │ FEA/ERC     │ │          │ │ QEMU Redox│
+└───────┬──────┘ └─────┬─────┘ └──────┬──────┘ └────┬─────┘ └────┬──────┘
+        │              │              │              │           │
+┌───────▼──────────────▼──────────────▼──────────────▼───────────▼──────┐
+│ Tool Execution & Domain Engineering Stack                             │
+│ - re-forge: Pure-Rust Binary RE (CPU + CUDA/cuDNN PTX/SASS)           │
+│ - circuit-forge: Schematic EDA ERC/DRC & KiCad S-Expr                 │
+│ - cad-forge: Parametric 3D CAD modeling & B-Rep kernel                │
+│ - cross-domain-verifier: Electro-Thermal-Mechanical Co-Simulation     │
+│ - mcp-probe-rs: Hardware-in-the-Loop RTT & STM32 flashing             │
+│ - mcp-qemu-redox: QEMU simulation & kernel panic analysis             │
+│ - mcp-cargo-gatekeeper: Dependency audit & policy checks              │
+└───────────────────────────────────────────────────────────────────────┘
+        │              │              │              │           │
+┌───────▼──────────────▼──────────────▼──────────────▼───────────▼──────┐
+│ Infrastructure & Security Membrane                                    │
+│ - Bubblewrap (bwrap) Namespace Sandbox + ebpf-sentinel Syscall Guard  │
+│ - SurrealDB / SurrealKV, Qdrant, agent-journal, OpenTelemetry Tracing │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -62,62 +66,61 @@ Oxide-Tech provides 5 target operating modes to adapt from ultra-lightweight lap
 
 | Crate | Directory | Purpose |
 |---|---|---|
+| **`oxide-protocol`** | `crates/oxide-protocol/` | Universal communication specification, JSON-RPC 2.0 schemas for EDA/CAD, and time-ordered UUIDv7 Distributed Transaction IDs (`DtxId`). |
+| **`cross-domain-verifier`** | `crates/cross-domain-verifier/` | Multi-physics electro-thermal-mechanical co-simulation loop (firmware duty cycle $\to$ PCB wattage $\to$ CAD thermal FEA mesh). |
 | **`re-forge`** | `crates/re-forge/` | Zero-copy pure-Rust CPU binary disassembler (`goblin`, `yaxpeax-arch`, `petgraph`) & GPU/CUDA cuDNN lifting (PTX parser, Tensor Core detection, neural decompilation to safe Rust and CUDA C++). |
 | **`circuit-forge`** | `crates/circuit-forge/` | EDA schematic builder, Electrical Rule Checking (ERC), topology analysis, and native KiCad S-expression serialization. |
-| **`cad-forge`** | `crates/cad-forge/` | Parametric 3D CAD modeling, B-Rep geometric kernel, and mesh generation. |
+| **`cad-forge`** | `crates/cad-forge/` | Parametric 3D CAD modeling, B-Rep geometric kernel, and voxelized clearance validation. |
 | **`optio`** | `crates/optio/` | ReAct DAG orchestration engine, Personalized PageRank (PPR) AST slicing, oscillation guard, and task budgets. |
-| **`sandbox`** | `crates/sandbox/` | Bubblewrap (`bwrap`) Linux namespace sandbox with resource caps and Docker containers. |
+| **`sandbox`** | `crates/sandbox/` | Bubblewrap (`bwrap`) Linux namespace sandbox with resource caps and unshared PID/mount namespaces. |
 | **`vllm-client`** | `crates/vllm-client/` | Pluggable `InferenceProvider` (Ollama, SGLang, vLLM, Candle) with LoRA adapter hot-swapping. |
 | **`agent-journal`** | `crates/agent-journal/` | Event-sourced execution journaling using `rkyv` with deterministic state replay. |
 | **`config-loader`** | `crates/config-loader/` | Profile-aware configuration manager (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`). |
-| **`verifier`** | `workspace/verifier/` | Deterministic verification, atomic checkpoints (`git stash create`), and structured Evidence Bundle exports (`task.json`, `patch.diff`, `verifier_reports.json`). |
-| **`scheduler`** | `workspace/scheduler/` | Human-in-the-Loop (HITL) interrupt channels (`tokio::sync::oneshot`), GPU resource governor, and background cron jobs. |
+| **`verifier`** | `workspace/verifier/` | Deterministic verification, atomic checkpoints (`git stash create`), and structured Evidence Bundle exports. |
+| **`scheduler`** | `workspace/scheduler/` | Distributed Transaction Coordinator (`DtxCoordinator`), Human-in-the-Loop (HITL) interrupt channels, and GPU governor. |
 | **`knowledge`** | `workspace/knowledge/` | Multi-modal code graph AST extraction (Tree-sitter), impact analysis, and SurrealDB schema mapping. |
-| **`memory`** | `workspace/memory/` | Dual-tier scoped working memory (`Global`, `Session`, `Task`, `Scratchpad`), causal action graphs, and ephemeral ring buffers. |
-| **`router`** | `workspace/router/` | Fast/Slow cascading intent router, multi-persona supervisor swarm, and mode enforcement. |
+| **`memory`** | `workspace/memory/` | CrossDomainContextPacker, scoped working memory (`Global`, `Session`, `Task`, `Scratchpad`), and causal action graphs. |
+| **`router`** | `workspace/router/` | Fast/Slow cascading intent router, multi-persona supervisor swarm, and operational mode enforcement. |
 | **`self-evolver`** | `crates/self-evolver/` | Skill crystallization (`SKILL.md` + `manifest.json`), compiler diff harvesting, and shadow sandbox verification. |
-| **`gateway`** | `workspace/gateway/` | Dual-protocol high-performance gateway (Actix-web HTTP/2 + Quinn QUIC HTTP/3). |
+| **`gateway`** | `workspace/gateway/` | Dual-protocol high-performance gateway (Actix-web HTTP/2 + Quinn QUIC HTTP/3) with graceful signal handling. |
 
 ---
 
-## ⚡ Quickstart & Verification
+## ⚡ Quickstart & Unified CLI
 
-### 1. Run Automated Diagnostics
+The root executable `Oxide-Tech-Local-Agent` (packaged as `/usr/bin/oxide-agent`) provides a unified CLI:
+
 ```bash
-./scripts/doctor.sh
-```
-Checks for Pop!_OS 24.04 toolchains, Rust 1.85+, Node.js, `pnpm`, `bwrap`, `probe-rs`, QEMU, and NVIDIA GPU acceleration.
+# 1. Run system diagnostics
+oxide-agent doctor
 
-### 2. Install Embedded Probe Rules (Optional for HW debug)
-```bash
-sudo ./scripts/install_udev_rules.sh
-```
+# 2. Start the Daemon
+oxide-agent daemon --profile standard --port 8080
 
-### 3. Build & Test Workspace
-```bash
-# Verify all workspace crates compile cleanly
-cargo check --workspace
+# 3. Disassemble and reverse-engineer a binary / PTX file
+oxide-agent re-forge path/to/binary --arch x86_64 --decompile
 
-# Run full test suite
-cargo test --workspace
+# 4. Run deterministic verifier and export signed evidence bundle
+oxide-agent verify --workspace . --export-evidence ./target/evidence
 
-# Test individual domain engines
-cargo test -p re-forge
-cargo test -p circuit-forge
-cargo test -p verifier
-```
+# 5. Check running daemon status
+oxide-agent status
 
-### 4. Launch Gateway with Profile
-```bash
-# Lite Mode (CPU / Ollama)
-cargo run -p gateway -- --profile lite
-
-# Pro Mode (Multi-GPU / SGLang)
-cargo run -p gateway -- --profile pro
+# 6. Launch the local Agent Studio UI
+oxide-agent studio --port 3000
 ```
 
 ---
 
-## 📄 License
+## 📦 Packaging & Offline Deployment
 
-Licensed under the **Apache License, Version 2.0 with LLVM Exceptions** ([`LICENSE`](file:///home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/LICENSE)).
+- **Debian Package Build**:
+  ```bash
+  ./scripts/package_deb.sh
+  ```
+  Generates `target/debian/oxide-tech-local-agent_0.1.0_amd64.deb` containing the release binary, systemd service, and Studio web assets.
+- **Offline Asset Cache**:
+  ```bash
+  ./scripts/bundle_offline.sh
+  ```
+  Caches ONNX embedding models, tree-sitter grammars, and documentation indices in `~/.cache/oxide-tech/` for zero-WAN / air-gapped execution.
