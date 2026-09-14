@@ -41,6 +41,7 @@ members = [
     "crates/scene-forge",
     "crates/parametric-forge",
     "crates/visual-forge",
+    "crates/re-forge",
 ]
 
 
@@ -97,7 +98,7 @@ nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
 ndarray = "0.17.2"
 petgraph = { version = "0.8.3", features = ["serde-1"] }
 lru = "0.18.4"
-safetensors = "0.4"
+safetensors = "0.8.0"
 memmap2 = "0.9"
 # --- 5-Pillar Ascension Dependencies ---
 rkyv = { version = "0.8", features = ["bytecheck", "std"] }
@@ -108,7 +109,7 @@ wat = "1.220"
 rumqttc = "0.25"
 mqtt-async-embedded = { git = "https://github.com/FaezBarghasa/mqtt-async-embedded" }
 miette = { version = "7.2", features = ["fancy"] }
-glam = { version = "0.30", features = ["std", "serde"] }
+glam = { version = "0.33.7", features = ["std", "serde"] }
 parametric-forge = { path = "crates/parametric-forge" }
 visual-forge = { path = "crates/visual-forge" }
 
