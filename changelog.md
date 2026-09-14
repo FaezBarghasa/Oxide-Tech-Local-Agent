@@ -4,6 +4,35 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v0.5.0-re-forge-os] - 2026-09-14
+
+This milestone establishes **Oxide-Tech Local Agent OS** as a trustworthy, local-first, graph-aware, sandboxed operating system for deterministic systems engineering, embedded hardware, open-source EDA, and high-performance binary/GPU reverse engineering.
+
+### Major Upgrades & Enhancements
+
+#### 1. Pure-Rust Binary Reverse Engineering (`crates/re-forge`)
+- **Zero-Copy CPU Disassembly**: Integrated `goblin` format loaders (ELF/PE/Mach-O) and `yaxpeax-arch` x86_64/ARM instruction decoders.
+- **Petgraph Control Flow Graph (CFG)**: Structured basic blocks, branch conditions, and function call boundaries into directed graphs.
+- **Neural Decompilation to Safe Rust**: Automated extraction and prompt pipeline translating low-level assembly into idiomatic, safe, and typed Rust code.
+
+#### 2. GPU Binary Reverse Engineering & cuDNN Lifting (`crates/re-forge/src/cuda`)
+- **PTX & SASS Extraction**: Built `CudaAnalyzer` wrapping `cuobjdump` and `nvdisasm` inside the secure `bwrap` sandbox.
+- **Tensor Core & Architecture Pattern Detection**: Implemented `PtxParser` identifying Ampere/Hopper Tensor Core instructions (`mma.sync`), shared memory tiling (`ld.shared`, `st.shared`), and asynchronous global copies (`cp.async`).
+- **Neural CUDA C++ Lifter**: Reconstructs high-level algorithmic logic (Implicit GEMM, Winograd Convolution, FlashAttention) with `__half2` and `__nv_bfloat16` data layouts.
+
+#### 3. Pluggable Inference Layer & Operating Profiles (`crates/config-loader` & `crates/vllm-client`)
+- **InferenceProvider Abstraction**: Added unified async trait for Ollama, SGLang, vLLM, and Candle.
+- **Operating Profiles**: Added first-class `--profile lite|standard|pro|airgapped|enterprise` configurations.
+- **Ollama Provider**: Native HTTP client enabling full agent execution on CPU/low-VRAM devices with `qwen2.5-coder:7b`.
+
+#### 4. Human-in-the-Loop (HITL) Interrupt Protocol (`workspace/scheduler/src/hitl.rs`)
+- **Interactive Risk Gating**: Built `HitlApprovalChannel` using `tokio::sync::oneshot` channels, risk level classification, and decision routing to protect against unauthorized hardware flashes or destructive operations.
+
+#### 5. Deterministic Evidence Bundles (`workspace/verifier/src/evidence.rs`)
+- **Structured Audit Bundles**: Built `EvidenceBundle` generator exporting `task.json`, `patch.diff`, `verifier_reports.json`, and `hitl_decision.json`.
+
+---
+
 ## [v0.4.0-agentic] - 2026-09-08
 
 This release delivers comprehensive architectural improvements inspired by state-of-the-art agentic orchestration engines (LangGraph, CrewAI, AutoGen, Restate, OpenWorker):

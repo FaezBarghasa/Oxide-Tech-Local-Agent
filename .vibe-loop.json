@@ -40,6 +40,14 @@
       "title": "Design and implement LLM neural lifting workflow for cuDNN kernels",
       "priority": "high",
       "status": "pending"
+    },
+    {
+      "id": "mu1bi0yceqqf",
+      "createdAt": "2026-09-14T14:07:43.188Z",
+      "updatedAt": "2026-09-14T14:07:43.188Z",
+      "title": "Set up verification workflow using nvcc and Nsight Systems",
+      "priority": "high",
+      "status": "pending"
     }
   ]
 }

@@ -8,10 +8,15 @@
         "query": "project structure crates workspace",
         "resultsCount": 1,
         "focused": true
+      },
+      {
+        "query": "Explore the Oxide RE stack project structure, especially crates/re-forge",
+        "resultsCount": 1,
+        "focused": true
       }
     ],
     "delegations": [],
     "skillLookups": []
   },
-  "updatedAt": "2026-09-14T12:52:52.467Z"
+  "updatedAt": "2026-09-14T14:08:03.038Z"
 }
