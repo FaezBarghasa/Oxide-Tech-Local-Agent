@@ -1,0 +1,28 @@
+[Unit]
+Description=Oxide-Tech Local Agent OS Gateway & Control Plane Daemon
+After=network.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/var/lib/oxide-tech
+ExecStart=/usr/bin/oxide-gateway --config /etc/oxide-tech/config.toml
+Restart=always
+RestartSec=5s
+
+# Resource and environment constraints
+LimitNOFILE=65536
+LimitNPROC=4096
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=oxide-agent
+
+# Security and Isolation settings
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/lib/oxide-tech /var/log/oxide-tech
+
+[Install]
+WantedBy=multi-user.target

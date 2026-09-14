@@ -1,0 +1,39 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create oxide-agent system user and group if they don't exist
+        if ! getent group oxide-agent >/dev/null; then
+            groupadd --system oxide-agent || true
+        fi
+
+        if ! getent passwd oxide-agent >/dev/null; then
+            useradd --system --gid oxide-agent --no-create-home \
+                --home-dir /var/lib/oxide-tech --shell /usr/sbin/nologin \
+                oxide-agent || true
+        fi
+
+        # Ensure state and log directories exist with correct permissions
+        mkdir -p /var/lib/oxide-tech /var/log/oxide-tech /etc/oxide-tech
+        chown -R root:root /etc/oxide-tech
+        chmod 755 /etc/oxide-tech
+        chmod 644 /etc/oxide-tech/config.toml 2>/dev/null || true
+
+        chown -R root:root /var/lib/oxide-tech /var/log/oxide-tech
+        chmod 755 /var/lib/oxide-tech /var/log/oxide-tech
+
+        # Reload systemd configuration if systemd is running
+        if [ -d /run/systemd/system ]; then
+            systemctl --system daemon-reload >/dev/null 2>&1 || true
+        fi
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
