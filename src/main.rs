@@ -366,12 +366,12 @@ fn run_reforge_command(
         // PTX GPU Analysis
         let ptx_content = std::fs::read_to_string(&file_path)
             .context("Failed to read PTX source file")?;
-        let analysis = re_forge::PtxParser::parse(&ptx_content);
+        let analysis = re_forge::PtxParser::analyze(&ptx_content);
 
         println!("  Target Architecture : {}", analysis.target_arch);
         println!("  Entry Kernel        : {}", analysis.kernel_name);
         println!("  Shared Memory       : {} bytes", analysis.memory_pattern.shared_memory_bytes);
-        println!("  Async Copy (cp.async): {}", if analysis.memory_pattern.has_async_copy { "Yes (Ampere/Hopper)" } else { "No" });
+        println!("  Async Copy (cp.async): {}", if analysis.memory_pattern.uses_async_copy { "Yes (Ampere/Hopper)" } else { "No" });
         println!("  Inferred Operation  : {}", analysis.inferred_operation);
         println!("  Tensor Core Patterns: {}", analysis.tensor_core_patterns.len());
         for (i, tcp) in analysis.tensor_core_patterns.iter().enumerate() {
@@ -381,11 +381,11 @@ fn run_reforge_command(
     }
 
     // CPU Binary Analysis (ELF / PE)
-    let analyzer = re_forge::BinaryAnalyzer::from_file(&file_path)
+    let analyzer = re_forge::BinaryAnalyzer::analyze_file(&file_path)
         .context("Failed to inspect binary with Goblin/Yaxpeax")?;
 
     println!("  Binary Format : {:?}", analyzer.format);
-    println!("  Architecture  : {:?}", analyzer.architecture);
+    println!("  Entry Point   : 0x{:08x}", analyzer.entry_point);
     println!("  Disassembled Functions : {}", analyzer.functions.len());
 
     let mut total_instructions = 0;
@@ -394,7 +394,8 @@ fn run_reforge_command(
         if !summary {
             println!("    Function: {} @ 0x{:08x} ({} instructions)", func.name, func.start_address, func.instructions.len());
             for inst in func.instructions.iter().take(5) {
-                println!("      0x{:08x}: {:<8} {}", inst.address, inst.mnemonic, inst.operands);
+                let call_info = if inst.is_call { " [CALL]" } else if inst.is_branch { " [BRANCH]" } else if inst.is_return { " [RET]" } else { "" };
+                println!("      0x{:08x}: {:<8} (len: {}){}", inst.address, inst.mnemonic, inst.length, call_info);
             }
             if func.instructions.len() > 5 {
                 println!("      ... [{} instructions truncated]", func.instructions.len() - 5);

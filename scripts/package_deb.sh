@@ -24,15 +24,17 @@ echo "======================================================================"
 rm -rf "${STAGE_DIR}"
 mkdir -p "${OUTPUT_DIR}"
 
-# 2. Build Rust Gateway binary in release mode
-echo "[+] Step 1: Compiling release binaries (gateway)..."
+# 2. Build Rust CLI & Gateway binary in release mode
+echo "[+] Step 1: Compiling release binaries (oxide-agent CLI)..."
 cd "${ROOT_DIR}"
-cargo build --release -p gateway
+cargo build --release -p Oxide-Tech-Local-Agent -p gateway
 
-GATEWAY_BIN="${TARGET_DIR}/release/gateway"
-if [[ ! -f "${GATEWAY_BIN}" ]]; then
-    echo "[-] Error: Binary ${GATEWAY_BIN} not found!" >&2
-    exit 1
+AGENT_BIN="${TARGET_DIR}/release/Oxide-Tech-Local-Agent"
+if [[ ! -f "${AGENT_BIN}" ]]; then
+    AGENT_BIN="${TARGET_DIR}/release/oxide_tech_local_agent"
+fi
+if [[ ! -f "${AGENT_BIN}" ]]; then
+    AGENT_BIN="${TARGET_DIR}/release/gateway"
 fi
 
 # 3. Optional: Build Frontend UI if pnpm/node is present
@@ -61,9 +63,10 @@ mkdir -p "${STAGE_DIR}/var/lib/oxide-tech"
 mkdir -p "${STAGE_DIR}/var/log/oxide-tech"
 
 # Copy binary & create symlinks
-cp "${GATEWAY_BIN}" "${STAGE_DIR}/usr/bin/oxide-gateway"
-chmod 755 "${STAGE_DIR}/usr/bin/oxide-gateway"
-ln -sf "/usr/bin/oxide-gateway" "${STAGE_DIR}/usr/bin/oxide-tech-agent"
+cp "${AGENT_BIN}" "${STAGE_DIR}/usr/bin/oxide-agent"
+chmod 755 "${STAGE_DIR}/usr/bin/oxide-agent"
+ln -sf "/usr/bin/oxide-agent" "${STAGE_DIR}/usr/bin/oxide-gateway"
+ln -sf "/usr/bin/oxide-agent" "${STAGE_DIR}/usr/bin/oxide-tech-agent"
 
 # Copy default configuration
 cp "${ROOT_DIR}/config.toml" "${STAGE_DIR}/etc/oxide-tech/config.toml"

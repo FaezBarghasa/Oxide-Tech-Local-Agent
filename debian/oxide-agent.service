@@ -8,13 +8,14 @@ Type=simple
 User=root
 Group=root
 WorkingDirectory=/var/lib/oxide-tech
-ExecStart=/usr/bin/oxide-gateway --config /etc/oxide-tech/config.toml
+ExecStart=/usr/bin/oxide-agent daemon --config /etc/oxide-tech/config.toml
 Restart=always
 RestartSec=5s
 
 # Resource and environment constraints
 LimitNOFILE=65536
 LimitNPROC=4096
+LimitMEMLOCK=infinity
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=oxide-agent
