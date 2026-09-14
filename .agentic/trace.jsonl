@@ -1,0 +1,5 @@
+{"step":"nav","input":"project structure crates workspace","output":"1 files found","toolUsed":"agentic_nav","success":true,"durationMs":0,"level":"info","timestamp":"2026-09-14T12:15:39.541Z"}
+{"step":"tool","input":"{\"maxResults\":20,\"query\":\"project structure crates workspace\"}","output":"completed","toolUsed":"agentic_nav","success":true,"durationMs":0,"level":"info","timestamp":"2026-09-14T12:15:39.546Z"}
+{"step":"tool","input":"{\"path\":\"/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent\",\"all\":true}","output":"completed","toolUsed":"fdx-ls","success":true,"durationMs":0,"level":"info","timestamp":"2026-09-14T12:16:58.400Z"}
+{"step":"tool","input":"{\"all\":true,\"path\":\"/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/crates\"}","output":"completed","toolUsed":"fdx-ls","success":true,"durationMs":0,"level":"info","timestamp":"2026-09-14T12:18:42.833Z"}
+{"step":"tool","input":"{\"all\":true,\"path\":\"/home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/workspace\"}","output":"completed","toolUsed":"fdx-ls","success":true,"durationMs":0,"level":"info","timestamp":"2026-09-14T12:19:57.280Z"}
