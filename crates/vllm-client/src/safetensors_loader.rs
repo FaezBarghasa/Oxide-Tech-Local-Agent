@@ -2,10 +2,9 @@ use anyhow::{anyhow, Context, Result};
 use memmap2::Mmap;
 use safetensors::tensor::{SafeTensorError, SafeTensors};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info};
+use tracing::info;
 
 /// Tensor metadata extracted from a `.safetensors` header.
 #[derive(Debug, Clone, Serialize, Deserialize)]

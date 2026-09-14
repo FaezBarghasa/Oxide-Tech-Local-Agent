@@ -325,6 +325,7 @@ impl LlmRouterClient {
             LlmProvider::Zhipu => env::var("ZHIPU_API_KEY")
                 .or_else(|_| env::var("ZHIPUAI_API_KEY"))
                 .ok(),
+            LlmProvider::Agnes => env::var("AGNES_API_KEY").ok(),
             LlmProvider::LlamaCpp | LlmProvider::Candle | LlmProvider::Safetensors => None,
         }
     }
