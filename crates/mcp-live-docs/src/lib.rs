@@ -12,8 +12,8 @@ use rmcp::{
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
-        CallToolRequestParams, CallToolResult, Content, ListToolsResult, PaginatedRequestParams,
-        ServerInfo,
+        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, ListToolsResult,
+        PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
     tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
@@ -94,7 +94,7 @@ impl LiveDocsServer {
             match self.scraper.fetch_latest_version(&input.crate_name).await {
                 Ok(v) => v,
                 Err(e) => {
-                    return Ok(CallToolResult::error(vec![Content::text(format!(
+                    return Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                         "Failed to get latest version: {}",
                         e
                     ))]));
@@ -103,7 +103,7 @@ impl LiveDocsServer {
         };
         let cache_lock = self.cache.lock().await;
         if let Some(api) = cache_lock.get(&(input.crate_name.clone(), version.clone())) {
-            return Ok(CallToolResult::success(vec![Content::text(
+            return Ok(CallToolResult::success(vec![ContentBlock::text(
                 api.markdown.clone(),
             )]));
         }
@@ -116,9 +116,9 @@ impl LiveDocsServer {
             Ok(api) => {
                 let mut cache_lock = self.cache.lock().await;
                 cache_lock.insert((input.crate_name.clone(), version.clone()), api.clone());
-                Ok(CallToolResult::success(vec![Content::text(api.markdown)]))
+                Ok(CallToolResult::success(vec![ContentBlock::text(api.markdown)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Docs scrape failed: {}",
                 e
             ))])),
@@ -142,9 +142,9 @@ impl LiveDocsServer {
                     "### Perception Research Result\n- **URL**: {}\n- **Engine**: {}\n- **Confidence**: {:.2}\n\n{}\n",
                     res.url, res.engine_used, res.confidence_score, res.markdown_content
                 );
-                Ok(CallToolResult::success(vec![Content::text(formatted)]))
+                Ok(CallToolResult::success(vec![ContentBlock::text(formatted)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Perception research error: {}",
                 e
             ))])),
@@ -165,11 +165,11 @@ impl LiveDocsServer {
         };
 
         match self.router.interactive_action(req).await {
-            Ok(res) => Ok(CallToolResult::success(vec![Content::text(format!(
+            Ok(res) => Ok(CallToolResult::success(vec![ContentBlock::text(format!(
                 "PinchTab Action: {}",
                 res.message
             ))])),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "PinchTab Action Error: {}",
                 e
             ))])),
@@ -190,9 +190,9 @@ impl LiveDocsServer {
                     bytes.len(),
                     input.url
                 );
-                Ok(CallToolResult::success(vec![Content::text(msg)]))
+                Ok(CallToolResult::success(vec![ContentBlock::text(msg)]))
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Visual verify failed: {}",
                 e
             ))])),
@@ -214,6 +214,7 @@ impl ServerHandler for LiveDocsServer {
             tools: self.tool_router.list_all(),
             next_cursor: None,
             meta: None,
+            ..Default::default()
         })
     }
 
@@ -221,7 +222,7 @@ impl ServerHandler for LiveDocsServer {
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(ctx).await
     }

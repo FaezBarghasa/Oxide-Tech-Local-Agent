@@ -7,8 +7,8 @@ use rmcp::{
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
-        CallToolRequestParams, CallToolResult, Content, ListToolsResult, PaginatedRequestParams,
-        ServerInfo,
+        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, ListToolsResult,
+        PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
     tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
@@ -116,7 +116,7 @@ impl QemuRedoxServer {
         Parameters(input): Parameters<BootInput>,
     ) -> Result<CallToolResult, McpError> {
         self.spawn_qemu(&input.image_path).await?;
-        Ok(CallToolResult::success(vec![Content::text(
+        Ok(CallToolResult::success(vec![ContentBlock::text(
             "QEMU booted successfully".to_string(),
         )]))
     }
@@ -142,12 +142,12 @@ impl QemuRedoxServer {
                     McpError::internal_error(format!("Failed writing newline: {}", e), None)
                 })?;
                 child.stdin = Some(stdin);
-                return Ok(CallToolResult::success(vec![Content::text(
+                return Ok(CallToolResult::success(vec![ContentBlock::text(
                     "UART message sent".to_string(),
                 )]));
             }
         }
-        Ok(CallToolResult::error(vec![Content::text(
+        Ok(CallToolResult::error(vec![ContentBlock::text(
             "QEMU not running".to_string(),
         )]))
     }
@@ -159,7 +159,7 @@ impl QemuRedoxServer {
     ) -> Result<CallToolResult, McpError> {
         let state = self.state.lock().await;
         let log = state.log.clone();
-        Ok(CallToolResult::success(vec![Content::text(log)]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(log)]))
     }
 
     #[tool(description = "Shutdown the running QEMU instance.")]
@@ -172,11 +172,11 @@ impl QemuRedoxServer {
             let _ = child.kill().await;
             let _ = child.wait().await;
             state.log.clear();
-            return Ok(CallToolResult::success(vec![Content::text(
+            return Ok(CallToolResult::success(vec![ContentBlock::text(
                 "QEMU shutdown".to_string(),
             )]));
         }
-        Ok(CallToolResult::error(vec![Content::text(
+        Ok(CallToolResult::error(vec![ContentBlock::text(
             "No QEMU instance to shut down".to_string(),
         )]))
     }
@@ -205,11 +205,11 @@ impl QemuRedoxServer {
             panic_msg.push('\n');
         }
         if panic_msg.is_empty() {
-            return Ok(CallToolResult::error(vec![Content::text(
+            return Ok(CallToolResult::error(vec![ContentBlock::text(
                 "No panic detected in QEMU output".to_string(),
             )]));
         }
-        Ok(CallToolResult::success(vec![Content::text(format!(
+        Ok(CallToolResult::success(vec![ContentBlock::text(format!(
             "Panic detected:\n{}",
             panic_msg
         ))]))
@@ -230,6 +230,7 @@ impl ServerHandler for QemuRedoxServer {
             tools: self.tool_router.list_all(),
             next_cursor: None,
             meta: None,
+            ..Default::default()
         })
     }
 
@@ -237,7 +238,7 @@ impl ServerHandler for QemuRedoxServer {
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let call_ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(call_ctx).await
     }

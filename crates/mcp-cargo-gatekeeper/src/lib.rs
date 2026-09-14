@@ -5,8 +5,8 @@ use rmcp::{
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
-        CallToolRequestParams, CallToolResult, Content, ListToolsResult, PaginatedRequestParams,
-        ServerInfo,
+        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, ListToolsResult,
+        PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
     tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
@@ -69,12 +69,12 @@ impl CargoGatekeeperServer {
                     res.exit_code, res.stdout, res.stderr
                 );
                 if res.exit_code == 0 {
-                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
                 } else {
-                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                    Ok(CallToolResult::error(vec![ContentBlock::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Sandbox execution failed: {}",
                 e
             ))])),
@@ -99,12 +99,12 @@ impl CargoGatekeeperServer {
                     res.exit_code, res.stdout, res.stderr
                 );
                 if res.exit_code == 0 {
-                    Ok(CallToolResult::success(vec![Content::text(text)]))
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
                 } else {
-                    Ok(CallToolResult::error(vec![Content::text(text)]))
+                    Ok(CallToolResult::error(vec![ContentBlock::text(text)]))
                 }
             }
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(format!(
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "Sandbox execution failed: {}",
                 e
             ))])),
@@ -128,7 +128,7 @@ impl CargoGatekeeperServer {
         let unsafe_re = match Regex::new(r"(?m)^\s*unsafe\s+(fn\s|\{)") {
             Ok(r) => r,
             Err(e) => {
-                return Ok(CallToolResult::error(vec![Content::text(format!(
+                return Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                     "Failed to compile safety audit regex: {}",
                     e
                 ))]));
@@ -171,7 +171,7 @@ impl CargoGatekeeperServer {
             }
         }
         if violations.is_empty() {
-            Ok(CallToolResult::success(vec![Content::text(
+            Ok(CallToolResult::success(vec![ContentBlock::text(
                 "No unsafe violations found".to_string(),
             )]))
         } else {
@@ -180,7 +180,7 @@ impl CargoGatekeeperServer {
                 violations.len(),
                 violations.join("\n")
             );
-            Ok(CallToolResult::error(vec![Content::text(msg)]))
+            Ok(CallToolResult::error(vec![ContentBlock::text(msg)]))
         }
     }
 }
@@ -199,6 +199,7 @@ impl ServerHandler for CargoGatekeeperServer {
             tools: self.tool_router.list_all(),
             next_cursor: None,
             meta: None,
+            ..Default::default()
         })
     }
 
@@ -206,7 +207,7 @@ impl ServerHandler for CargoGatekeeperServer {
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
+    ) -> Result<CallToolResponse, McpError> {
         let call_ctx = ToolCallContext::new(self, request, context);
         self.tool_router.call(call_ctx).await
     }
