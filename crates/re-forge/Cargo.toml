@@ -5,12 +5,12 @@ edition = "2024"
 
 [dependencies]
 # Binary Parsing & Loaders (Pure Rust)
-goblin = "0.9"
+goblin = "0.10.7"
 
 # Instruction Decoding & Disassembly (Pure Rust)
 yaxpeax-arch = "0.3"
-yaxpeax-x86 = "1.2"
-yaxpeax-arm = "0.3"
+yaxpeax-x86 = "2.2.0"
+yaxpeax-arm = "0.5.0"
 
 # Graph Modeling (Control Flow Graph)
 petgraph = { workspace = true }
