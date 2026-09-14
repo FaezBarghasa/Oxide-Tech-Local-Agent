@@ -134,10 +134,7 @@ fn run_daemon_command(
         .build()
         .context("Failed to initialize multi-threaded Tokio runtime")?
         .block_on(async move {
-            fmt()
-                .with_target(true)
-                .with_thread_ids(true)
-                .init();
+            fmt().with_target(true).with_thread_ids(true).init();
 
             info!(
                 profile = %profile,
@@ -147,8 +144,12 @@ fn run_daemon_command(
 
             let mut cfg = if config_path.exists() {
                 common::config::AppConfig::from_file(&config_path).unwrap_or_else(|e| {
-                    eprintln!("Warning: failed to load '{:?}' ({e}), using built-in defaults.", config_path);
-                    common::config::AppConfig::load_default().expect("Built-in defaults must succeed")
+                    eprintln!(
+                        "Warning: failed to load '{:?}' ({e}), using built-in defaults.",
+                        config_path
+                    );
+                    common::config::AppConfig::load_default()
+                        .expect("Built-in defaults must succeed")
                 })
             } else {
                 common::config::AppConfig::load_default().expect("Built-in defaults must succeed")
@@ -220,23 +221,21 @@ fn check_system_tool(name: &str, cmd: &str, required: bool) -> DiagnosticCheck {
 }
 
 fn run_doctor_command(json_output: bool) -> Result<()> {
-    let mut checks = Vec::new();
-
-    // 1. Core Toolchains
-    checks.push(check_system_tool("Rust Compiler", "rustc", true));
-    checks.push(check_system_tool("Cargo", "cargo", true));
-    checks.push(check_system_tool("Node.js", "node", true));
-    checks.push(check_system_tool("pnpm", "pnpm", false));
-    checks.push(check_system_tool("Bubblewrap Sandbox", "bwrap", true));
-    checks.push(check_system_tool("Git", "git", true));
-
-    // 2. Embedded & Simulation
-    checks.push(check_system_tool("probe-rs (STM32/ARM)", "probe-rs", false));
-    checks.push(check_system_tool("QEMU x86_64", "qemu-system-x86_64", false));
-    checks.push(check_system_tool("KiCad CLI (EDA)", "kicad-cli", false));
-
-    // 3. Inference & Accelerators
-    checks.push(check_system_tool("Ollama (Local LLM)", "ollama", false));
+    let mut checks = vec![
+        // 1. Core Toolchains
+        check_system_tool("Rust Compiler", "rustc", true),
+        check_system_tool("Cargo", "cargo", true),
+        check_system_tool("Node.js", "node", true),
+        check_system_tool("pnpm", "pnpm", false),
+        check_system_tool("Bubblewrap Sandbox", "bwrap", true),
+        check_system_tool("Git", "git", true),
+        // 2. Embedded & Simulation
+        check_system_tool("probe-rs (STM32/ARM)", "probe-rs", false),
+        check_system_tool("QEMU x86_64", "qemu-system-x86_64", false),
+        check_system_tool("KiCad CLI (EDA)", "kicad-cli", false),
+        // 3. Inference & Accelerators
+        check_system_tool("Ollama (Local LLM)", "ollama", false),
+    ];
 
     // 4. Hardware GPU Acceleration
     let gpu_check = match Command::new("nvidia-smi")
@@ -273,11 +272,18 @@ fn run_doctor_command(json_output: bool) -> Result<()> {
         command: "/etc/udev/rules.d/99-probe-rs.rules".to_string(),
         required: false,
         passed: udev_present,
-        version: if udev_present { "present".to_string() } else { "missing".to_string() },
+        version: if udev_present {
+            "present".to_string()
+        } else {
+            "missing".to_string()
+        },
         error: if udev_present {
             None
         } else {
-            Some("Run ./scripts/install_udev_rules.sh to allow non-root ST-Link / J-Link access".to_string())
+            Some(
+                "Run ./scripts/install_udev_rules.sh to allow non-root ST-Link / J-Link access"
+                    .to_string(),
+            )
         },
     });
 
@@ -304,9 +310,15 @@ fn run_doctor_command(json_output: bool) -> Result<()> {
         });
         println!("{}", serde_json::to_string_pretty(&out)?);
     } else {
-        println!("\x1b[1;34m====================================================================\x1b[0m");
-        println!("\x1b[1;36m      Oxide-Tech Local Agent OS — System & Hardware Diagnostics     \x1b[0m");
-        println!("\x1b[1;34m====================================================================\x1b[0m\n");
+        println!(
+            "\x1b[1;34m====================================================================\x1b[0m"
+        );
+        println!(
+            "\x1b[1;36m      Oxide-Tech Local Agent OS — System & Hardware Diagnostics     \x1b[0m"
+        );
+        println!(
+            "\x1b[1;34m====================================================================\x1b[0m\n"
+        );
 
         for c in &checks {
             if c.passed {
@@ -326,16 +338,22 @@ fn run_doctor_command(json_output: bool) -> Result<()> {
             }
         }
 
-        println!("\n\x1b[1;34m--------------------------------------------------------------------\x1b[0m");
+        println!(
+            "\n\x1b[1;34m--------------------------------------------------------------------\x1b[0m"
+        );
         println!(
             "Summary: \x1b[1;32m{} passed\x1b[0m, \x1b[1;33m{} warnings\x1b[0m, \x1b[1;31m{} failed\x1b[0m",
             passed, warnings, failed
         );
 
         if failed == 0 {
-            println!("\x1b[1;32m[✓] System is fully verified and ready to run Oxide-Tech Agent OS.\x1b[0m");
+            println!(
+                "\x1b[1;32m[✓] System is fully verified and ready to run Oxide-Tech Agent OS.\x1b[0m"
+            );
         } else {
-            println!("\x1b[1;31m[✗] Critical requirements are missing. Please install dependencies.\x1b[0m");
+            println!(
+                "\x1b[1;31m[✗] Critical requirements are missing. Please install dependencies.\x1b[0m"
+            );
         }
     }
 
@@ -354,7 +372,10 @@ fn run_reforge_command(
         anyhow::bail!("Target file '{}' does not exist", file_path.display());
     }
 
-    println!("\x1b[1;36m[+] RE-Forge Analysis: {}\x1b[0m", file_path.display());
+    println!(
+        "\x1b[1;36m[+] RE-Forge Analysis: {}\x1b[0m",
+        file_path.display()
+    );
 
     let ext = file_path
         .extension()
@@ -364,18 +385,37 @@ fn run_reforge_command(
 
     if ext == "ptx" || arch == "cuda" {
         // PTX GPU Analysis
-        let ptx_content = std::fs::read_to_string(&file_path)
-            .context("Failed to read PTX source file")?;
+        let ptx_content =
+            std::fs::read_to_string(&file_path).context("Failed to read PTX source file")?;
         let analysis = re_forge::PtxParser::analyze(&ptx_content);
 
         println!("  Target Architecture : {}", analysis.target_arch);
         println!("  Entry Kernel        : {}", analysis.kernel_name);
-        println!("  Shared Memory       : {} bytes", analysis.memory_pattern.shared_memory_bytes);
-        println!("  Async Copy (cp.async): {}", if analysis.memory_pattern.uses_async_copy { "Yes (Ampere/Hopper)" } else { "No" });
+        println!(
+            "  Shared Memory       : {} bytes",
+            analysis.memory_pattern.shared_memory_bytes
+        );
+        println!(
+            "  Async Copy (cp.async): {}",
+            if analysis.memory_pattern.uses_async_copy {
+                "Yes (Ampere/Hopper)"
+            } else {
+                "No"
+            }
+        );
         println!("  Inferred Operation  : {}", analysis.inferred_operation);
-        println!("  Tensor Core Patterns: {}", analysis.tensor_core_patterns.len());
+        println!(
+            "  Tensor Core Patterns: {}",
+            analysis.tensor_core_patterns.len()
+        );
         for (i, tcp) in analysis.tensor_core_patterns.iter().enumerate() {
-            println!("    [{}] {} (Shape: {}, Precision: {})", i + 1, tcp.instruction, tcp.shape, tcp.precision);
+            println!(
+                "    [{}] {} (Shape: {}, Precision: {})",
+                i + 1,
+                tcp.instruction,
+                tcp.shape,
+                tcp.precision
+            );
         }
         return Ok(());
     }
@@ -392,13 +432,32 @@ fn run_reforge_command(
     for func in &analyzer.functions {
         total_instructions += func.instructions.len();
         if !summary {
-            println!("    Function: {} @ 0x{:08x} ({} instructions)", func.name, func.start_address, func.instructions.len());
+            println!(
+                "    Function: {} @ 0x{:08x} ({} instructions)",
+                func.name,
+                func.start_address,
+                func.instructions.len()
+            );
             for inst in func.instructions.iter().take(5) {
-                let call_info = if inst.is_call { " [CALL]" } else if inst.is_branch { " [BRANCH]" } else if inst.is_return { " [RET]" } else { "" };
-                println!("      0x{:08x}: {:<8} (len: {}){}", inst.address, inst.mnemonic, inst.length, call_info);
+                let call_info = if inst.is_call {
+                    " [CALL]"
+                } else if inst.is_branch {
+                    " [BRANCH]"
+                } else if inst.is_return {
+                    " [RET]"
+                } else {
+                    ""
+                };
+                println!(
+                    "      0x{:08x}: {:<8} (len: {}){}",
+                    inst.address, inst.mnemonic, inst.length, call_info
+                );
             }
             if func.instructions.len() > 5 {
-                println!("      ... [{} instructions truncated]", func.instructions.len() - 5);
+                println!(
+                    "      ... [{} instructions truncated]",
+                    func.instructions.len() - 5
+                );
             }
         }
     }
@@ -408,8 +467,15 @@ fn run_reforge_command(
         println!("\n\x1b[1;33m[+] Neural Safe-Rust Decompiler Output:\x1b[0m");
         for func in &analyzer.functions {
             println!("// ── Decompiled function: {} ──", func.name);
-            println!("pub fn {}() -> Result<(), Box<dyn std::error::Error>> {{", func.name);
-            println!("    // Recovered from 0x{:08x} ({} instructions)", func.start_address, func.instructions.len());
+            println!(
+                "pub fn {}() -> Result<(), Box<dyn std::error::Error>> {{",
+                func.name
+            );
+            println!(
+                "    // Recovered from 0x{:08x} ({} instructions)",
+                func.start_address,
+                func.instructions.len()
+            );
             println!("    Ok(())");
             println!("}}\n");
         }
@@ -421,7 +487,10 @@ fn run_reforge_command(
 // ── Subcommand: Verify ────────────────────────────────────────────────────────
 
 fn run_verify_command(workspace: PathBuf, export_path: Option<PathBuf>) -> Result<()> {
-    println!("\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m", workspace.display());
+    println!(
+        "\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m",
+        workspace.display()
+    );
 
     let mut bundle = verifier::EvidenceBundle::new(
         "manual-verification-task",
@@ -456,16 +525,26 @@ fn run_verify_command(workspace: PathBuf, export_path: Option<PathBuf>) -> Resul
     bundle.hitl_decision = Some("Verified via CLI automated suite".to_string());
 
     if passed {
-        println!("  \x1b[1;32m[✓] Cargo check stage: PASSED ({:.2?})\x1b[0m", t0.elapsed());
+        println!(
+            "  \x1b[1;32m[✓] Cargo check stage: PASSED ({:.2?})\x1b[0m",
+            t0.elapsed()
+        );
     } else {
-        println!("  \x1b[1;31m[✗] Cargo check stage: FAILED ({:.2?})\x1b[0m", t0.elapsed());
+        println!(
+            "  \x1b[1;31m[✗] Cargo check stage: FAILED ({:.2?})\x1b[0m",
+            t0.elapsed()
+        );
     }
 
     if let Some(target_dir) = export_path {
         std::fs::create_dir_all(&target_dir)?;
-        bundle.export_to_directory(&target_dir)
+        bundle
+            .export_to_directory(&target_dir)
             .context("Failed to export evidence bundle")?;
-        println!("\x1b[1;32m[✓] Evidence bundle exported to {}\x1b[0m", target_dir.display());
+        println!(
+            "\x1b[1;32m[✓] Evidence bundle exported to {}\x1b[0m",
+            target_dir.display()
+        );
     }
 
     Ok(())
@@ -485,13 +564,20 @@ fn run_status_command(gateway_url: String) -> Result<()> {
             let live_url = format!("{gateway_url}/health/live");
             let status_url = format!("{gateway_url}/api/status");
 
-            println!("\x1b[1;36m[+] Probing Oxide-Tech Gateway: {}\x1b[0m", gateway_url);
+            println!(
+                "\x1b[1;36m[+] Probing Oxide-Tech Gateway: {}\x1b[0m",
+                gateway_url
+            );
 
             let t0 = std::time::Instant::now();
             match client.get(&live_url).send().await {
                 Ok(resp) => {
                     let lat = t0.elapsed().as_millis();
-                    println!("  Gateway Liveness Probe : \x1b[1;32mONLINE\x1b[0m (HTTP {} · {}ms)", resp.status(), lat);
+                    println!(
+                        "  Gateway Liveness Probe : \x1b[1;32mONLINE\x1b[0m (HTTP {} · {}ms)",
+                        resp.status(),
+                        lat
+                    );
                 }
                 Err(e) => {
                     println!("  Gateway Liveness Probe : \x1b[1;31mOFFLINE\x1b[0m ({e})");
@@ -516,9 +602,15 @@ fn run_status_command(gateway_url: String) -> Result<()> {
 // ── Subcommand: Studio ────────────────────────────────────────────────────────
 
 fn run_studio_command(port: u16) -> Result<()> {
-    println!("\x1b[1;36m====================================================================\x1b[0m");
-    println!("\x1b[1;36m       Oxide-Tech Agent Studio (React 19 + Vite + Express)          \x1b[0m");
-    println!("\x1b[1;36m====================================================================\x1b[0m\n");
+    println!(
+        "\x1b[1;36m====================================================================\x1b[0m"
+    );
+    println!(
+        "\x1b[1;36m       Oxide-Tech Agent Studio (React 19 + Vite + Express)          \x1b[0m"
+    );
+    println!(
+        "\x1b[1;36m====================================================================\x1b[0m\n"
+    );
     println!("Studio URL: \x1b[1;32mhttp://localhost:{}\x1b[0m", port);
     println!("Gateway   : \x1b[1;34mhttp://127.0.0.1:8080\x1b[0m\n");
 

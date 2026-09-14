@@ -12,7 +12,7 @@ pub mod h3_gateway;
 pub mod routes;
 pub mod websocket;
 
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{App, HttpServer, middleware::Logger, web};
 use common::config::AppConfig;
 use knowledge::KnowledgeClient;
 use memory::SurrealClient;
@@ -129,8 +129,14 @@ pub async fn run_gateway_server(cfg: AppConfig) -> std::io::Result<()> {
             .route("/api/rag/query", web::post().to(routes::rag_query))
             .route("/api/rag/index", web::post().to(routes::rag_index))
             // Cargo Toolchain routes
-            .route("/api/cargo/check", web::post().to(routes::handle_cargo_check))
-            .route("/api/cargo/clippy", web::post().to(routes::handle_cargo_clippy))
+            .route(
+                "/api/cargo/check",
+                web::post().to(routes::handle_cargo_check),
+            )
+            .route(
+                "/api/cargo/clippy",
+                web::post().to(routes::handle_cargo_clippy),
+            )
             // KiCad CAD routes
             .route(
                 "/api/kicad/load-board",
