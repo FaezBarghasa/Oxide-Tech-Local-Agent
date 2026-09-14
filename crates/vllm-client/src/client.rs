@@ -49,6 +49,8 @@ pub enum LlmProvider {
     LlamaCpp,
     /// Native Candle Rust engine with QLoRA adapter support.
     Candle,
+    /// Direct memory-mapped Safetensors model weights engine.
+    Safetensors,
 }
 
 impl LlmProvider {
@@ -71,6 +73,7 @@ impl LlmProvider {
             "agnes" | "agnes-ai" | "agnesai" => Self::Agnes,
             "llamacpp" | "llama-cpp" | "llama.cpp" | "gguf" => Self::LlamaCpp,
             "candle" | "candle-core" => Self::Candle,
+            "safetensors" | "safetensor" => Self::Safetensors,
             _ => Self::Vllm,
         }
     }
@@ -202,6 +205,24 @@ impl LlmRouterClient {
     ) -> Result<String, anyhow::Error> {
         match self.provider {
             LlmProvider::Ollama => self.complete_ollama(system_prompt, user_prompt).await,
+            LlmProvider::Safetensors => {
+                // Safetensors direct weights loader / inspector path
+                let path = std::path::PathBuf::from(&self.model);
+                if path.exists() {
+                    match crate::safetensors_loader::SafetensorModelLoader::open(&path) {
+                        Ok(loader) => match loader.summarize() {
+                            Ok(summary) => Ok(format!(
+                                "{{\"status\":\"loaded_safetensors\",\"path\":\"{:?}\",\"total_tensors\":{},\"total_parameters\":{}}}",
+                                summary.path, summary.total_tensors, summary.total_parameters
+                            )),
+                            Err(e) => Err(anyhow::anyhow!("Failed to inspect safetensors: {}", e)),
+                        },
+                        Err(e) => Err(anyhow::anyhow!("Failed to open safetensors at {:?}: {}", path, e)),
+                    }
+                } else {
+                    self.complete_openai_compatible(system_prompt, user_prompt, expect_json).await
+                }
+            }
             // Groq, Mistral, Google (Gemini shim), and vLLM all speak
             // OpenAI-compatible /chat/completions.
             _ => {
@@ -304,8 +325,7 @@ impl LlmRouterClient {
             LlmProvider::Zhipu => env::var("ZHIPU_API_KEY")
                 .or_else(|_| env::var("ZHIPUAI_API_KEY"))
                 .ok(),
-            LlmProvider::Agnes => env::var("AGNES_API_KEY").ok(),
-            LlmProvider::LlamaCpp | LlmProvider::Candle => None,
+            LlmProvider::LlamaCpp | LlmProvider::Candle | LlmProvider::Safetensors => None,
         }
     }
 

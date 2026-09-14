@@ -12,3 +12,5 @@ tokio = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 async-trait = "0.1"
+safetensors = { workspace = true }
+memmap2 = { workspace = true }

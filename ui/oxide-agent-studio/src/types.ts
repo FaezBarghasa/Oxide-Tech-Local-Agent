@@ -79,7 +79,7 @@ export interface ChatMessage {
 export interface ModelInfo {
   id: string;
   name: string;
-  fmt: 'AWQ' | 'NF4' | 'BF16' | 'GGUF';
+  fmt: 'AWQ' | 'NF4' | 'BF16' | 'GGUF' | 'Safetensors';
   params: number;
   tp: number;
   vram: number;

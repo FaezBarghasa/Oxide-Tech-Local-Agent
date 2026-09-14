@@ -97,7 +97,8 @@ nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
 ndarray = "0.17.2"
 petgraph = { version = "0.8.3", features = ["serde-1"] }
 lru = "0.18.4"
-
+safetensors = "0.4"
+memmap2 = "0.9"
 # --- 5-Pillar Ascension Dependencies ---
 rkyv = { version = "0.8", features = ["bytecheck", "std"] }
 rayon = "1.10"
