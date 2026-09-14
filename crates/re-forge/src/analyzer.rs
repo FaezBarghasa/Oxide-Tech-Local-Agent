@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context, Result};
 use goblin::Object;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use yaxpeax_arch::Decoder;
+use yaxpeax_arch::LengthedInstruction;
 use yaxpeax_x86::long_mode as x86;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -69,7 +69,7 @@ impl BinaryAnalyzer {
 
                     if offset + size <= buffer.len() {
                         let code_bytes = &buffer[offset..offset + size];
-                        let mut decoder = x86::InstDecoder::default();
+                        let decoder = x86::InstDecoder::default();
                         let mut curr_addr = addr;
                         let mut instructions = Vec::new();
 
@@ -77,7 +77,7 @@ impl BinaryAnalyzer {
                         while byte_offset < code_bytes.len() {
                             match decoder.decode_slice(&code_bytes[byte_offset..]) {
                                 Ok(inst) => {
-                                    let len = inst.len().to_bytes() as usize;
+                                    let len = inst.len().to_const() as usize;
                                     let mnemonic = format!("{}", inst);
                                     let is_branch = mnemonic.starts_with('j');
                                     let is_call = mnemonic.starts_with("call");
