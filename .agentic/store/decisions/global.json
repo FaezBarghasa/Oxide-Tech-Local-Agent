@@ -1,0 +1,13 @@
+{
+  "key": "global",
+  "data": [
+    {
+      "title": "Plan: Adapt the Oxide RE stack (specifically the re-forge crate) for CUDA and cuDNN bi",
+      "context": "Adapt the Oxide RE stack (specifically the re-forge crate) for CUDA and cuDNN binary reverse engineering (3 subtasks)",
+      "sessionId": "ses_f5feb809fffefWMsljNEjzeYpE",
+      "id": "dec-1789393295228-3dfly5",
+      "timestamp": 1789393295228
+    }
+  ],
+  "updatedAt": "2026-09-14T13:41:35.228Z"
+}

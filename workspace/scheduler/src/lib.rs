@@ -8,8 +8,10 @@ use tracing::{error, info, warn};
 
 pub mod cloud_budget;
 pub mod gpu_resource_manager;
+pub mod hitl;
 pub mod inbox;
 
+pub use hitl::{HitlApprovalChannel, HitlDecision, HitlRequest, RiskLevel};
 pub use inbox::{HitlInboxManager, InboxEntry, InboxStatus};
 
 use blog::BlogPost;

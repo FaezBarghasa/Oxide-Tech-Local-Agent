@@ -20,6 +20,29 @@ pub enum ConfigError {
     },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub enum OperatingProfile {
+    Lite,
+    Standard,
+    Pro,
+    AirGapped,
+    Enterprise,
+}
+
+impl std::str::FromStr for OperatingProfile {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "lite" => Ok(OperatingProfile::Lite),
+            "standard" => Ok(OperatingProfile::Standard),
+            "pro" => Ok(OperatingProfile::Pro),
+            "airgapped" | "air-gapped" => Ok(OperatingProfile::AirGapped),
+            "enterprise" => Ok(OperatingProfile::Enterprise),
+            _ => Err(format!("Unknown operating profile: '{}'", s)),
+        }
+    }
+}
+
 // ── Top-level config ─────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize, Clone)]
@@ -219,6 +242,42 @@ impl AppConfig {
         // No config.toml found — return hard-coded defaults so the binary
         // still boots in development without a config file present.
         Ok(Self::default_config())
+    }
+
+    pub fn for_profile(profile: OperatingProfile) -> Self {
+        let mut cfg = Self::default_config();
+        match profile {
+            OperatingProfile::Lite => {
+                cfg.thinker.provider = "ollama".to_string();
+                cfg.thinker.model = "qwen2.5-coder:7b".to_string();
+                cfg.coder.local.model = "qwen2.5-coder:7b".to_string();
+                cfg.gateway.latency_threshold_ms = 5000;
+                cfg.gateway.max_retries = 3;
+            }
+            OperatingProfile::Standard => {
+                cfg.thinker.provider = "ollama".to_string();
+                cfg.thinker.model = "qwen2.5-coder:14b".to_string();
+                cfg.coder.local.model = "qwen2.5-coder:14b".to_string();
+            }
+            OperatingProfile::Pro => {
+                cfg.thinker.provider = "vllm".to_string();
+                cfg.thinker.model = "qwen2.5-coder:32b".to_string();
+                cfg.thinker.base_url = "http://localhost:8000/v1".to_string();
+                cfg.coder.local.model = "qwen2.5-coder:32b".to_string();
+                cfg.gateway.quality_threshold = 0.90;
+            }
+            OperatingProfile::AirGapped => {
+                cfg.thinker.provider = "ollama".to_string();
+                cfg.thinker.model = "qwen2.5-coder:32b".to_string();
+                cfg.coder.online.primary.base_url = "http://127.0.0.1:11434".to_string();
+                cfg.coder.online.secondary.base_url = "http://127.0.0.1:11434".to_string();
+            }
+            OperatingProfile::Enterprise => {
+                cfg.gateway.max_retries = 10;
+                cfg.gateway.quality_threshold = 0.95;
+            }
+        }
+        cfg
     }
 
     fn default_config() -> Self {

@@ -6291,9 +6291,11 @@ dependencies = [
  "goblin",
  "knowledge",
  "petgraph 0.8.3",
+ "regex",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
+ "tokio",
  "tracing",
  "vllm-client",
  "yaxpeax-arch",
@@ -9237,8 +9239,10 @@ dependencies = [
  "common",
  "nix 0.31.3",
  "serde",
+ "serde_json",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

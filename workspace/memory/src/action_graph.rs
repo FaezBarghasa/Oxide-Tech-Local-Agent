@@ -97,13 +97,13 @@ impl ActionGraph {
     pub fn get_failure_correction_pairs(&self) -> Vec<(&ActionNode, &ActionNode)> {
         let mut pairs = Vec::new();
         for edge in self.graph.edge_references() {
-            if matches!(edge.weight(), ActionEdgeType::CorrectedBy) {
-                if let (Some(failed), Some(correction)) = (
+            if matches!(edge.weight(), ActionEdgeType::CorrectedBy)
+                && let (Some(failed), Some(correction)) = (
                     self.graph.node_weight(edge.source()),
                     self.graph.node_weight(edge.target()),
-                ) {
-                    pairs.push((failed, correction));
-                }
+                )
+            {
+                pairs.push((failed, correction));
             }
         }
         pairs

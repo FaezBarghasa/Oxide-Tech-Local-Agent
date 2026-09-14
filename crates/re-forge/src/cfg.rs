@@ -34,28 +34,28 @@ impl ControlFlowGraph {
         for inst in &func.instructions {
             current_insts.push(inst.clone());
 
-            if inst.is_branch || inst.is_return || inst.is_call {
-                if let (Some(first), Some(last)) = (current_insts.first(), current_insts.last()) {
-                    blocks.push(BasicBlock {
-                        id: block_id,
-                        start_address: first.address,
-                        end_address: last.address + last.length as u64,
-                        instructions: std::mem::take(&mut current_insts),
-                    });
-                    block_id += 1;
-                }
-            }
-        }
-
-        if !current_insts.is_empty() {
-            if let (Some(first), Some(last)) = (current_insts.first(), current_insts.last()) {
+            if (inst.is_branch || inst.is_return || inst.is_call)
+                && let (Some(first), Some(last)) = (current_insts.first(), current_insts.last())
+            {
                 blocks.push(BasicBlock {
                     id: block_id,
                     start_address: first.address,
                     end_address: last.address + last.length as u64,
-                    instructions: current_insts,
+                    instructions: std::mem::take(&mut current_insts),
                 });
+                block_id += 1;
             }
+        }
+
+        if !current_insts.is_empty()
+            && let (Some(first), Some(last)) = (current_insts.first(), current_insts.last())
+        {
+            blocks.push(BasicBlock {
+                id: block_id,
+                start_address: first.address,
+                end_address: last.address + last.length as u64,
+                instructions: current_insts,
+            });
         }
 
         let mut node_indices: HashMap<usize, NodeIndex> = HashMap::new();
@@ -71,17 +71,15 @@ impl ControlFlowGraph {
 
             if let (Some(&from_idx), Some(&to_idx)) =
                 (node_indices.get(&curr.id), node_indices.get(&next.id))
+                && let Some(last_inst) = curr.instructions.last()
+                && !last_inst.is_return
             {
-                if let Some(last_inst) = curr.instructions.last() {
-                    if !last_inst.is_return {
-                        let edge_kind = if last_inst.is_branch {
-                            EdgeKind::ConditionalBranch
-                        } else {
-                            EdgeKind::Sequential
-                        };
-                        graph.add_edge(from_idx, to_idx, edge_kind);
-                    }
-                }
+                let edge_kind = if last_inst.is_branch {
+                    EdgeKind::ConditionalBranch
+                } else {
+                    EdgeKind::Sequential
+                };
+                graph.add_edge(from_idx, to_idx, edge_kind);
             }
         }
 

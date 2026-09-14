@@ -122,11 +122,13 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
 }
 
 pub mod checkpoint;
+pub mod evidence;
 pub mod git_engine;
 pub mod qemu_firmware;
 pub mod remote_ssh;
 
 pub use checkpoint::{AtomicFileSnapshot, CheckpointManager, WorkspaceCheckpoint};
+pub use evidence::{EvidenceBundle, VerifierReport};
 pub use git_engine::{GitCommitInfo, GitEngine, GitStatusResult};
 pub use qemu_firmware::FirmwareEmulationVerifier;
 pub use remote_ssh::{RemoteSshManager, SshConfig};
@@ -146,5 +148,28 @@ mod tests {
             .unwrap();
         // Verifier completes verification check safely
         assert!(res);
+    }
+
+    #[tokio::test]
+    async fn test_evidence_bundle_export() {
+        let temp_dir = std::env::temp_dir().join(format!("evidence_test_{}", uuid::Uuid::new_v4()));
+        let mut bundle = EvidenceBundle::new("task-42", "diff --git a/src/main.rs b/src/main.rs\n+fn main() {}");
+        bundle.add_report(VerifierReport {
+            stage: "cargo_check".to_string(),
+            passed: true,
+            stdout: "Finished dev".to_string(),
+            stderr: String::new(),
+            duration_ms: 120,
+        });
+        bundle.hitl_decision = Some("Approved by operator".to_string());
+        bundle.verified_success = true;
+
+        bundle.export_to_directory(&temp_dir).unwrap();
+        assert!(temp_dir.join("task.json").exists());
+        assert!(temp_dir.join("patch.diff").exists());
+        assert!(temp_dir.join("verifier_reports.json").exists());
+        assert!(temp_dir.join("hitl_decision.json").exists());
+
+        let _ = std::fs::remove_dir_all(&temp_dir);
     }
 }

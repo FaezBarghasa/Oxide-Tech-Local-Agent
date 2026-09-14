@@ -1,0 +1,17 @@
+{
+  "key": "live",
+  "data": {
+    "stepResults": [],
+    "errorRecoveries": [],
+    "navigations": [
+      {
+        "query": "project structure crates workspace",
+        "resultsCount": 1,
+        "focused": true
+      }
+    ],
+    "delegations": [],
+    "skillLookups": []
+  },
+  "updatedAt": "2026-09-14T12:52:52.467Z"
+}
