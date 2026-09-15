@@ -1,6 +1,7 @@
 use common::contracts::{InferenceRequest, TaskType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 /// The target models configured in the Mixture of Experts (MoE) pool
 #[allow(non_camel_case_types)]
@@ -118,6 +119,21 @@ impl MoeGatingRouter {
             TaskType::PcbLayout | TaskType::SceneModeling => {
                 *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 3.0;
                 *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 2.0;
+            }
+            TaskType::BinaryAnalysis => {
+                *scores
+                    .get_mut(&ExpertModel::Llm4Decompile_22B_V2_Q6K)
+                    .unwrap() += 5.0;
+            }
+            TaskType::ToolSynthesis => {
+                *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 4.0;
+            }
+            TaskType::Research => {
+                *scores.get_mut(&ExpertModel::Gemma4_26B_A4B).unwrap() += 4.0;
+            }
+            TaskType::Verification => {
+                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 4.5;
+                *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 3.0;
             }
         }
 
@@ -295,5 +311,141 @@ impl MoeGatingRouter {
             routing_scores,
             rationale,
         }
+    }
+}
+
+/// Operational statistics tracked per expert for adaptive routing
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpertStats {
+    pub latency_ema_ms: f32,
+    pub quality_ema: f32,
+    pub consecutive_failures: u32,
+    pub is_circuit_broken: bool,
+}
+
+impl Default for ExpertStats {
+    fn default() -> Self {
+        Self {
+            latency_ema_ms: 250.0,
+            quality_ema: 1.0,
+            consecutive_failures: 0,
+            is_circuit_broken: false,
+        }
+    }
+}
+
+/// Adaptive MoE Gating Router with dynamic feedback (latency EMA, quality scoring, circuit breaking).
+#[derive(Debug, Clone, Default)]
+pub struct AdaptiveMoeGatingRouter {
+    inner_router: MoeGatingRouter,
+    stats: Arc<RwLock<HashMap<ExpertModel, ExpertStats>>>,
+    circuit_breaker_threshold: u32,
+}
+
+impl AdaptiveMoeGatingRouter {
+    pub fn new() -> Self {
+        Self {
+            inner_router: MoeGatingRouter::new(),
+            stats: Arc::new(RwLock::new(HashMap::new())),
+            circuit_breaker_threshold: 3,
+        }
+    }
+
+    /// Record runtime execution feedback from an expert
+    pub fn record_feedback(
+        &self,
+        expert: ExpertModel,
+        latency_ms: f32,
+        success: bool,
+        quality_score: f32,
+    ) {
+        if let Ok(mut stats_map) = self.stats.write() {
+            let entry = stats_map.entry(expert).or_default();
+            // Alpha for EMA = 0.2
+            entry.latency_ema_ms = 0.2 * latency_ms + 0.8 * entry.latency_ema_ms;
+            entry.quality_ema = 0.2 * quality_score + 0.8 * entry.quality_ema;
+
+            if success {
+                entry.consecutive_failures = 0;
+                entry.is_circuit_broken = false;
+            } else {
+                entry.consecutive_failures += 1;
+                if entry.consecutive_failures >= self.circuit_breaker_threshold {
+                    entry.is_circuit_broken = true;
+                }
+            }
+        }
+    }
+
+    /// Route with adaptive adjustments based on health, latency EMA, and quality
+    pub fn route(&self, req: &InferenceRequest) -> MoeRoutingDecision {
+        let mut decision = self.inner_router.route(req);
+        let stats_map = match self.stats.read() {
+            Ok(guard) => guard.clone(),
+            Err(_) => return decision,
+        };
+
+        let mut adjusted_scores: HashMap<ExpertModel, f32> = HashMap::new();
+        let all_experts = [
+            ExpertModel::Gemma4_26B_A4B,
+            ExpertModel::Qwen3_8_27B,
+            ExpertModel::Ornith1_5_35B_Q4KM,
+            ExpertModel::Qwen3_8_27B_TurboFCFusion,
+            ExpertModel::SparkX2_5_4B_Q8_0,
+            ExpertModel::Gemma4_V2_Q3KM,
+            ExpertModel::Gemma4_E2B_IT_Q8_0,
+            ExpertModel::Ornith1_5_9B_Q4KM,
+            ExpertModel::Llm4Decompile_22B_V2_Q6K,
+        ];
+
+        for expert in all_experts {
+            let base_score = decision
+                .routing_scores
+                .get(expert.model_id())
+                .copied()
+                .unwrap_or(1.0);
+
+            let stats = stats_map.get(&expert).cloned().unwrap_or_default();
+
+            if stats.is_circuit_broken {
+                adjusted_scores.insert(expert, 0.01);
+                continue;
+            }
+
+            // Latency penalty: reduce score if latency > 500ms
+            let latency_factor = (500.0 / stats.latency_ema_ms.max(50.0)).clamp(0.5, 1.5);
+            // Quality multiplier (0.5 to 1.5)
+            let quality_factor = stats.quality_ema.clamp(0.5, 1.5);
+
+            let final_score = base_score * latency_factor * quality_factor;
+            adjusted_scores.insert(expert, final_score);
+        }
+
+        let mut sorted: Vec<(ExpertModel, f32)> = adjusted_scores.into_iter().collect();
+        sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+
+        let primary_expert = sorted[0].0;
+        let secondary_expert = if sorted.len() > 1 && sorted[1].1 > 2.0 {
+            Some(sorted[1].0)
+        } else {
+            None
+        };
+
+        let mut routing_scores = HashMap::new();
+        for (expert, score) in &sorted {
+            routing_scores.insert(expert.model_id().to_string(), *score);
+        }
+
+        decision.primary_expert = primary_expert;
+        decision.secondary_expert = secondary_expert;
+        decision.routing_scores = routing_scores;
+        decision.rationale = format!(
+            "Adaptive MoE routed to {} (score: {:.2}). Fallback: {:?}",
+            primary_expert.model_id(),
+            sorted[0].1,
+            decision.secondary_expert.map(|e| e.model_id())
+        );
+
+        decision
     }
 }

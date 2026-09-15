@@ -141,6 +141,21 @@ model = "qwen2.5-coder:7b-instruct-q4_K_M"
 base_url = "http://localhost:11434"
 
 # ---------------------------------------------------------------------------
+# LOCAL MIXTURE OF EXPERTS (MoE) POOL & LLAMA-SERVER / SGLANG RUNNER
+# ---------------------------------------------------------------------------
+[moe]
+enabled = true
+llama_server_url = "http://127.0.0.1:8080"
+sglang_url = "http://127.0.0.1:30000"
+default_draft_steps = 4
+circuit_breaker_threshold = 3
+latency_ema_alpha = 0.2
+quality_ema_alpha = 0.2
+max_agent_turns = 10
+oscillation_threshold = 3
+
+
+# ---------------------------------------------------------------------------
 # RAG PIPELINE
 # ---------------------------------------------------------------------------
 [rag]

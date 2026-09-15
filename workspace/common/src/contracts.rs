@@ -17,7 +17,7 @@ impl UniffiCustomTypeConverter for Uuid {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, uniffi::Enum)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
 pub enum TaskType {
     Architecture,
     Debugging,
@@ -26,6 +26,10 @@ pub enum TaskType {
     SceneModeling,
     CodeCompletion,
     Training,
+    BinaryAnalysis,
+    ToolSynthesis,
+    Research,
+    Verification,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, uniffi::Enum)]

@@ -24,7 +24,9 @@ pub use agent_modes::{
     AgentMode, PermissionDecision, RiskClass, ToolPermissions, classify_tool_call,
 };
 pub use lora_router::{DynamicLoraRouter, LoraAdapterConfig, LoraAdapterType};
-pub use moe_router::{ExpertModel, MoeGatingRouter, MoeRoutingDecision};
+pub use moe_router::{
+    AdaptiveMoeGatingRouter, ExpertModel, ExpertStats, MoeGatingRouter, MoeRoutingDecision,
+};
 pub use observer::{LoopObservationReport, LoopRecommendation, ObserverAgent};
 pub use supervisor::{SubAgentRole, SupervisorAgent, TaskDag, TaskNode, TaskStatus};
 
