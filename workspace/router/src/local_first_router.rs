@@ -120,32 +120,51 @@ impl ConfidenceTracker {
     }
 }
 
+use crate::moe_router::{ExpertModel, MoeGatingRouter, MoeRoutingDecision};
+
 pub struct LocalFirstRouter {
-    pub local_think: SGLangClient,   // Ornith-35B on GPU 0
-    pub local_code: SGLangClient,    // Qwen-32B on GPU 1
+    pub local_think: SGLangClient,   // Ornith on GPU 0
+    pub local_code: SGLangClient,    // Qwen on GPU 1
     pub cloud_fallback: CloudClient, // Last resort only
     pub confidence_tracker: ConfidenceTracker,
+    pub moe_router: MoeGatingRouter,
 }
 
 impl LocalFirstRouter {
     pub fn new(local_think_url: String, local_code_url: String) -> Self {
         Self {
-            local_think: SGLangClient::new(local_think_url, "Ornith-1.0-35B".to_string()),
-            local_code: SGLangClient::new(local_code_url, "Qwen2.5-Coder-32B".to_string()),
+            local_think: SGLangClient::new(local_think_url, "Ornith-1.5-35B-Q4_K_M".to_string()),
+            local_code: SGLangClient::new(
+                local_code_url,
+                "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M".to_string(),
+            ),
             cloud_fallback: CloudClient::new(),
             confidence_tracker: ConfidenceTracker::new(),
+            moe_router: MoeGatingRouter::new(),
         }
     }
 
+    /// Select optimal expert among Gemma-4-26B-A4B, qwen3.8-27b, Ornith-1.5-35B, and TurboFCFusion
+    pub fn route_moe(&self, req: &InferenceRequest) -> MoeRoutingDecision {
+        self.moe_router.route(req)
+    }
+
     pub async fn route(&self, req: InferenceRequest) -> Result<serde_json::Value, anyhow::Error> {
-        // 1. Try local model based on task type
-        let local_result = match req.task_type {
-            TaskType::Architecture | TaskType::Debugging => self.local_think.generate(&req).await,
-            TaskType::Syntax | TaskType::CodeCompletion => self.local_code.generate(&req).await,
-            TaskType::Training => {
-                return self.cloud_fallback.generate(&req).await;
+        let decision = self.moe_router.route(&req);
+        info!("MoE Routing decision: {}", decision.rationale);
+
+        // 1. Dispatch to selected MoE expert
+        let local_result = match decision.primary_expert {
+            ExpertModel::Ornith1_5_35B_Q4KM => self.local_think.generate(&req).await,
+            ExpertModel::Qwen3_8_27B_TurboFCFusion | ExpertModel::Qwen3_8_27B => {
+                self.local_code.generate(&req).await
             }
-            _ => self.local_code.generate(&req).await,
+            ExpertModel::Gemma4_26B_A4B => {
+                if matches!(req.task_type, TaskType::Training) {
+                    return self.cloud_fallback.generate(&req).await;
+                }
+                self.local_code.generate(&req).await
+            }
         };
 
         // 2. Evaluate quality/confidence

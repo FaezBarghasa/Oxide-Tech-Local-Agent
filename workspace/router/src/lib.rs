@@ -14,6 +14,7 @@ pub mod feedback;
 pub mod hub_routing;
 pub mod local_first_router;
 pub mod lora_router;
+pub mod moe_router;
 pub mod observer;
 pub mod srae;
 pub mod supervisor;
@@ -23,6 +24,7 @@ pub use agent_modes::{
     AgentMode, PermissionDecision, RiskClass, ToolPermissions, classify_tool_call,
 };
 pub use lora_router::{DynamicLoraRouter, LoraAdapterConfig, LoraAdapterType};
+pub use moe_router::{ExpertModel, MoeGatingRouter, MoeRoutingDecision};
 pub use observer::{LoopObservationReport, LoopRecommendation, ObserverAgent};
 pub use supervisor::{SubAgentRole, SupervisorAgent, TaskDag, TaskNode, TaskStatus};
 
