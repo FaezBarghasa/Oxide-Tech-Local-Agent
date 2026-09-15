@@ -19,11 +19,14 @@ impl InferenceProvider for MockInferenceProvider {
         InferenceCapabilities {
             provider: ProviderKind::Ollama,
             supports_streaming: false,
-            supports_tools: false,
+            supports_tool_calls: false,
             supports_lora_hotswap: false,
             supports_json_mode: false,
-            supports_vision: false,
-            max_context_tokens: 8192,
+            supports_grammar_constrained: false,
+            supports_speculative_decoding: false,
+            supports_prefix_cache: false,
+            supports_multimodal: false,
+            context_window: 8192,
         }
     }
 
@@ -33,6 +36,9 @@ impl InferenceProvider for MockInferenceProvider {
             prompt_tokens: 120,
             completion_tokens: 45,
             finish_reason: Some("stop".to_string()),
+            tool_calls: vec![],
+            latency_ms: 1,
+            slot_id: None,
         })
     }
 
@@ -46,6 +52,9 @@ impl InferenceProvider for MockInferenceProvider {
             provider_name: "MockProvider".to_string(),
             active_model: "mock-model".to_string(),
             memory_used_mb: Some(0),
+            vram_used_mb: None,
+            available_slots: None,
+            queue_depth: None,
         })
     }
 }
