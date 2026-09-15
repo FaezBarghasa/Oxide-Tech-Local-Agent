@@ -38,11 +38,11 @@ impl CausalSimulator for CrucibleEngine {
     ) -> Option<SimulationEvaluation> {
         let start = std::time::Instant::now();
 
-        let result = self
-            .engine
-            .evaluate_candidates(snapshot, candidate_actions, |_state, action| {
-                score_candidate_action(action)
-            });
+        let result =
+            self.engine
+                .evaluate_candidates(snapshot, candidate_actions, |_state, action| {
+                    score_candidate_action(action)
+                });
 
         result.map(|(action, score)| SimulationEvaluation {
             chosen_action: action,
@@ -66,7 +66,9 @@ pub fn classify_action(action: &str) -> ActionKind {
     let lower = action.to_lowercase();
     let tokens: Vec<&str> = lower.split_whitespace().collect();
 
-    if tokens.iter().any(|&t| t == "cargo" || t == "clippy" || t == "test" || t == "check" || t == "verify")
+    if tokens
+        .iter()
+        .any(|&t| t == "cargo" || t == "clippy" || t == "test" || t == "check" || t == "verify")
         || lower.contains("cargo check")
         || lower.contains("cargo test")
         || lower.contains("cargo clippy")
@@ -74,21 +76,27 @@ pub fn classify_action(action: &str) -> ActionKind {
         return ActionKind::Verification;
     }
 
-    if tokens.iter().any(|&t| t == "rm" || t == "drop" || t == "delete" || t == "kill" || t == "destroy")
+    if tokens
+        .iter()
+        .any(|&t| t == "rm" || t == "drop" || t == "delete" || t == "kill" || t == "destroy")
         || lower.contains("rm -rf")
         || lower.contains("--force")
     {
         return ActionKind::Destructive;
     }
 
-    if tokens.iter().any(|&t| t == "read" || t == "cat" || t == "inspect" || t == "view" || t == "list" || t == "ls")
-        || lower.contains("view_file")
+    if tokens.iter().any(|&t| {
+        t == "read" || t == "cat" || t == "inspect" || t == "view" || t == "list" || t == "ls"
+    }) || lower.contains("view_file")
         || lower.contains("list_dir")
     {
         return ActionKind::Inspection;
     }
 
-    if tokens.iter().any(|&t| t == "edit" || t == "write" || t == "replace" || t == "patch" || t == "update") {
+    if tokens
+        .iter()
+        .any(|&t| t == "edit" || t == "write" || t == "replace" || t == "patch" || t == "update")
+    {
         return ActionKind::Modification;
     }
 

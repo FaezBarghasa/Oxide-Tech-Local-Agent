@@ -32,8 +32,12 @@ impl ExpertModel {
         match self {
             Self::Gemma4_26B_A4B => "MoE Fast Supervisor & Intent Triage (4B active)",
             Self::Qwen3_8_27B => "Generalist Reasoning, Tool Calling & Syntax",
-            Self::Ornith1_5_35B_Q4KM => "Deep Architecture, Embedded no_std, Hardware & Verification",
-            Self::Qwen3_8_27B_TurboFCFusion => "Heavy Code Generation, Multi-Token Prediction (MTP) & Compiler Fixes",
+            Self::Ornith1_5_35B_Q4KM => {
+                "Deep Architecture, Embedded no_std, Hardware & Verification"
+            }
+            Self::Qwen3_8_27B_TurboFCFusion => {
+                "Heavy Code Generation, Multi-Token Prediction (MTP) & Compiler Fixes"
+            }
         }
     }
 }
@@ -72,7 +76,9 @@ impl MoeGatingRouter {
                 *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 4.0;
             }
             TaskType::CodeCompletion => {
-                *scores.get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion).unwrap() += 4.5;
+                *scores
+                    .get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion)
+                    .unwrap() += 4.5;
             }
             TaskType::Syntax => {
                 *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 3.5;
@@ -87,22 +93,51 @@ impl MoeGatingRouter {
 
         // 2. Keyword & Domain Signal Gating
         let embedded_signals = [
-            "no_std", "firmware", "cortex-m", "stm32", "embassy", "probe-rs",
-            "embedded-hal", "memory barrier", "dma", "interrupt", "redox",
-            "driver", "bare-metal", "rtos", "register",
+            "no_std",
+            "firmware",
+            "cortex-m",
+            "stm32",
+            "embassy",
+            "probe-rs",
+            "embedded-hal",
+            "memory barrier",
+            "dma",
+            "interrupt",
+            "redox",
+            "driver",
+            "bare-metal",
+            "rtos",
+            "register",
         ];
         let code_synthesis_signals = [
-            "synthesize", "implement", "refactor", "algorithm", "mtp",
-            "turbo", "optimize function", "struct", "impl", "trait",
-            "compiler error", "type mismatch", "borrowck",
+            "synthesize",
+            "implement",
+            "refactor",
+            "algorithm",
+            "mtp",
+            "turbo",
+            "optimize function",
+            "struct",
+            "impl",
+            "trait",
+            "compiler error",
+            "type mismatch",
+            "borrowck",
         ];
         let fast_triage_signals = [
-            "summarize", "classify", "explain", "fast", "triage", "overview",
-            "diff", "checklist", "status", "moe",
+            "summarize",
+            "classify",
+            "explain",
+            "fast",
+            "triage",
+            "overview",
+            "diff",
+            "checklist",
+            "status",
+            "moe",
         ];
         let general_signals = [
-            "tool", "call", "json", "schema", "parse", "format", "cli",
-            "regex", "search",
+            "tool", "call", "json", "schema", "parse", "format", "cli", "regex", "search",
         ];
 
         for sig in embedded_signals {
@@ -113,7 +148,9 @@ impl MoeGatingRouter {
 
         for sig in code_synthesis_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion).unwrap() += 1.3;
+                *scores
+                    .get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion)
+                    .unwrap() += 1.3;
             }
         }
 
