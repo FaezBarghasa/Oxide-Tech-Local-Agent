@@ -31,7 +31,7 @@ pub use speculative_engine::SpeculativeDecodingEngine;
 pub use thinker::{ThinkerClient, ThinkerOutput};
 pub use multi_agent::{
     AgentBuilder, AgentMessage, AgentRecord, AgentRole, AgentThread,
-    MultiAgentCoordinator,
+    MultiAgentCoordinator, PeerDialogueResult,
 };
 pub use tool_call_parser::ToolCallParser;
 

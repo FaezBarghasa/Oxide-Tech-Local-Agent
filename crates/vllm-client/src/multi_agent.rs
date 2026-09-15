@@ -41,6 +41,17 @@ impl AgentRole {
     }
 }
 
+/// Result of a peer dialogue execution, including consensus evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PeerDialogueResult {
+    pub final_content: String,
+    pub thread_id: String,
+    pub rounds_completed: usize,
+    pub consensus_reached: bool,
+    pub consensus_score: f32,
+    pub dtx_id: Option<String>,
+}
+
 // ── Inter-Agent Message ───────────────────────────────────────────────────────
 
 /// A message sent from one agent to another within the coordinator.
@@ -456,15 +467,26 @@ impl MultiAgentCoordinator {
         agent_ids: &[&str],
         initial_prompt: &str,
     ) -> Result<(String, String)> {
+        self.run_chain_with_dtx(agent_ids, initial_prompt, None).await
+    }
+
+    /// **Sequential chain with DTX**: Executes run_chain with an explicit or generated DTX trace token.
+    pub async fn run_chain_with_dtx(
+        &self,
+        agent_ids: &[&str],
+        initial_prompt: &str,
+        dtx_id: Option<String>,
+    ) -> Result<(String, String)> {
         if agent_ids.is_empty() {
             bail!("run_chain requires at least one agent");
         }
 
+        let dtx = dtx_id.unwrap_or_else(|| format!("dtx-chain-{}", uuid::Uuid::new_v4()));
         let thread_id = self.new_thread().await;
         let mut current_content = initial_prompt.to_string();
 
         for (i, &agent_id) in agent_ids.iter().enumerate() {
-            info!(step = i + 1, agent = %agent_id, "Chain step");
+            info!(step = i + 1, agent = %agent_id, dtx = %dtx, "Chain step");
 
             // The "from" is the previous agent or "user" for step 0
             let from = if i == 0 {
@@ -480,7 +502,7 @@ impl MultiAgentCoordinator {
                 sender_role: AgentRole::Peer,
                 content: current_content.clone(),
                 thread_id: Some(thread_id.clone()),
-                dtx_id: None,
+                dtx_id: Some(dtx.clone()),
                 payload: None,
             };
 
@@ -505,12 +527,33 @@ impl MultiAgentCoordinator {
         verifier_id: &str,
         task: &str,
     ) -> Result<(String, String)> {
+        self.run_supervisor_worker_verifier_with_dtx(
+            supervisor_id,
+            worker_ids,
+            verifier_id,
+            task,
+            None,
+        )
+        .await
+    }
+
+    /// **Supervisor–Worker–Verifier with DTX**:
+    /// Full SWV pipeline propagating a single distributed audit DTX token across all steps.
+    pub async fn run_supervisor_worker_verifier_with_dtx(
+        &self,
+        supervisor_id: &str,
+        worker_ids: &[&str],
+        verifier_id: &str,
+        task: &str,
+        dtx_id: Option<String>,
+    ) -> Result<(String, String)> {
         if worker_ids.is_empty() {
             bail!("At least one worker agent is required");
         }
 
+        let dtx = dtx_id.unwrap_or_else(|| format!("dtx-swv-{}", uuid::Uuid::new_v4()));
         let thread_id = self.new_thread().await;
-        info!(thread = %thread_id, "Starting Supervisor-Worker-Verifier flow");
+        info!(thread = %thread_id, dtx = %dtx, "Starting Supervisor-Worker-Verifier flow");
 
         // ── Step 1: Supervisor decomposes the task ───────────────────────────
         let sup_msg = AgentMessage {
@@ -522,7 +565,7 @@ impl MultiAgentCoordinator {
                 "You are the supervisor. Break down the following task into a clear work plan for your team of workers.\n\nTask: {task}"
             ),
             thread_id: Some(thread_id.clone()),
-            dtx_id: None,
+            dtx_id: Some(dtx.clone()),
             payload: None,
         };
 
@@ -537,6 +580,7 @@ impl MultiAgentCoordinator {
             let work_plan_clone = work_plan.clone();
             let worker_id = worker_id.to_string();
             let thread_id_clone = thread_id.clone();
+            let dtx_clone = dtx.clone();
 
             worker_handles.push(tokio::spawn(async move {
                 let worker_msg = AgentMessage {
@@ -548,7 +592,7 @@ impl MultiAgentCoordinator {
                         "Work plan from supervisor:\n{work_plan_clone}\n\nExecute your portion and provide a complete, well-reasoned output."
                     ),
                     thread_id: Some(thread_id_clone.clone()),
-                    dtx_id: None,
+                    dtx_id: Some(dtx_clone.clone()),
                     payload: None,
                 };
 
@@ -591,7 +635,7 @@ impl MultiAgentCoordinator {
                     sender_role: AgentRole::Worker,
                     content: reply_content,
                     thread_id: Some(thread_id_clone.clone()),
-                    dtx_id: None,
+                    dtx_id: Some(dtx_clone),
                     payload: None,
                 };
 
@@ -642,7 +686,7 @@ impl MultiAgentCoordinator {
                  and synthesise a single high-quality final answer."
             ),
             thread_id: Some(thread_id.clone()),
-            dtx_id: None,
+            dtx_id: Some(dtx),
             payload: None,
         };
 
@@ -671,15 +715,37 @@ impl MultiAgentCoordinator {
         opening: &str,
         max_rounds: usize,
     ) -> Result<(String, String)> {
+        let res = self
+            .run_peer_dialogue_with_eval(agent_a, agent_b, opening, max_rounds, None)
+            .await?;
+        Ok((res.final_content, res.thread_id))
+    }
+
+    /// **Peer dialogue with structured consensus evaluation**:
+    /// Two agents exchange messages while evaluating mutual alignment score,
+    /// tracking completed rounds, and detecting early consensus keywords.
+    pub async fn run_peer_dialogue_with_eval(
+        &self,
+        agent_a: &str,
+        agent_b: &str,
+        opening: &str,
+        max_rounds: usize,
+        dtx_id: Option<String>,
+    ) -> Result<PeerDialogueResult> {
         let thread_id = self.new_thread().await;
-        info!(thread = %thread_id, rounds = max_rounds, "Starting peer dialogue");
+        let dtx = dtx_id.unwrap_or_else(|| format!("dtx-peer-{}", uuid::Uuid::new_v4()));
+        info!(thread = %thread_id, rounds = max_rounds, dtx = %dtx, "Starting peer dialogue");
 
         let mut current_content = opening.to_string();
         let mut current_from = "user".to_string();
         let mut current_to = agent_a.to_string();
+        let mut consensus_reached = false;
+        let mut consensus_score: f32 = 0.0;
+        let mut rounds_completed = 0;
 
         for round in 0..max_rounds {
-            debug!(thread = %thread_id, round = round + 1, from = %current_from, to = %current_to);
+            rounds_completed = round + 1;
+            debug!(thread = %thread_id, round = rounds_completed, from = %current_from, to = %current_to);
 
             let msg = AgentMessage {
                 id: uuid::Uuid::new_v4().to_string(),
@@ -688,7 +754,7 @@ impl MultiAgentCoordinator {
                 sender_role: AgentRole::Peer,
                 content: current_content.clone(),
                 thread_id: Some(thread_id.clone()),
-                dtx_id: None,
+                dtx_id: Some(dtx.clone()),
                 payload: None,
             };
 
@@ -703,26 +769,65 @@ impl MultiAgentCoordinator {
                 agent_a.to_string()
             };
 
-            // Check for consensus keywords
-            if current_content.to_lowercase().contains("[agree]")
-                || current_content.to_lowercase().contains("[final answer]")
-                || current_content.to_lowercase().contains("[consensus]")
+            // Evaluate consensus & alignment indicators
+            let lower = current_content.to_lowercase();
+            let mut score = 0.0f32;
+            if lower.contains("[agree]")
+                || lower.contains("[final answer]")
+                || lower.contains("[consensus]")
             {
-                info!(thread = %thread_id, round = round + 1, "Consensus reached early");
+                score += 0.5;
+                consensus_reached = true;
+            }
+            if lower.contains("agree") || lower.contains("concur") {
+                score += 0.2;
+            }
+            if lower.contains("verified") || lower.contains("approved") {
+                score += 0.2;
+            }
+            if lower.contains("solution") || lower.contains("correct") {
+                score += 0.1;
+            }
+            consensus_score = score.clamp(0.0, 1.0);
+
+            if consensus_reached {
+                info!(thread = %thread_id, round = rounds_completed, "Consensus reached early");
                 break;
             }
         }
 
-        Ok((current_content, thread_id))
+        Ok(PeerDialogueResult {
+            final_content: current_content,
+            thread_id,
+            rounds_completed,
+            consensus_reached,
+            consensus_score,
+            dtx_id: Some(dtx),
+        })
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Introspection
+    // Introspection & Audit
     // ─────────────────────────────────────────────────────────────────────────
 
     /// Retrieve the full message history for a thread.
     pub async fn thread_history(&self, thread_id: &str) -> Option<AgentThread> {
         self.threads.read().await.get(thread_id).cloned()
+    }
+
+    /// Retrieve all messages associated with a specific DTX transaction ID across a thread.
+    pub async fn thread_dtx_messages(&self, thread_id: &str, dtx_id: &str) -> Vec<AgentMessage> {
+        let threads = self.threads.read().await;
+        threads
+            .get(thread_id)
+            .map(|t| {
+                t.messages
+                    .iter()
+                    .filter(|m| m.dtx_id.as_deref() == Some(dtx_id))
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// List all registered agents (id → role).
@@ -965,5 +1070,53 @@ mod tests {
 
         assert_eq!(record.id, "researcher");
         assert_eq!(record.max_turns, 6);
+    }
+
+    #[tokio::test]
+    async fn test_peer_dialogue_with_eval() {
+        let coord = MultiAgentCoordinator::new();
+        coord.register(make_echo_agent("debater_a", AgentRole::Peer)).await;
+        coord.register(make_echo_agent("debater_b", AgentRole::Peer)).await;
+
+        let eval = coord
+            .run_peer_dialogue_with_eval(
+                "debater_a",
+                "debater_b",
+                "Proposal: [agree] We should use embedded-hal for the driver.",
+                3,
+                Some("dtx-test-123".to_string()),
+            )
+            .await
+            .unwrap();
+
+        assert!(eval.consensus_reached);
+        assert!(eval.consensus_score >= 0.5);
+        assert_eq!(eval.dtx_id.as_deref(), Some("dtx-test-123"));
+
+        let dtx_msgs = coord.thread_dtx_messages(&eval.thread_id, "dtx-test-123").await;
+        assert!(!dtx_msgs.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_swv_with_dtx() {
+        let coord = MultiAgentCoordinator::new();
+        coord.register(make_echo_agent("supervisor", AgentRole::Supervisor)).await;
+        coord.register(make_echo_agent("coder", AgentRole::Worker)).await;
+        coord.register(make_echo_agent("verifier", AgentRole::Verifier)).await;
+
+        let (final_ans, thread_id) = coord
+            .run_supervisor_worker_verifier_with_dtx(
+                "supervisor",
+                &["coder"],
+                "verifier",
+                "Write an embassy-stm32 SPI driver",
+                Some("dtx-swv-456".to_string()),
+            )
+            .await
+            .unwrap();
+
+        assert!(final_ans.contains("[verifier]"));
+        let dtx_msgs = coord.thread_dtx_messages(&thread_id, "dtx-swv-456").await;
+        assert!(dtx_msgs.len() >= 3);
     }
 }
