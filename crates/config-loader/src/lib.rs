@@ -54,6 +54,8 @@ pub struct AppConfig {
     pub mcp: McpConfig,
     #[serde(default)]
     pub perception: PerceptionConfig,
+    #[serde(default)]
+    pub moe: MoeConfig,
 }
 
 // ── External Research & Perception Layer ─────────────────────────────────────
@@ -205,6 +207,38 @@ pub struct McpConfig {
     pub tcp_port: u16,
 }
 
+// ── Mixture of Experts & Multi-Agent Local Registry ───────────────────────────
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct MoeConfig {
+    pub enabled: bool,
+    pub default_supervisor: String,
+    pub default_verifier: String,
+    pub circuit_breaker_threshold: u32,
+    pub models: std::collections::HashMap<String, String>,
+}
+
+impl Default for MoeConfig {
+    fn default() -> Self {
+        let mut models = std::collections::HashMap::new();
+        models.insert("supervisor".to_string(), "Gemma-4-26B-A4B".to_string());
+        models.insert(
+            "coder".to_string(),
+            "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M".to_string(),
+        );
+        models.insert("verifier".to_string(), "Ornith-1.5-35B-Q4_K_M".to_string());
+        models.insert("edge".to_string(), "Spark-X2.5-4B-Q8_0".to_string());
+        models.insert("decompiler".to_string(), "llm4decompile-22b-v2.Q6_K".to_string());
+        Self {
+            enabled: true,
+            default_supervisor: "Gemma-4-26B-A4B".to_string(),
+            default_verifier: "Ornith-1.5-35B-Q4_K_M".to_string(),
+            circuit_breaker_threshold: 3,
+            models,
+        }
+    }
+}
+
 // ── Loader ────────────────────────────────────────────────────────────────────
 
 impl AppConfig {
@@ -329,6 +363,7 @@ impl AppConfig {
                 tcp_port: 9090,
             },
             perception: PerceptionConfig::default(),
+            moe: MoeConfig::default(),
         }
     }
 }

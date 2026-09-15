@@ -321,3 +321,24 @@ description = "اخبار و آموزش‌های راست به فارسی"
 posts_per_page = 10
 auto_publish = true
 base_path = "/blog"
+
+# ---------------------------------------------------------------------------
+# MIXTURE OF EXPERTS (MoE) & LOCAL MULTI-AGENT TOPOLOGY REGISTRY
+# ---------------------------------------------------------------------------
+[moe]
+enabled = true
+default_supervisor = "Gemma-4-26B-A4B"
+default_verifier = "Ornith-1.5-35B-Q4_K_M"
+circuit_breaker_threshold = 3
+
+[moe.models]
+supervisor = "Gemma-4-26B-A4B"
+coder = "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M"
+verifier = "Ornith-1.5-35B-Q4_K_M"
+edge = "Spark-X2.5-4B-Q8_0"
+decompiler = "llm4decompile-22b-v2.Q6_K"
+generalist = "qwen3.8-27b"
+micro_verifier = "gemma-4-e2b-it.Q8_0"
+embedded = "Ornith-1.5-9B-Q4_K_M"
+low_vram = "gemma4-v2-Q3_K_M"
+
