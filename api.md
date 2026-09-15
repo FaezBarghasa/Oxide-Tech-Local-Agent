@@ -56,11 +56,19 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
   - Request: `{ "focal_node": "fn:src/driver.rs:init_dma", "max_hops": 2 }`
   - Response: `{ "pruned_subgraph_json": "...", "token_savings_pct": 82.4 }`
 
-### E. Human-in-the-Loop (HITL) Inbox
+### E. Streamable HTTP & Real-Time Reasoning (SSE)
+- **`POST /api/agent/stream`**:
+  - Request: `{ "prompt": "Verify SPI clock prescaler on STM32F4", "mode": "code" }`
+  - Response (Server-Sent Events `text/event-stream`):
+    - `data: {"type": "thought_chunk", "content": "1. Checking APB1 clock..."}`
+    - `data: {"type": "content_chunk", "content": "The APB1 clock is running at 42MHz..."}`
+    - `data: {"type": "done"}`
+
+### F. Human-in-the-Loop (HITL) Inbox & Adversarial Safety
 - **`GET /api/inbox/pending`**:
-  - Response: `[{ "id": "req-987", "task_id": "task-123", "agent_id": "coder-1", "action": "cargo build --release", "risk_class": "Exec", "status": "Pending" }]`
+  - Response: `[{ "id": "req-987", "task_id": "task-123", "agent_id": "coder-1", "action": "probe-rs flash --chip STM32F407VG", "risk_class": "Flash", "status": "Pending", "reviewer_score": 0.92, "reviewer_verdict": "PASS" }]`
 - **`POST /api/inbox/resolve`**:
-  - Request: `{ "id": "req-987", "approved": true, "feedback": "Proceed with optimized flags" }`
+  - Request: `{ "id": "req-987", "approved": true, "feedback": "Target verified on testbench" }`
   - Response: `{ "status": "resolved", "id": "req-987" }`
 
 ---

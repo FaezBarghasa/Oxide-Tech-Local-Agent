@@ -81,8 +81,16 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`knowledge`** | `workspace/knowledge/` | Multi-modal code graph AST extraction (Tree-sitter), impact analysis, and SurrealDB schema mapping. |
 | **`memory`** | `workspace/memory/` | CrossDomainContextPacker, scoped working memory (`Global`, `Session`, `Task`, `Scratchpad`), and causal action graphs. |
 | **`router`** | `workspace/router/` | Fast/Slow cascading intent router, multi-persona supervisor swarm, and operational mode enforcement. |
-| **`self-evolver`** | `crates/self-evolver/` | Skill crystallization (`SKILL.md` + `manifest.json`), compiler diff harvesting, and shadow sandbox verification. |
-| **`gateway`** | `workspace/gateway/` | Dual-protocol high-performance gateway (Actix-web HTTP/2 + Quinn QUIC HTTP/3) with graceful signal handling. |
+| **`formal-verify`** | `crates/formal-verify/` | Bounded model checking, Kani formal proof generator, and LLM-as-Judge `TraceValidator` for soundness and hallucination checks. |
+| **`benchmark-harness`** | `crates/benchmark-harness/` | Multi-suite agent evaluation harness (ARC-AGI, GAIA, SWE-bench) with `StepInvariantMetrics` (tool accuracy, schema validity, recovery, cost). |
+| **`rag-pipeline`** | `crates/rag-pipeline/` | Hybrid retrieval with Tree-sitter AST symbol extraction and AST-to-netlist GraphRAG coupling. |
+| **`mcp-server`** | `crates/mcp-server/` | Modern MCP 2026 server with parameterized workspace boundaries and direct `vllm-client` autonomous reasoning tools. |
+| **`mcp-probe-rs`** | `crates/mcp-probe-rs/` | Hardware-in-the-loop debugging, RTT streaming, and safe STM32/ARM flashing. |
+| **`mcp-qemu-redox`** | `crates/mcp-qemu-redox/` | Headless microVM Redox OS emulation and kernel driver validation. |
+| **`mcp-cargo-gatekeeper`** | `crates/mcp-cargo-gatekeeper/` | Sandboxed compiler checks, dependency security scanning, and policy gates. |
+| **`ebpf-sentinel`** | `crates/ebpf-sentinel/` | Kernel-level LSM probe sandbox enforcing strict filesystem and hardware peripheral confinement. |
+| **`self-evolver`** | `crates/self-evolver/` | GRPO reward harvesting (`VerificationDelta`), skill crystallization (`SKILL.md`), and automated tool synthesis. |
+| **`gateway`** | `workspace/gateway/` | Dual-protocol high-performance gateway (Actix-web HTTP/2 + Quinn QUIC HTTP/3 + SSE streamable endpoints). |
 
 ---
 

@@ -4,6 +4,38 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v0.7.0-modernization-2026] - 2026-09-15
+
+This milestone delivers the **2026 Agentic Architecture Modernization**, implementing Model Context Protocol (MCP) 2026 conformance, hybrid test-time compute routing, step-level invariant telemetry, GRPO reward tracking, AST-netlist coupling in GraphRAG, and deep-thinking trace visualization in Oxide Agent Studio.
+
+### Major Upgrades & Enhancements
+
+#### 1. MCP 2026 Protocol Modernization & Direct Inference (`crates/mcp-server`)
+- **Parameterized Scope**: Deprecated client `file://` Roots in favor of explicit `target_workspace_id` parameters and strict sandbox boundary enforcement.
+- **Decoupled Reverse Sampling**: Embedded `Arc<dyn vllm_client::InferenceProvider>` directly into the MCP server for autonomous semantic tools (`analyze_compiler_failure`, `autonomous_code_review`).
+- **Streamable HTTP & SSE**: Implemented `/api/agent/stream` Server-Sent Events (SSE) streaming endpoint supporting Multi Round-Trip Requests (MRTR).
+
+#### 2. Hybrid Reasoning & Trace Soundness Verification (`workspace/router` & `crates/formal-verify`)
+- **Dynamic `<think>` Compute Allocation**: Implemented `TaskComplexity` classifier (`Routine`, `Moderate`, `DeepReasoning`, `FormalProof`) allocating up to 16,384 thinking tokens.
+- **Trace Soundness Judgement**: Created `TraceValidator` in `formal-verify` for extracting thought traces, evaluating backtracking/reflection, and detecting soundness violations (e.g. `.unwrap()` in embedded paths or `std` in `no_std`).
+
+#### 3. Step-Level Invariant Metrics & Telemetry (`crates/benchmark-harness` & `crates/optio`)
+- **Granular Evaluation Score**: Added `StepInvariantMetrics` tracking tool selection precision, JSON schema validity, recovery efficiency, and cost per success.
+- **Real-Time Cost Tracking**: Added `estimated_cost_dollars()` to `BudgetTracker` for live GPU token cost accounting.
+
+#### 4. GRPO Reinforcement Learning & Self-Evolution (`crates/self-evolver`)
+- **Verification Reward Trajectories**: Enriched `VerificationDelta` with `reward_score`, `verification_engine`, and `domain` to harvest verified repair trajectories for group relative policy optimization.
+
+#### 5. Temporal GraphRAG & Continuous Memory Consolidation (`crates/rag-pipeline` & `workspace/memory`)
+- **AST-to-Netlist Coupling**: Added `query_ast_netlist_coupling` linking firmware symbols (e.g. GPIO/SPI registers) directly to schematic pins.
+- **Background Memory Consolidation**: Implemented `consolidate_and_compress` in `WorkingMemoryManager` for episodic buffer compaction.
+
+#### 6. Oxide Agent Studio UI/UX (`ui/oxide-agent-studio`)
+- **Collapsible Reasoning Drawer**: Interactive `<think>` thought trace rendering with live token counters and complexity indicators.
+- **Secondary Reviewer HITL Safety Badge**: LLM-as-judge confidence metrics and safety verdict indicators in `HitlApprovalModal.tsx`.
+
+---
+
 ## [v0.6.0-oxide-protocol] - 2026-09-14
 
 This milestone delivers **The Oxide Protocol**, establishing cross-domain atomic transactions, unified multi-domain context packing, and an automated multi-physics co-simulation loop spanning Firmware (IDE), Electronics (EDA), and Mechanics (3D CAD).
