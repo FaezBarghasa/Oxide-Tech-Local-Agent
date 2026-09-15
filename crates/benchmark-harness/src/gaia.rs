@@ -47,6 +47,7 @@ impl BenchmarkSuite for GaiaHarness {
             accuracy,
             avg_latency_ms: 350.0,
             avg_tokens_used: 4800,
+            invariants: crate::harness::StepInvariantMetrics::default(),
         })
     }
 }

@@ -52,6 +52,7 @@ impl BenchmarkSuite for ArcAgiHarness {
             accuracy,
             avg_latency_ms: 120.0,
             avg_tokens_used: 1540,
+            invariants: crate::harness::StepInvariantMetrics::default(),
         })
     }
 }

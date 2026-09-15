@@ -24,6 +24,9 @@ export interface HitlActionRequest {
   parameters: Record<string, string | number | boolean>;
   verificationPassed: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reviewerScore?: number; // 0.0 - 1.0 (LLM-as-judge / dual reviewer)
+  reviewerVerdict?: string;
+  confidenceScore?: number; // 0.0 - 1.0
 }
 
 interface HitlApprovalModalProps {
@@ -186,22 +189,48 @@ export const HitlApprovalModal: React.FC<HitlApprovalModalProps> = ({
               </div>
             </div>
 
-            {/* Verification Pre-check Status */}
-            <div className={`p-3 rounded-xl border flex items-center gap-3 text-xs ${
-              currentReq.verificationPassed 
-                ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' 
-                : 'bg-rose-950/20 border-rose-500/30 text-rose-300'
-            }`}>
-              {currentReq.verificationPassed ? (
-                <>
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                  <span>Deterministic pre-flight checks and verifier passes (cargo check / DRC clean).</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
-                  <span>Warning: Pre-flight verifier reported potential compilation or DRC warnings.</span>
-                </>
+            {/* Verification Pre-check Status & Secondary Reviewer Score */}
+            <div className="space-y-2">
+              <div className={`p-3 rounded-xl border flex items-center gap-3 text-xs ${
+                currentReq.verificationPassed 
+                  ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' 
+                  : 'bg-rose-950/20 border-rose-500/30 text-rose-300'
+              }`}>
+                {currentReq.verificationPassed ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>Deterministic pre-flight checks and verifier passes (cargo check / DRC clean).</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                    <span>Warning: Pre-flight verifier reported potential compilation or DRC warnings.</span>
+                  </>
+                )}
+              </div>
+
+              {(currentReq.reviewerScore !== undefined || currentReq.confidenceScore !== undefined) && (
+                <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-cyan-400" />
+                    <span className="text-slate-400">LLM-as-Judge Confidence:</span>
+                    <span className="text-cyan-300 font-bold">
+                      {Math.round((currentReq.confidenceScore ?? 0.95) * 100)}%
+                    </span>
+                  </div>
+                  {currentReq.reviewerScore !== undefined && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400">Safety Verdict:</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        currentReq.reviewerScore >= 0.8
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      }`}>
+                        {currentReq.reviewerVerdict || (currentReq.reviewerScore >= 0.8 ? 'PASS' : 'FLAGGED')} ({(currentReq.reviewerScore * 10).toFixed(1)}/10)
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
