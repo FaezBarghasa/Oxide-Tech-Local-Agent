@@ -141,6 +141,12 @@ impl BudgetTracker {
     pub fn get_task_tool_calls(&self) -> usize {
         self.task_tool_calls.load(Ordering::SeqCst)
     }
+
+    /// Calculate estimated dollar cost based on model blend pricing ($0.20 per 1M local tokens amortized)
+    pub fn estimated_cost_dollars(&self) -> f64 {
+        let total_tokens = self.get_session_tokens_used() as f64;
+        (total_tokens / 1_000_000.0) * 0.20
+    }
 }
 
 #[cfg(test)]

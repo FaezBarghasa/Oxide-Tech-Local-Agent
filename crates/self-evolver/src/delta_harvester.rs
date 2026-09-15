@@ -12,6 +12,9 @@ pub struct VerificationDelta {
     pub verified_fixed_code: String,
     pub compiler_error_log: String,
     pub diff_summary: Vec<String>,
+    pub reward_score: f64,
+    pub verification_engine: String,
+    pub domain: String,
 }
 
 pub struct DeltaHarvester {
@@ -29,6 +32,28 @@ impl DeltaHarvester {
         failed_code: &str,
         fixed_code: &str,
         compiler_log: &str,
+    ) -> Result<()> {
+        self.record_verified_solution_with_reward(
+            prompt,
+            failed_code,
+            fixed_code,
+            compiler_log,
+            1.0,
+            "cargo_check",
+            "embedded_rust",
+        )
+        .await
+    }
+
+    pub async fn record_verified_solution_with_reward(
+        &self,
+        prompt: &str,
+        failed_code: &str,
+        fixed_code: &str,
+        compiler_log: &str,
+        reward_score: f64,
+        verification_engine: &str,
+        domain: &str,
     ) -> Result<()> {
         let diff = TextDiff::from_lines(failed_code, fixed_code);
         let mut diff_summary = Vec::new();
@@ -50,6 +75,9 @@ impl DeltaHarvester {
             verified_fixed_code: fixed_code.to_string(),
             compiler_error_log: compiler_log.to_string(),
             diff_summary,
+            reward_score,
+            verification_engine: verification_engine.to_string(),
+            domain: domain.to_string(),
         };
 
         let query = "CREATE grpo_training_pool CONTENT $data;";

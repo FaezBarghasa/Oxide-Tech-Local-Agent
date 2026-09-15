@@ -41,4 +41,20 @@ impl GraphRagEngine {
         let results: Vec<Value> = response.take(0)?;
         Ok(results)
     }
+
+    /// Query hardware-software cross-domain coupling (AST symbol mapped to Netlist component pin / peripheral)
+    pub async fn query_ast_netlist_coupling(
+        &self,
+        symbol_name: &str,
+    ) -> Result<Vec<Value>, anyhow::Error> {
+        let mut response = self
+            .client
+            .db
+            .query("SELECT ->controls_peripheral->Peripheral ->maps_to_pin->Pin FROM SymbolRecord WHERE name = $name")
+            .bind(("name", symbol_name))
+            .await?;
+
+        let results: Vec<Value> = response.take(0)?;
+        Ok(results)
+    }
 }

@@ -115,4 +115,39 @@ impl WorkingMemoryManager {
         let cleared: Vec<WorkingMemoryEntry> = res.take(0)?;
         Ok(cleared.len())
     }
+
+    /// Consolidates transient working memory entries into a compressed persistent knowledge snapshot
+    pub async fn consolidate_and_compress(
+        &self,
+        session_id: Uuid,
+        agent_id: &str,
+    ) -> Result<String, surrealdb::Error> {
+        let entries = self.get_all_for_agent(session_id, agent_id).await?;
+        if entries.is_empty() {
+            return Ok("No working memory entries to consolidate.".to_string());
+        }
+
+        let mut summary_lines = Vec::new();
+        for (k, v) in &entries {
+            summary_lines.push(format!("- {}: {}", k, v.lines().next().unwrap_or("")));
+        }
+
+        let consolidated_summary = format!(
+            "Consolidated Working Memory for Agent '{}' in Session '{}':\n{}",
+            agent_id,
+            session_id,
+            summary_lines.join("\n")
+        );
+
+        // Store consolidated summary into persistent session summary table
+        let _ = self
+            .db
+            .query("CREATE session_memory_summary SET session_id = $session_id, agent_id = $agent_id, summary = $summary, created_at = time::now()")
+            .bind(("session_id", session_id.to_string()))
+            .bind(("agent_id", agent_id.to_string()))
+            .bind(("summary", consolidated_summary.clone()))
+            .await?;
+
+        Ok(consolidated_summary)
+    }
 }
