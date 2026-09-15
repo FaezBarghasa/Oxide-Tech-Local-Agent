@@ -69,6 +69,9 @@ export interface ChatMessage {
   toolName?: string;
   toolStatus?: 'success' | 'running' | 'failed';
   toolDuration?: string;
+  reasoningTrace?: string;
+  thinkTokens?: number;
+  complexity?: 'Routine' | 'Moderate' | 'DeepReasoning' | 'FormalProof';
   meta?: {
     model?: string;
     tokens?: number;

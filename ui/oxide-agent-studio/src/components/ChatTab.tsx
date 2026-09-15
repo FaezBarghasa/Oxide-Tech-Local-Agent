@@ -16,6 +16,9 @@ import {
   Sparkles,
   Terminal,
   Cpu,
+  Brain,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 export const ChatTab: React.FC = () => {
@@ -23,6 +26,7 @@ export const ChatTab: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedThoughts, setExpandedThoughts] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -270,6 +274,41 @@ export const ChatTab: React.FC = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Collapsible Reasoning Thought Trace */}
+                  {msg.reasoningTrace && (
+                    <div className="mb-3 rounded-lg bg-orange-500/5 border border-orange-500/20 overflow-hidden">
+                      <button
+                        onClick={() => toggleThoughts(msg.id)}
+                        className="w-full px-3 py-2 flex items-center justify-between text-left text-[11px] font-medium text-orange-400/90 hover:bg-orange-500/10 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <BrainCircuit className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+                          <span>Thought Trace</span>
+                          {msg.thinkTokens && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono">
+                              {msg.thinkTokens} tokens
+                            </span>
+                          )}
+                          {msg.complexity && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                              {msg.complexity}
+                            </span>
+                          )}
+                        </div>
+                        {expandedThoughts.has(msg.id) ? (
+                          <ChevronDown className="w-3.5 h-3.5 text-orange-400" />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5 text-orange-400" />
+                        )}
+                      </button>
+                      {expandedThoughts.has(msg.id) && (
+                        <div className="px-3 py-2.5 bg-black/40 border-t border-orange-500/15 text-[11px] font-mono text-slate-300 leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+                          {msg.reasoningTrace}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Body Content */}
                   <div className="whitespace-pre-wrap space-y-2 text-[13px] text-gray-200">
