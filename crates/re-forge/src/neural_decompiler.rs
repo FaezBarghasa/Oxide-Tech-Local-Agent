@@ -71,6 +71,13 @@ impl NeuralDecompiler {
             temperature: Some(0.1),
             max_tokens: Some(4096),
             json_mode: None,
+            history: vec![],
+            tools: None,
+            tool_choice: None,
+            images: None,
+            grammar: None,
+            stop: None,
+            slot_id: None,
         };
 
         let resp = self

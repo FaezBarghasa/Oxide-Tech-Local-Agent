@@ -4,6 +4,7 @@ pub mod client;
 pub mod llama_server;
 pub mod lora_hot_swap;
 pub mod lora_router;
+pub mod multi_agent;
 pub mod ollama;
 pub mod provider;
 pub mod safetensors_loader;
@@ -28,6 +29,10 @@ pub use safetensors_loader::{SafetensorModelLoader, SafetensorModelSummary, Tens
 pub use sglang_provider::SglangProvider;
 pub use speculative_engine::SpeculativeDecodingEngine;
 pub use thinker::{ThinkerClient, ThinkerOutput};
+pub use multi_agent::{
+    AgentBuilder, AgentMessage, AgentRecord, AgentRole, AgentThread,
+    MultiAgentCoordinator,
+};
 pub use tool_call_parser::ToolCallParser;
 
 use anyhow::Result;
