@@ -34,8 +34,16 @@ except Exception as e:
 " 2>/dev/null || true
 fi
 
-# 2. Check Ollama & Local MoE Models
-echo "[+] Step 2: Checking local MoE model availability..."
+# 2. Check Ollama & Local MoE Models & Llama-Server
+echo "[+] Step 2: Checking local MoE model availability and runtime binaries..."
+if command -v llama-server &>/dev/null; then
+    echo "    [✓] llama-server binary detected on PATH."
+elif [[ -f "${CACHE_DIR}/bin/llama-server" ]]; then
+    echo "    [✓] Cached llama-server binary detected at ${CACHE_DIR}/bin/llama-server."
+else
+    echo "    [-] llama-server binary slot ready at ${CACHE_DIR}/bin/llama-server."
+fi
+
 if command -v ollama &>/dev/null; then
     echo "    Local Ollama models:"
     ollama list || true

@@ -58,6 +58,8 @@ pub struct AgentMessage {
     pub content: String,
     /// Optional thread ID for grouping messages in a conversation chain.
     pub thread_id: Option<String>,
+    /// Optional Oxide DTX transaction ID for distributed audit tracing.
+    pub dtx_id: Option<String>,
     /// Optional structured payload (tool output, JSON result, etc.)
     pub payload: Option<serde_json::Value>,
 }
@@ -76,12 +78,18 @@ impl AgentMessage {
             sender_role: role,
             content: content.into(),
             thread_id: None,
+            dtx_id: None,
             payload: None,
         }
     }
 
     pub fn with_thread(mut self, thread_id: impl Into<String>) -> Self {
         self.thread_id = Some(thread_id.into());
+        self
+    }
+
+    pub fn with_dtx(mut self, dtx_id: impl Into<String>) -> Self {
+        self.dtx_id = Some(dtx_id.into());
         self
     }
 
@@ -196,6 +204,7 @@ impl AgentThread {
 pub struct MultiAgentCoordinator {
     agents: Arc<RwLock<HashMap<String, AgentRecord>>>,
     threads: Arc<RwLock<HashMap<String, AgentThread>>>,
+    event_bus: tokio::sync::broadcast::Sender<AgentMessage>,
 }
 
 impl Default for MultiAgentCoordinator {
@@ -206,10 +215,17 @@ impl Default for MultiAgentCoordinator {
 
 impl MultiAgentCoordinator {
     pub fn new() -> Self {
+        let (event_bus, _) = tokio::sync::broadcast::channel(256);
         Self {
             agents: Arc::new(RwLock::new(HashMap::new())),
             threads: Arc::new(RwLock::new(HashMap::new())),
+            event_bus,
         }
+    }
+
+    /// Subscribe to the live EventBus stream of all inter-agent messages.
+    pub fn subscribe_events(&self) -> tokio::sync::broadcast::Receiver<AgentMessage> {
+        self.event_bus.subscribe()
     }
 
     /// Register an agent with the coordinator.
@@ -307,6 +323,7 @@ impl MultiAgentCoordinator {
             sender_role: agent.role.clone(),
             content: reply_content.clone(),
             thread_id: Some(thread_id.to_string()),
+            dtx_id: message.dtx_id.clone(),
             payload: None,
         };
 
@@ -317,6 +334,10 @@ impl MultiAgentCoordinator {
                 thread.push(reply.clone());
             }
         }
+
+        // Notify live event bus
+        let _ = self.event_bus.send(message);
+        let _ = self.event_bus.send(reply.clone());
 
         Ok(reply)
     }
@@ -394,6 +415,7 @@ impl MultiAgentCoordinator {
                     sender_role: agent.role.clone(),
                     content: reply_content,
                     thread_id: Some(thread_id.clone()),
+                    dtx_id: msg_clone.dtx_id.clone(),
                     payload: None,
                 };
 
@@ -458,6 +480,7 @@ impl MultiAgentCoordinator {
                 sender_role: AgentRole::Peer,
                 content: current_content.clone(),
                 thread_id: Some(thread_id.clone()),
+                dtx_id: None,
                 payload: None,
             };
 
@@ -499,6 +522,7 @@ impl MultiAgentCoordinator {
                 "You are the supervisor. Break down the following task into a clear work plan for your team of workers.\n\nTask: {task}"
             ),
             thread_id: Some(thread_id.clone()),
+            dtx_id: None,
             payload: None,
         };
 
@@ -524,6 +548,7 @@ impl MultiAgentCoordinator {
                         "Work plan from supervisor:\n{work_plan_clone}\n\nExecute your portion and provide a complete, well-reasoned output."
                     ),
                     thread_id: Some(thread_id_clone.clone()),
+                    dtx_id: None,
                     payload: None,
                 };
 
@@ -566,6 +591,7 @@ impl MultiAgentCoordinator {
                     sender_role: AgentRole::Worker,
                     content: reply_content,
                     thread_id: Some(thread_id_clone.clone()),
+                    dtx_id: None,
                     payload: None,
                 };
 
@@ -616,6 +642,7 @@ impl MultiAgentCoordinator {
                  and synthesise a single high-quality final answer."
             ),
             thread_id: Some(thread_id.clone()),
+            dtx_id: None,
             payload: None,
         };
 
@@ -661,6 +688,7 @@ impl MultiAgentCoordinator {
                 sender_role: AgentRole::Peer,
                 content: current_content.clone(),
                 thread_id: Some(thread_id.clone()),
+                dtx_id: None,
                 payload: None,
             };
 

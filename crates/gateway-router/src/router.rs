@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tracing::{info, warn};
 
 use config_loader::AppConfig;
-use vllm_client::{LlmRouterClient, ThinkerClient};
+use vllm_client::{LlmRouterClient, MultiAgentCoordinator, ThinkerClient};
 
 use crate::probe::is_reachable;
 use crate::quality::QualityGate;
@@ -54,6 +54,7 @@ pub struct GatewayRouter {
     pub online_primary: LlmRouterClient,
     pub online_secondary: LlmRouterClient,
     pub local: LlmRouterClient,
+    pub multi_agent: Arc<MultiAgentCoordinator>,
     quality_gate: QualityGate,
     latency_threshold_ms: u64,
     /// Tracks which backend is currently "preferred".  Atomic so it can be
@@ -69,12 +70,14 @@ impl GatewayRouter {
         let online_secondary = LlmRouterClient::from_config(&cfg.coder.online.secondary);
         let local = LlmRouterClient::from_config(&cfg.coder.local);
         let quality_gate = QualityGate::new(cfg.gateway.quality_threshold);
+        let multi_agent = Arc::new(MultiAgentCoordinator::new());
 
         Self {
             thinker,
             online_primary,
             online_secondary,
             local,
+            multi_agent,
             quality_gate,
             latency_threshold_ms: cfg.gateway.latency_threshold_ms,
             current_backend: Arc::new(AtomicU8::new(STATE_ONLINE_PRIMARY)),

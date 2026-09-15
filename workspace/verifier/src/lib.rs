@@ -133,6 +133,31 @@ pub use git_engine::{GitCommitInfo, GitEngine, GitStatusResult};
 pub use qemu_firmware::FirmwareEmulationVerifier;
 pub use remote_ssh::{RemoteSshManager, SshConfig};
 
+/// Bridge connecting verification execution with the Multi-Agent Coordinator verifier role.
+#[derive(Debug, Clone, Default)]
+pub struct MultiAgentVerifierBridge;
+
+impl MultiAgentVerifierBridge {
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Run sandboxed cargo-check or test command and format standard feedback for the Verifier agent.
+    pub async fn verify_in_sandbox(&self, cmd: &[&str], work_dir: &str) -> Result<VerifierReport> {
+        let start = std::time::Instant::now();
+        let res = execute_in_sandbox(cmd, work_dir).await?;
+        let duration_ms = start.elapsed().as_millis() as u64;
+
+        Ok(VerifierReport {
+            stage: cmd.join(" "),
+            passed: res.exit_code == 0,
+            stdout: res.stdout,
+            stderr: res.stderr,
+            duration_ms,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

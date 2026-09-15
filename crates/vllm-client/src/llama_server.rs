@@ -11,8 +11,10 @@ use crate::provider::{
     BackendHealth, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
     ProviderKind, StreamChunk, StreamResult, ToolCall,
 };
+use crate::tool_call_parser::ToolCallParser;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use futures_util::StreamExt;
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::{json, Value};
