@@ -64,18 +64,45 @@ MODELS=(
 )
 
 for model in "${MODELS[@]}"; do
-    if [[ -f "${HOME}/models/${model}" ]] || [[ -f "${MODEL_DIR}/${model}" ]]; then
-        echo "    [✓] MoE Local Weights Present: ${model}"
+    TARGET_PATH=""
+    if [[ -f "${HOME}/models/${model}" ]]; then
+        TARGET_PATH="${HOME}/models/${model}"
+    elif [[ -f "${MODEL_DIR}/${model}" ]]; then
+        TARGET_PATH="${MODEL_DIR}/${model}"
+    fi
+
+    if [[ -n "${TARGET_PATH}" ]]; then
+        SIZE_MB=$(du -m "${TARGET_PATH}" | cut -f1)
+        echo "    [✓] MoE Local Weights Present: ${model} (${SIZE_MB} MB)"
+        # Verify SHA256 if checksum file exists alongside model
+        if [[ -f "${TARGET_PATH}.sha256" ]]; then
+            echo -n "        Verifying SHA256: "
+            if (cd "$(dirname "${TARGET_PATH}")" && sha256sum -c "${TARGET_PATH}.sha256" &>/dev/null); then
+                echo "[OK]"
+            else
+                echo "[FAILED/MISMATCH]"
+            fi
+        fi
     else
         echo "    [-] MoE Model Slot Ready for Offline Placement: ${model}"
     fi
 done
 
-# 3. Cache Workspace Verification Metadata
+# 3. Cache Workspace Verification Metadata & Checksums
 echo "[+] Step 3: Generating offline evidence and verification manifest..."
 cd "${ROOT_DIR}"
 mkdir -p "${CACHE_DIR}/manifest"
-echo "{\"version\": \"0.5.0\", \"bundled_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"target\": \"x86_64-unknown-linux-gnu\"}" > "${CACHE_DIR}/manifest/bundle.json"
+
+# Generate checksum catalog for all present local models
+CHECKSUM_FILE="${CACHE_DIR}/manifest/models.sha256"
+: > "${CHECKSUM_FILE}"
+for model in "${MODELS[@]}"; do
+    if [[ -f "${MODEL_DIR}/${model}" ]]; then
+        sha256sum "${MODEL_DIR}/${model}" >> "${CHECKSUM_FILE}" 2>/dev/null || true
+    fi
+done
+
+echo "{\"version\": \"0.5.0\", \"bundled_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\", \"target\": \"x86_64-unknown-linux-gnu\", \"models_tracked\": ${#MODELS[@]}}" > "${CACHE_DIR}/manifest/bundle.json"
 
 echo "======================================================================"
 echo "[✓] Offline Asset Bundle preparation complete."
