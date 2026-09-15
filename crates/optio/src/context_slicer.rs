@@ -105,7 +105,16 @@ impl GraphContextSlicer {
                 }
             }
 
+            let mut diff = 0.0;
+            for i in 0..n {
+                diff += (p[i] - p_next[i]).abs();
+            }
+
             p.copy_from_slice(&p_next);
+
+            if diff < 1e-7 {
+                break;
+            }
         }
 
         let mut scored_nodes: Vec<(NodeIndex, f64)> = self

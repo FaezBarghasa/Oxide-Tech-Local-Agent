@@ -40,6 +40,7 @@ pub struct RagPipeline {
     qdrant: Qdrant,
     embedder: Mutex<TextEmbedding>,
     pub surreal: SurrealClient,
+    pub http_client: reqwest::Client,
 }
 
 impl RagPipeline {
@@ -55,10 +56,15 @@ impl RagPipeline {
 
         let surreal = SurrealClient::new().await?;
 
+        let http_client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(10))
+            .build()?;
+
         let pipeline = Self {
             qdrant,
             embedder: Mutex::new(embedder),
             surreal,
+            http_client,
         };
 
         pipeline.setup_collection().await?;
