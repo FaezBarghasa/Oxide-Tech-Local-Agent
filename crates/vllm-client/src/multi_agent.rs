@@ -780,10 +780,9 @@ impl AgentBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::agentic_loop::SimpleToolExecutor;
     use crate::provider::{
         BackendHealth, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
-        ProviderKind, StreamResult, ToolCall,
+        ProviderKind, StreamResult,
     };
 
     /// Deterministic mock provider that echoes its system prompt + the user message.

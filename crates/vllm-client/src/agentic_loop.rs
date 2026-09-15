@@ -1,4 +1,4 @@
-use crate::provider::{ChatMessage, ChatRequest, ConversationTurn, InferenceProvider, ToolCall, ToolDefinition};
+use crate::provider::{ChatMessage, ChatRequest, ConversationTurn, InferenceProvider, ToolDefinition};
 use crate::tool_call_parser::ToolCallParser;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
