@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 /// Step-level invariant execution metrics for granular agent evaluation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StepInvariantMetrics {
     /// Ratio of valid tool selections without schema hallucination (0.0 to 1.0)
     pub tool_selection_accuracy: f64,
