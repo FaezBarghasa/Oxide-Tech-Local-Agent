@@ -34,13 +34,23 @@ impl TraceValidator {
 
         let token_estimate = raw_thinking.split_whitespace().count() * 4 / 3;
         let p_lower = raw_thinking.to_lowercase();
-        let has_reflection = p_lower.contains("wait,") || p_lower.contains("alternatively") || p_lower.contains("let me recheck");
-        let has_backtracking = p_lower.contains("error:") || p_lower.contains("this won't work") || p_lower.contains("revising");
+        let has_reflection = p_lower.contains("wait,")
+            || p_lower.contains("alternatively")
+            || p_lower.contains("let me recheck");
+        let has_backtracking = p_lower.contains("error:")
+            || p_lower.contains("this won't work")
+            || p_lower.contains("revising");
 
         let step_sequence = raw_thinking
             .lines()
             .map(|l| l.trim())
-            .filter(|l| l.starts_with("1.") || l.starts_with("2.") || l.starts_with("3.") || l.starts_with("Step ") || l.starts_with("- "))
+            .filter(|l| {
+                l.starts_with("1.")
+                    || l.starts_with("2.")
+                    || l.starts_with("3.")
+                    || l.starts_with("Step ")
+                    || l.starts_with("- ")
+            })
             .map(|s| s.to_string())
             .collect();
 
@@ -67,13 +77,18 @@ impl TraceValidator {
 
         let p_lower = trace.raw_thinking.to_lowercase();
 
-        if domain.contains("no_std") && (p_lower.contains("std::") || p_lower.contains("alloc::vec")) {
-            hallucinations.push("Trace references standard library std / dynamic heap in no_std target".to_string());
+        if domain.contains("no_std")
+            && (p_lower.contains("std::") || p_lower.contains("alloc::vec"))
+        {
+            hallucinations.push(
+                "Trace references standard library std / dynamic heap in no_std target".to_string(),
+            );
             score -= 0.3;
         }
 
         if domain.contains("embedded") && p_lower.contains(".unwrap()") {
-            hallucinations.push("Trace suggests unwrap() in safety-critical embedded path".to_string());
+            hallucinations
+                .push("Trace suggests unwrap() in safety-critical embedded path".to_string());
             score -= 0.25;
         }
 
@@ -84,7 +99,10 @@ impl TraceValidator {
             is_sound,
             logical_coherence_score: score,
             identified_hallucinations: hallucinations,
-            rationale: format!("Trace evaluation completed. Coherence score: {:.2}, reflection: {}", score, trace.has_reflection),
+            rationale: format!(
+                "Trace evaluation completed. Coherence score: {:.2}, reflection: {}",
+                score, trace.has_reflection
+            ),
         }
     }
 }
@@ -96,7 +114,8 @@ mod tests {
     #[test]
     fn test_extract_and_validate_trace() {
         let text = "<think>\n1. Examine SPI register\n2. Wait, the prescaler must be checked against APB1 clock\n3. Revising baud rate\n</think>\nfn init() {}";
-        let trace = TraceValidator::extract_reasoning_trace(text).expect("Trace should be extracted");
+        let trace =
+            TraceValidator::extract_reasoning_trace(text).expect("Trace should be extracted");
         assert!(trace.has_reflection);
         assert!(trace.has_backtracking);
         assert_eq!(trace.step_sequence.len(), 3);

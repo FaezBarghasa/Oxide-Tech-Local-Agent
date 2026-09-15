@@ -17,6 +17,7 @@ import {
   Terminal,
   Cpu,
   Brain,
+  BrainCircuit,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -26,8 +27,20 @@ export const ChatTab: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [expandedThoughts, setExpandedThoughts] = useState<Record<string, boolean>>({});
+  const [expandedThoughts, setExpandedThoughts] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const toggleThoughts = (id: string) => {
+    setExpandedThoughts((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {

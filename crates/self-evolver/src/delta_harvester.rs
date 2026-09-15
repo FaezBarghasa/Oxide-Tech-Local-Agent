@@ -45,6 +45,7 @@ impl DeltaHarvester {
         .await
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn record_verified_solution_with_reward(
         &self,
         prompt: &str,

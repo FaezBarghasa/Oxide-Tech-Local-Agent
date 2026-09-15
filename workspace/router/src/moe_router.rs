@@ -111,7 +111,10 @@ impl TaskComplexity {
             Self::FormalProof
         } else if matches!(
             task_type,
-            TaskType::Architecture | TaskType::Debugging | TaskType::BinaryAnalysis | TaskType::Verification
+            TaskType::Architecture
+                | TaskType::Debugging
+                | TaskType::BinaryAnalysis
+                | TaskType::Verification
         ) || p_lower.contains("architecture")
             || p_lower.contains("dma")
             || p_lower.contains("memory barrier")
@@ -121,7 +124,10 @@ impl TaskComplexity {
             Self::DeepReasoning
         } else if matches!(
             task_type,
-            TaskType::CodeCompletion | TaskType::PcbLayout | TaskType::SceneModeling | TaskType::ToolSynthesis
+            TaskType::CodeCompletion
+                | TaskType::PcbLayout
+                | TaskType::SceneModeling
+                | TaskType::ToolSynthesis
         ) || p_lower.contains("implement")
             || p_lower.contains("refactor")
             || p_lower.contains("synthesize")
