@@ -76,33 +76,51 @@ impl GraphContextSlicer {
             None => return Vec::new(),
         };
 
+        let target_pos = target_idx.index();
+
+        // Precompute flat adjacency list once: 0 heap allocations in iteration loop
+        let out_edges: Vec<Vec<usize>> = (0..n)
+            .map(|u| {
+                self.graph
+                    .neighbors_directed(NodeIndex::new(u), petgraph::Direction::Outgoing)
+                    .map(|v| v.index())
+                    .collect()
+            })
+            .collect();
+
         // Initialize probability vector with mass 1.0 at target
         let mut p = vec![0.0; n];
-        p[target_idx.index()] = 1.0;
+        p[target_pos] = 1.0;
 
         let mut p_next = vec![0.0; n];
 
         for _ in 0..max_iters {
             for (v, item) in p_next.iter_mut().enumerate() {
-                *item = (1.0 - damping) * if v == target_idx.index() { 1.0 } else { 0.0 };
+                *item = if v == target_pos { 1.0 - damping } else { 0.0 };
             }
 
-            for u_idx in self.graph.node_indices() {
-                let u = u_idx.index();
-                let neighbors: Vec<NodeIndex> = self
-                    .graph
-                    .neighbors_directed(u_idx, petgraph::Direction::Outgoing)
-                    .collect();
+            let mut dangling_mass = 0.0;
+
+            for (u, neighbors) in out_edges.iter().enumerate() {
+                let pu = p[u];
+                // Sparse forward-push skipping for unreached / negligible nodes
+                if pu < 1e-12 {
+                    continue;
+                }
 
                 if !neighbors.is_empty() {
-                    let share = damping * p[u] / (neighbors.len() as f64);
-                    for v_idx in neighbors {
-                        p_next[v_idx.index()] += share;
+                    let share = damping * pu / (neighbors.len() as f64);
+                    for &v in neighbors {
+                        p_next[v] += share;
                     }
                 } else {
-                    // Dangling node redistribution to target
-                    p_next[target_idx.index()] += damping * p[u];
+                    dangling_mass += pu;
                 }
+            }
+
+            // Batched dangling node mass redistribution to target
+            if dangling_mass > 0.0 {
+                p_next[target_pos] += damping * dangling_mass;
             }
 
             let mut diff = 0.0;

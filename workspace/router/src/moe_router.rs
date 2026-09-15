@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// The target models configured in the Mixture of Experts (MoE) pool
+#[allow(non_camel_case_types)]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ExpertModel {
     /// Google Gemma 4 26B MoE with 4B active parameters (fast triage, supervisor, summarization)

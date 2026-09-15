@@ -62,23 +62,12 @@ impl MctsDecisionEngine {
             return None;
         }
 
-        // Archive once into shared zero-copy byte buffer
-        let archived_bytes = match base_state.archive_to_bytes() {
-            Ok(b) => b,
-            Err(_) => return None,
-        };
-
-        // Parallel branch scoring using Rayon
+        // Parallel branch scoring using Rayon with zero-copy immutable snapshot borrowing
         let evaluated: Vec<(String, f64)> = candidate_actions
             .par_iter()
             .map(|action| {
-                // Instantly reconstruct isolated shadow state from archived slice
-                if let Ok(shadow_state) = WorkspaceSnapshot::from_archived_bytes(&archived_bytes) {
-                    let score = evaluation_fn(&shadow_state, action);
-                    (action.clone(), score)
-                } else {
-                    (action.clone(), f64::MIN)
-                }
+                let score = evaluation_fn(base_state, action);
+                (action.clone(), score)
             })
             .collect();
 

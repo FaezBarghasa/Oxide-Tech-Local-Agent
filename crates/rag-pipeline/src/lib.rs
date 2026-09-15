@@ -21,6 +21,8 @@ use surrealdb_service::client::SurrealClient;
 use tree_sitter_service::ast::ParsedSymbol;
 
 pub mod fable_router;
+pub mod graph_rag;
+pub mod live_docs;
 pub mod okf;
 pub mod updater;
 
@@ -34,6 +36,8 @@ pub struct RagChunk {
     pub version: Option<String>,
     pub file_path: Option<String>,
     pub symbol_name: Option<String>,
+    #[serde(default)]
+    pub score: f32,
 }
 
 pub struct RagPipeline {
@@ -353,6 +357,7 @@ impl RagPipeline {
                 version,
                 file_path,
                 symbol_name,
+                score: point.score,
             });
         }
 
