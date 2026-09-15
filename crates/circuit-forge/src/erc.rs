@@ -166,48 +166,47 @@ pub fn run_erc(graph: &CircuitGraph) -> ErcReport {
     }
 
     // Rule 4: Power Rail Decoupling Check
-    // For every power rail (VCC/VDD), verify that a capacitor bridges it to GND
-    if !gnd_nets.is_empty() {
-        for power_net in &power_nets {
-            let mut has_decoupling_cap = false;
+    // For every power rail (VCC/VDD), verify that a capacitor bridges it to GND.
+    // Single-pass linear O(V + E) evaluation across all capacitors in the bipartite graph.
+    if !gnd_nets.is_empty() && !power_nets.is_empty() {
+        let mut decoupled_power_nets: HashSet<String> = HashSet::new();
 
-            // Find all components connected to this power net
-            for node_idx in graph.node_indices() {
-                if let NetlistNode::Net { name, .. } = &graph[node_idx] {
-                    if name != power_net {
-                        continue;
-                    }
+        for node_idx in graph.node_indices() {
+            if let NetlistNode::Component {
+                ref_des, lib_id, ..
+            } = &graph[node_idx]
+            {
+                let is_cap = ref_des.starts_with('C')
+                    || lib_id.contains(":C")
+                    || lib_id.contains("Capacitor");
+
+                if is_cap {
+                    let mut comp_power_nets = Vec::new();
+                    let mut connects_to_gnd = false;
+
                     for edge in graph.edges(node_idx) {
-                        let comp_node = edge.target();
-                        if let NetlistNode::Component {
-                            ref_des, lib_id, ..
-                        } = &graph[comp_node]
-                        {
-                            let is_cap = ref_des.starts_with('C')
-                                || lib_id.contains(":C")
-                                || lib_id.contains("Capacitor");
-
-                            if is_cap {
-                                // Check if this capacitor also connects to a GND net
-                                for comp_edge in graph.edges(comp_node) {
-                                    let target_net_node = comp_edge.target();
-                                    let is_gnd_target = graph[target_net_node]
-                                        .net_name()
-                                        .map(|net_name| gnd_nets.contains(net_name))
-                                        .unwrap_or(false);
-
-                                    if is_gnd_target {
-                                        has_decoupling_cap = true;
-                                        break;
-                                    }
-                                }
+                        let target_net = edge.target();
+                        if let Some(net_name) = graph[target_net].net_name() {
+                            if gnd_nets.contains(net_name) {
+                                connects_to_gnd = true;
                             }
+                            if power_nets.contains(net_name) {
+                                comp_power_nets.push(net_name.to_string());
+                            }
+                        }
+                    }
+
+                    if connects_to_gnd {
+                        for pnet in comp_power_nets {
+                            decoupled_power_nets.insert(pnet);
                         }
                     }
                 }
             }
+        }
 
-            if !has_decoupling_cap {
+        for power_net in &power_nets {
+            if !decoupled_power_nets.contains(power_net) {
                 report.add_warning(
                     "ERC_MISSING_DECOUPLING",
                     Some(power_net),

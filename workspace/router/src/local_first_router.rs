@@ -155,10 +155,14 @@ impl LocalFirstRouter {
 
         // 1. Dispatch to selected MoE expert
         let local_result = match decision.primary_expert {
-            ExpertModel::Ornith1_5_35B_Q4KM => self.local_think.generate(&req).await,
-            ExpertModel::Qwen3_8_27B_TurboFCFusion | ExpertModel::Qwen3_8_27B => {
-                self.local_code.generate(&req).await
-            }
+            ExpertModel::Ornith1_5_35B_Q4KM
+            | ExpertModel::Ornith1_5_9B_Q4KM
+            | ExpertModel::Llm4Decompile_22B_V2_Q6K => self.local_think.generate(&req).await,
+            ExpertModel::Qwen3_8_27B_TurboFCFusion
+            | ExpertModel::Qwen3_8_27B
+            | ExpertModel::SparkX2_5_4B_Q8_0
+            | ExpertModel::Gemma4_V2_Q3KM
+            | ExpertModel::Gemma4_E2B_IT_Q8_0 => self.local_code.generate(&req).await,
             ExpertModel::Gemma4_26B_A4B => {
                 if matches!(req.task_type, TaskType::Training) {
                     return self.cloud_fallback.generate(&req).await;

@@ -34,7 +34,7 @@ except Exception as e:
 " 2>/dev/null || true
 fi
 
-# 2. Check Ollama & Local MoE Models (Gemma-4-26B-A4B, qwen3.8-27b, Ornith-1.5-35B, Qwen3.8-27B-TurboFCFusion)
+# 2. Check Ollama & Local MoE Models
 echo "[+] Step 2: Checking local MoE model availability..."
 if command -v ollama &>/dev/null; then
     echo "    Local Ollama models:"
@@ -43,7 +43,19 @@ else
     echo "    [Notice] Ollama not found. Ensure models are copied manually to ~/.ollama/models or ${MODEL_DIR}"
 fi
 
-for model in "Ornith-1.5-35B-Q4_K_M.gguf" "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M.gguf"; do
+MODELS=(
+    "Gemma-4-26B-A4B.gguf"
+    "qwen3.8-27b.gguf"
+    "Ornith-1.5-35B-Q4_K_M.gguf"
+    "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M.gguf"
+    "Spark-X2.5-4B-Q8_0.gguf"
+    "gemma4-v2-Q3_K_M.gguf"
+    "gemma-4-e2b-it.Q8_0.gguf"
+    "Ornith-1.5-9B-Q4_K_M.gguf"
+    "llm4decompile-22b-v2.Q6_K.gguf"
+)
+
+for model in "${MODELS[@]}"; do
     if [[ -f "${HOME}/models/${model}" ]] || [[ -f "${MODEL_DIR}/${model}" ]]; then
         echo "    [✓] MoE Local Weights Present: ${model}"
     else

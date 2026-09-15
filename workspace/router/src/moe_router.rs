@@ -14,6 +14,16 @@ pub enum ExpertModel {
     Ornith1_5_35B_Q4KM,
     /// Qwen 3.8 27B Turbo FCFusion Uncensored Neo-Coder Max MTP Q4_K_M (ultra-fast code synthesis, refactoring, MTP)
     Qwen3_8_27B_TurboFCFusion,
+    /// Spark X 2.5 4B Q8_0 (ultra-lightweight edge/embedded controller reasoning)
+    SparkX2_5_4B_Q8_0,
+    /// Gemma 4 v2 Q3_K_M (compact memory-constrained local MoE fallback)
+    Gemma4_V2_Q3KM,
+    /// Gemma 4 Edge 2B Instruction-tuned Q8_0 (high-precision micro-verifier & guardrail gating)
+    Gemma4_E2B_IT_Q8_0,
+    /// Ornith 1.5 9B Q4_K_M (mid-tier embedded driver & rapid peripheral debugger)
+    Ornith1_5_9B_Q4KM,
+    /// LLM4Decompile 22B v2 Q6_K (binary analysis, disassembly, decompilation & assembly-to-Rust lifting)
+    Llm4Decompile_22B_V2_Q6K,
 }
 
 impl ExpertModel {
@@ -25,6 +35,11 @@ impl ExpertModel {
             Self::Qwen3_8_27B_TurboFCFusion => {
                 "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M"
             }
+            Self::SparkX2_5_4B_Q8_0 => "Spark-X2.5-4B-Q8_0",
+            Self::Gemma4_V2_Q3KM => "gemma4-v2-Q3_K_M",
+            Self::Gemma4_E2B_IT_Q8_0 => "gemma-4-e2b-it.Q8_0",
+            Self::Ornith1_5_9B_Q4KM => "Ornith-1.5-9B-Q4_K_M",
+            Self::Llm4Decompile_22B_V2_Q6K => "llm4decompile-22b-v2.Q6_K",
         }
     }
 
@@ -37,6 +52,13 @@ impl ExpertModel {
             }
             Self::Qwen3_8_27B_TurboFCFusion => {
                 "Heavy Code Generation, Multi-Token Prediction (MTP) & Compiler Fixes"
+            }
+            Self::SparkX2_5_4B_Q8_0 => "Ultra-low Latency Edge Microcontroller Reasoning",
+            Self::Gemma4_V2_Q3KM => "Low-VRAM Compact MoE Budget Execution",
+            Self::Gemma4_E2B_IT_Q8_0 => "Edge 2B High-Precision Micro-Verifier & Guardrail Filter",
+            Self::Ornith1_5_9B_Q4KM => "Mid-Tier Embedded Driver & Peripheral Debugger",
+            Self::Llm4Decompile_22B_V2_Q6K => {
+                "Binary Decompilation, Disassembly, ELF & Assembly-to-Rust Lifting"
             }
         }
     }
@@ -69,11 +91,17 @@ impl MoeGatingRouter {
         scores.insert(ExpertModel::Qwen3_8_27B, 1.2);
         scores.insert(ExpertModel::Ornith1_5_35B_Q4KM, 1.0);
         scores.insert(ExpertModel::Qwen3_8_27B_TurboFCFusion, 1.0);
+        scores.insert(ExpertModel::SparkX2_5_4B_Q8_0, 0.8);
+        scores.insert(ExpertModel::Gemma4_V2_Q3KM, 0.8);
+        scores.insert(ExpertModel::Gemma4_E2B_IT_Q8_0, 0.9);
+        scores.insert(ExpertModel::Ornith1_5_9B_Q4KM, 0.9);
+        scores.insert(ExpertModel::Llm4Decompile_22B_V2_Q6K, 0.8);
 
         // 1. Task-Type Priors
         match req.task_type {
             TaskType::Architecture | TaskType::Debugging => {
                 *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 4.0;
+                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 2.5;
             }
             TaskType::CodeCompletion => {
                 *scores
@@ -82,17 +110,36 @@ impl MoeGatingRouter {
             }
             TaskType::Syntax => {
                 *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 3.5;
+                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 2.0;
             }
             TaskType::Training => {
                 *scores.get_mut(&ExpertModel::Gemma4_26B_A4B).unwrap() += 3.5;
             }
             TaskType::PcbLayout | TaskType::SceneModeling => {
                 *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 3.0;
+                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 2.0;
             }
         }
 
         // 2. Keyword & Domain Signal Gating
-        let embedded_signals = [
+        let decompile_signals = [
+            "decompile",
+            "disassembly",
+            "disassemble",
+            "objdump",
+            "radare2",
+            "ghidra",
+            "binary",
+            "elf",
+            "reverse engineer",
+            "assembly",
+            "asm",
+            "symbol table",
+            "gdb",
+            "hex",
+            "stripped",
+        ];
+        let embedded_heavy_signals = [
             "no_std",
             "firmware",
             "cortex-m",
@@ -108,6 +155,31 @@ impl MoeGatingRouter {
             "bare-metal",
             "rtos",
             "register",
+        ];
+        let edge_micro_signals = [
+            "spark",
+            "microcontroller",
+            "low-power",
+            "pico",
+            "avr",
+            "tiny",
+            "sensor read",
+            "gpio toggle",
+        ];
+        let low_vram_signals = [
+            "low-vram",
+            "vram budget",
+            "q3_k_m",
+            "quantized",
+            "budget execution",
+        ];
+        let edge_verifier_signals = [
+            "guardrail",
+            "filter",
+            "sanity check",
+            "e2b",
+            "pre-pass",
+            "quick verify",
         ];
         let code_synthesis_signals = [
             "synthesize",
@@ -140,9 +212,36 @@ impl MoeGatingRouter {
             "tool", "call", "json", "schema", "parse", "format", "cli", "regex", "search",
         ];
 
-        for sig in embedded_signals {
+        for sig in decompile_signals {
+            if p_lower.contains(sig) {
+                *scores
+                    .get_mut(&ExpertModel::Llm4Decompile_22B_V2_Q6K)
+                    .unwrap() += 4.0;
+            }
+        }
+
+        for sig in edge_micro_signals {
+            if p_lower.contains(sig) {
+                *scores.get_mut(&ExpertModel::SparkX2_5_4B_Q8_0).unwrap() += 3.5;
+            }
+        }
+
+        for sig in low_vram_signals {
+            if p_lower.contains(sig) {
+                *scores.get_mut(&ExpertModel::Gemma4_V2_Q3KM).unwrap() += 3.0;
+            }
+        }
+
+        for sig in edge_verifier_signals {
+            if p_lower.contains(sig) {
+                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 3.0;
+            }
+        }
+
+        for sig in embedded_heavy_signals {
             if p_lower.contains(sig) {
                 *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 1.5;
+                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 1.0;
             }
         }
 

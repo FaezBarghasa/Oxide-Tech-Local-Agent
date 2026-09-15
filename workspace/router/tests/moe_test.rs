@@ -75,23 +75,59 @@ fn test_moe_routing_gemma_moe_fast_triage_and_training() {
 }
 
 #[test]
-fn test_moe_model_ids_and_specializations() {
+fn test_moe_routing_llm4decompile_binary_analysis() {
+    let router = MoeGatingRouter::new();
+
+    let req = mock_request(
+        TaskType::Debugging,
+        "Decompile stripped ELF binary and disassemble x86_64 assembly function to Rust",
+    );
+    let decision = router.route(&req);
+    assert_eq!(
+        decision.primary_expert,
+        ExpertModel::Llm4Decompile_22B_V2_Q6K
+    );
+    assert_eq!(
+        decision.primary_expert.model_id(),
+        "llm4decompile-22b-v2.Q6_K"
+    );
+}
+
+#[test]
+fn test_moe_routing_spark_edge_microcontroller() {
+    let router = MoeGatingRouter::new();
+
+    let req = mock_request(
+        TaskType::CodeCompletion,
+        "Spark ultra-low power microcontroller sensor read and gpio toggle",
+    );
+    let decision = router.route(&req);
+    assert_eq!(decision.primary_expert, ExpertModel::SparkX2_5_4B_Q8_0);
+    assert_eq!(decision.primary_expert.model_id(), "Spark-X2.5-4B-Q8_0");
+}
+
+#[test]
+fn test_moe_routing_all_nine_models_and_specializations() {
     let models = [
-        ExpertModel::Gemma4_26B_A4B,
-        ExpertModel::Qwen3_8_27B,
-        ExpertModel::Ornith1_5_35B_Q4KM,
-        ExpertModel::Qwen3_8_27B_TurboFCFusion,
+        (ExpertModel::Gemma4_26B_A4B, "Gemma-4-26B-A4B"),
+        (ExpertModel::Qwen3_8_27B, "qwen3.8-27b"),
+        (ExpertModel::Ornith1_5_35B_Q4KM, "Ornith-1.5-35B-Q4_K_M"),
+        (
+            ExpertModel::Qwen3_8_27B_TurboFCFusion,
+            "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M",
+        ),
+        (ExpertModel::SparkX2_5_4B_Q8_0, "Spark-X2.5-4B-Q8_0"),
+        (ExpertModel::Gemma4_V2_Q3KM, "gemma4-v2-Q3_K_M"),
+        (ExpertModel::Gemma4_E2B_IT_Q8_0, "gemma-4-e2b-it.Q8_0"),
+        (ExpertModel::Ornith1_5_9B_Q4KM, "Ornith-1.5-9B-Q4_K_M"),
+        (
+            ExpertModel::Llm4Decompile_22B_V2_Q6K,
+            "llm4decompile-22b-v2.Q6_K",
+        ),
     ];
 
-    assert_eq!(models[0].model_id(), "Gemma-4-26B-A4B");
-    assert_eq!(models[1].model_id(), "qwen3.8-27b");
-    assert_eq!(models[2].model_id(), "Ornith-1.5-35B-Q4_K_M");
-    assert_eq!(
-        models[3].model_id(),
-        "Qwen3.8-27B-TurboFCFusion-735-882-Here-Uncen-NEO-CODER-MAX-MTP-Q4_K_M"
-    );
-
-    for m in &models {
-        assert!(!m.specialization().is_empty());
+    for (model, expected_id) in models {
+        assert_eq!(model.model_id(), expected_id);
+        assert!(!model.specialization().is_empty());
     }
 }
