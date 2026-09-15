@@ -168,4 +168,18 @@ impl GatewayRouter {
             "latency_threshold_ms": self.latency_threshold_ms,
         })
     }
+
+    /// Execute a multi-stage task through the multi-agent coordinator:
+    /// Supervisor plans -> Worker(s) execute in parallel -> Verifier synthesises.
+    pub async fn execute_multi_agent_pipeline(
+        &self,
+        supervisor_id: &str,
+        worker_ids: &[&str],
+        verifier_id: &str,
+        task: &str,
+    ) -> Result<(String, String), anyhow::Error> {
+        self.multi_agent
+            .run_supervisor_worker_verifier(supervisor_id, worker_ids, verifier_id, task)
+            .await
+    }
 }
