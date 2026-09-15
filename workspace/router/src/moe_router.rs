@@ -63,6 +63,18 @@ impl ExpertModel {
             }
         }
     }
+
+    /// Return the recommended lightweight draft model for speculative decoding pairs
+    pub fn recommended_draft_model(&self) -> Option<ExpertModel> {
+        match self {
+            Self::Ornith1_5_35B_Q4KM => Some(Self::SparkX2_5_4B_Q8_0),
+            Self::Qwen3_8_27B_TurboFCFusion => Some(Self::Gemma4_E2B_IT_Q8_0),
+            Self::Gemma4_26B_A4B => Some(Self::Gemma4_E2B_IT_Q8_0),
+            Self::Llm4Decompile_22B_V2_Q6K => Some(Self::SparkX2_5_4B_Q8_0),
+            Self::Qwen3_8_27B => Some(Self::SparkX2_5_4B_Q8_0),
+            _ => None,
+        }
+    }
 }
 
 /// Routing decision output from the MoE Gating Network
@@ -375,6 +387,22 @@ impl AdaptiveMoeGatingRouter {
                 }
             }
         }
+    }
+
+    /// Return the recommended speculative draft model for the chosen primary expert, if any.
+    pub fn speculative_draft_for(&self, expert: ExpertModel) -> Option<ExpertModel> {
+        expert.recommended_draft_model()
+    }
+
+    /// Record verification outcome directly to adjust quality EMA and circuit breaker
+    pub fn record_verification_outcome(
+        &self,
+        expert: ExpertModel,
+        passed: bool,
+        duration_ms: u64,
+        score: f32,
+    ) {
+        self.record_feedback(expert, duration_ms as f32, passed, score);
     }
 
     /// Route with adaptive adjustments based on health, latency EMA, and quality
