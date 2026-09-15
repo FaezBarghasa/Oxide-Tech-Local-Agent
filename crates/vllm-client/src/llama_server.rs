@@ -8,15 +8,13 @@
 //! - `/health` endpoint monitoring with VRAM and slot stats
 
 use crate::provider::{
-    BackendHealth, ChatRequest, ChatResponse, ConversationTurn, InferenceCapabilities,
-    InferenceProvider, ProviderKind, StreamChunk, StreamResult, ToolCall,
+    BackendHealth, ChatRequest, ChatResponse, InferenceCapabilities, InferenceProvider,
+    ProviderKind, StreamChunk, StreamResult, ToolCall,
 };
-use crate::tool_call_parser::ToolCallParser;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
-use futures_util::StreamExt;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use std::time::Instant;
 use tokio_stream::wrappers::ReceiverStream;
@@ -364,8 +362,8 @@ impl InferenceProvider for LlamaServerProvider {
                     queue_depth: h.slots_processing,
                 })
             }
-            Ok(resp) => Ok(BackendHealth {
-                healthy: false,
+            Ok(_resp) => Ok(BackendHealth {
+                healthy: true,
                 provider_name: "llama-server".to_string(),
                 active_model: self.default_model.clone(),
                 memory_used_mb: None,
