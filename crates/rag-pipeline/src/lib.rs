@@ -113,10 +113,6 @@ impl RagPipeline {
         let mut fetched_pages = HashSet::new();
         let mut docs = Vec::new();
 
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(10))
-            .build()?;
-
         // Crawl up to 30 main doc pages
         while let Some(url) = pages_to_fetch.pop() {
             if fetched_pages.contains(&url) || fetched_pages.len() >= 30 {
@@ -126,7 +122,7 @@ impl RagPipeline {
             info!("Fetching page: {}", url);
             fetched_pages.insert(url.clone());
 
-            let Ok(resp) = client.get(&url).send().await else {
+            let Ok(resp) = self.http_client.get(&url).send().await else {
                 warn!("Failed to fetch URL: {}", url);
                 continue;
             };
