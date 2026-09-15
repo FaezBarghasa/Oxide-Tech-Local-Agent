@@ -129,7 +129,8 @@ impl InferenceProvider for SglangProvider {
             .unwrap_or_default();
 
         let prompt_tokens = res_json["usage"]["prompt_tokens"].as_u64().unwrap_or(0) as usize;
-        let completion_tokens = res_json["usage"]["completion_tokens"].as_u64().unwrap_or(0) as usize;
+        let completion_tokens =
+            res_json["usage"]["completion_tokens"].as_u64().unwrap_or(0) as usize;
         let finish_reason = choice["finish_reason"].as_str().map(String::from);
         let latency_ms = start.elapsed().as_millis() as u64;
 

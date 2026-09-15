@@ -57,7 +57,10 @@ impl SpeculativeDecodingEngine {
                     }
                     Err(e) => {
                         // Fallback directly to normal target completion
-                        tracing::warn!("Speculative target verification failed, falling back: {}", e);
+                        tracing::warn!(
+                            "Speculative target verification failed, falling back: {}",
+                            e
+                        );
                         self.target_provider.chat_completion(req).await
                     }
                 }

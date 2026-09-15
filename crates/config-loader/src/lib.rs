@@ -228,7 +228,10 @@ impl Default for MoeConfig {
         );
         models.insert("verifier".to_string(), "Ornith-1.5-35B-Q4_K_M".to_string());
         models.insert("edge".to_string(), "Spark-X2.5-4B-Q8_0".to_string());
-        models.insert("decompiler".to_string(), "llm4decompile-22b-v2.Q6_K".to_string());
+        models.insert(
+            "decompiler".to_string(),
+            "llm4decompile-22b-v2.Q6_K".to_string(),
+        );
         Self {
             enabled: true,
             default_supervisor: "Gemma-4-26B-A4B".to_string(),

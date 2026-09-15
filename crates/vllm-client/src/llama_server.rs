@@ -58,14 +58,18 @@ impl LlamaServerProvider {
                     m["name"] = json!(name);
                 }
                 if !turn.tool_calls.is_empty() {
-                    m["tool_calls"] = json!(turn.tool_calls.iter().map(|tc| json!({
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.name,
-                            "arguments": tc.arguments.to_string(),
-                        }
-                    })).collect::<Vec<_>>());
+                    m["tool_calls"] = json!(turn
+                        .tool_calls
+                        .iter()
+                        .map(|tc| json!({
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.name,
+                                "arguments": tc.arguments.to_string(),
+                            }
+                        }))
+                        .collect::<Vec<_>>());
                 }
                 m
             })
@@ -198,14 +202,17 @@ impl InferenceProvider for LlamaServerProvider {
 
         // Tool definitions
         if let Some(tools) = &req.tools {
-            body["tools"] = json!(tools.iter().map(|t| json!({
-                "type": "function",
-                "function": {
-                    "name": t.name,
-                    "description": t.description,
-                    "parameters": t.parameters,
-                }
-            })).collect::<Vec<_>>());
+            body["tools"] = json!(tools
+                .iter()
+                .map(|t| json!({
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": t.description,
+                        "parameters": t.parameters,
+                    }
+                }))
+                .collect::<Vec<_>>());
             if let Some(choice) = &req.tool_choice {
                 body["tool_choice"] = json!(choice);
             }
@@ -238,7 +245,11 @@ impl InferenceProvider for LlamaServerProvider {
         }
 
         let oai: OaiChatResponse = resp.json().await.context("LlamaServer: JSON parse error")?;
-        let choice = oai.choices.into_iter().next().ok_or_else(|| anyhow!("LlamaServer: empty choices"))?;
+        let choice = oai
+            .choices
+            .into_iter()
+            .next()
+            .ok_or_else(|| anyhow!("LlamaServer: empty choices"))?;
         let latency_ms = t0.elapsed().as_millis() as u64;
 
         let content = choice.message.content.unwrap_or_default();
@@ -248,7 +259,11 @@ impl InferenceProvider for LlamaServerProvider {
             .into_iter()
             .map(|tc| {
                 let args = serde_json::from_str(&tc.function.arguments).unwrap_or(Value::Null);
-                ToolCall { id: tc.id, name: tc.function.name, arguments: args }
+                ToolCall {
+                    id: tc.id,
+                    name: tc.function.name,
+                    arguments: args,
+                }
             })
             .collect();
 
@@ -257,7 +272,10 @@ impl InferenceProvider for LlamaServerProvider {
             tool_calls = ToolCallParser::extract_from_text(&content);
         }
 
-        let usage = oai.usage.unwrap_or(OaiUsage { prompt_tokens: 0, completion_tokens: 0 });
+        let usage = oai.usage.unwrap_or(OaiUsage {
+            prompt_tokens: 0,
+            completion_tokens: 0,
+        });
 
         Ok(ChatResponse {
             content,
@@ -272,7 +290,11 @@ impl InferenceProvider for LlamaServerProvider {
 
     async fn stream_chat(&self, req: ChatRequest) -> Result<StreamResult> {
         let url = format!("{}/v1/chat/completions", self.base_url);
-        let model = if req.model.is_empty() { &self.default_model } else { &req.model };
+        let model = if req.model.is_empty() {
+            &self.default_model
+        } else {
+            &req.model
+        };
         let messages = Self::build_messages(&req);
 
         let mut body = json!({
@@ -315,11 +337,13 @@ impl InferenceProvider for LlamaServerProvider {
                             let line = line.trim();
                             if let Some(data) = line.strip_prefix("data: ") {
                                 if data == "[DONE]" {
-                                    let _ = tx.send(Ok(StreamChunk {
-                                        delta: String::new(),
-                                        is_final: true,
-                                        tool_calls_delta: vec![],
-                                    })).await;
+                                    let _ = tx
+                                        .send(Ok(StreamChunk {
+                                            delta: String::new(),
+                                            is_final: true,
+                                            tool_calls_delta: vec![],
+                                        }))
+                                        .await;
                                     return;
                                 }
                                 if let Ok(val) = serde_json::from_str::<Value>(data) {
@@ -328,11 +352,13 @@ impl InferenceProvider for LlamaServerProvider {
                                         .unwrap_or_default()
                                         .to_string();
                                     let is_final = val["choices"][0]["finish_reason"].is_string();
-                                    let _ = tx.send(Ok(StreamChunk {
-                                        delta,
-                                        is_final,
-                                        tool_calls_delta: vec![],
-                                    })).await;
+                                    let _ = tx
+                                        .send(Ok(StreamChunk {
+                                            delta,
+                                            is_final,
+                                            tool_calls_delta: vec![],
+                                        }))
+                                        .await;
                                 }
                             }
                         }

@@ -19,20 +19,19 @@ pub use client::{LlmProvider, LlmRouterClient};
 pub use llama_server::LlamaServerProvider;
 pub use lora_hot_swap::LoraHotSwapManager;
 pub use lora_router::DynamicLoraRouter;
+pub use multi_agent::{
+    AgentBuilder, AgentMessage, AgentRecord, AgentRole, AgentThread, MultiAgentCoordinator,
+    PeerDialogueResult,
+};
 pub use ollama::OllamaProvider;
 pub use provider::{
-    BackendHealth, ChatMessage, ChatRequest, ChatResponse, ConversationTurn,
-    InferenceCapabilities, InferenceProvider, ProviderKind, StreamChunk, StreamResult,
-    ToolCall, ToolDefinition,
+    BackendHealth, ChatMessage, ChatRequest, ChatResponse, ConversationTurn, InferenceCapabilities,
+    InferenceProvider, ProviderKind, StreamChunk, StreamResult, ToolCall, ToolDefinition,
 };
 pub use safetensors_loader::{SafetensorModelLoader, SafetensorModelSummary, TensorMeta};
 pub use sglang_provider::SglangProvider;
 pub use speculative_engine::SpeculativeDecodingEngine;
 pub use thinker::{ThinkerClient, ThinkerOutput};
-pub use multi_agent::{
-    AgentBuilder, AgentMessage, AgentRecord, AgentRole, AgentThread,
-    MultiAgentCoordinator, PeerDialogueResult,
-};
 pub use tool_call_parser::ToolCallParser;
 
 use anyhow::Result;

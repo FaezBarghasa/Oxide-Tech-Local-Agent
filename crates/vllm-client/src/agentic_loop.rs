@@ -1,4 +1,6 @@
-use crate::provider::{ChatMessage, ChatRequest, ConversationTurn, InferenceProvider, ToolDefinition};
+use crate::provider::{
+    ChatMessage, ChatRequest, ConversationTurn, InferenceProvider, ToolDefinition,
+};
 use crate::tool_call_parser::ToolCallParser;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -139,7 +141,10 @@ impl AgenticLoopRunner {
             // Execute each tool call and check oscillation
             for tc in &detected_tool_calls {
                 let signature = format!("{}:{}", tc.name, tc.arguments);
-                let repeated_count = executed_signatures.iter().filter(|&s| s == &signature).count();
+                let repeated_count = executed_signatures
+                    .iter()
+                    .filter(|&s| s == &signature)
+                    .count();
 
                 if repeated_count >= self.oscillation_threshold {
                     let err_msg = format!(
@@ -157,7 +162,11 @@ impl AgenticLoopRunner {
 
                 executed_signatures.push(signature);
 
-                let tool_output = match self.tool_executor.execute_tool(&tc.name, &tc.arguments).await {
+                let tool_output = match self
+                    .tool_executor
+                    .execute_tool(&tc.name, &tc.arguments)
+                    .await
+                {
                     Ok(out) => out,
                     Err(e) => format!("Tool execution error: {}", e),
                 };

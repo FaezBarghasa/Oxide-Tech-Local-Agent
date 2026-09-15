@@ -1,7 +1,5 @@
 use crate::agentic_loop::{AgenticLoopRunner, ToolExecutor};
-use crate::provider::{
-    ChatMessage, ChatRequest, InferenceProvider, ToolDefinition,
-};
+use crate::provider::{ChatMessage, ChatRequest, InferenceProvider, ToolDefinition};
 use anyhow::{anyhow, bail, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -261,15 +259,10 @@ impl MultiAgentCoordinator {
     /// Send a message to a specific agent and get its reply.
     ///
     /// The full thread history visible to the receiving agent is included.
-    pub async fn send(
-        &self,
-        thread_id: &str,
-        message: AgentMessage,
-    ) -> Result<AgentMessage> {
-        let to_agent_id = message
-            .to_agent
-            .clone()
-            .ok_or_else(|| anyhow!("send() requires a specific to_agent; use broadcast() for all"))?;
+    pub async fn send(&self, thread_id: &str, message: AgentMessage) -> Result<AgentMessage> {
+        let to_agent_id = message.to_agent.clone().ok_or_else(|| {
+            anyhow!("send() requires a specific to_agent; use broadcast() for all")
+        })?;
 
         // Append the outgoing message to the thread
         {
@@ -318,9 +311,7 @@ impl MultiAgentCoordinator {
 
         let reply_content = if let Some(runner) = agent.build_loop_runner() {
             // Agentic tool-calling loop
-            let (answer, _history) = runner
-                .run(&agent.system_prompt, &message.content)
-                .await?;
+            let (answer, _history) = runner.run(&agent.system_prompt, &message.content).await?;
             answer
         } else {
             // Simple completion
@@ -467,7 +458,8 @@ impl MultiAgentCoordinator {
         agent_ids: &[&str],
         initial_prompt: &str,
     ) -> Result<(String, String)> {
-        self.run_chain_with_dtx(agent_ids, initial_prompt, None).await
+        self.run_chain_with_dtx(agent_ids, initial_prompt, None)
+            .await
     }
 
     /// **Sequential chain with DTX**: Executes run_chain with an explicit or generated DTX trace token.
@@ -941,7 +933,11 @@ mod tests {
         }
 
         async fn chat_completion(&self, req: ChatRequest) -> anyhow::Result<ChatResponse> {
-            let last = req.messages.last().map(|m| m.content.as_str()).unwrap_or("");
+            let last = req
+                .messages
+                .last()
+                .map(|m| m.content.as_str())
+                .unwrap_or("");
             let content = format!("[{}] {}", self.name, last);
             Ok(ChatResponse {
                 content,
@@ -980,7 +976,9 @@ mod tests {
             id: id.to_string(),
             role,
             system_prompt: format!("You are {id}."),
-            provider: Arc::new(EchoProvider { name: id.to_string() }),
+            provider: Arc::new(EchoProvider {
+                name: id.to_string(),
+            }),
             tool_executor: None,
             tool_definitions: vec![],
             max_turns: 4,
@@ -990,8 +988,12 @@ mod tests {
     #[tokio::test]
     async fn test_register_and_list() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("alpha", AgentRole::Worker)).await;
-        coord.register(make_echo_agent("beta", AgentRole::Verifier)).await;
+        coord
+            .register(make_echo_agent("alpha", AgentRole::Worker))
+            .await;
+        coord
+            .register(make_echo_agent("beta", AgentRole::Verifier))
+            .await;
 
         let agents = coord.list_agents().await;
         assert_eq!(agents.len(), 2);
@@ -1000,7 +1002,9 @@ mod tests {
     #[tokio::test]
     async fn test_send_and_reply() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("worker1", AgentRole::Worker)).await;
+        coord
+            .register(make_echo_agent("worker1", AgentRole::Worker))
+            .await;
 
         let thread_id = coord.new_thread().await;
         let msg = AgentMessage::new("user", "worker1", AgentRole::Peer, "hello worker");
@@ -1013,8 +1017,12 @@ mod tests {
     #[tokio::test]
     async fn test_chain_two_agents() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("planner", AgentRole::Supervisor)).await;
-        coord.register(make_echo_agent("coder", AgentRole::Worker)).await;
+        coord
+            .register(make_echo_agent("planner", AgentRole::Supervisor))
+            .await;
+        coord
+            .register(make_echo_agent("coder", AgentRole::Worker))
+            .await;
 
         let (result, _thread) = coord
             .run_chain(&["planner", "coder"], "Build a sorting algorithm")
@@ -1028,8 +1036,12 @@ mod tests {
     #[tokio::test]
     async fn test_peer_dialogue_terminates() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("agent_a", AgentRole::Peer)).await;
-        coord.register(make_echo_agent("agent_b", AgentRole::Peer)).await;
+        coord
+            .register(make_echo_agent("agent_a", AgentRole::Peer))
+            .await;
+        coord
+            .register(make_echo_agent("agent_b", AgentRole::Peer))
+            .await;
 
         let (last, thread_id) = coord
             .run_peer_dialogue("agent_a", "agent_b", "Let's discuss Rust async", 4)
@@ -1044,9 +1056,15 @@ mod tests {
     #[tokio::test]
     async fn test_broadcast_reaches_all() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("sup", AgentRole::Supervisor)).await;
-        coord.register(make_echo_agent("w1", AgentRole::Worker)).await;
-        coord.register(make_echo_agent("w2", AgentRole::Worker)).await;
+        coord
+            .register(make_echo_agent("sup", AgentRole::Supervisor))
+            .await;
+        coord
+            .register(make_echo_agent("w1", AgentRole::Worker))
+            .await;
+        coord
+            .register(make_echo_agent("w2", AgentRole::Worker))
+            .await;
 
         let thread_id = coord.new_thread().await;
         let replies = coord
@@ -1060,7 +1078,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_agent_builder() {
-        let provider: Arc<dyn InferenceProvider> = Arc::new(EchoProvider { name: "test".into() });
+        let provider: Arc<dyn InferenceProvider> = Arc::new(EchoProvider {
+            name: "test".into(),
+        });
         let record = AgentBuilder::new("researcher", AgentRole::Worker)
             .system_prompt("You research topics.")
             .provider(Arc::clone(&provider))
@@ -1075,8 +1095,12 @@ mod tests {
     #[tokio::test]
     async fn test_peer_dialogue_with_eval() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("debater_a", AgentRole::Peer)).await;
-        coord.register(make_echo_agent("debater_b", AgentRole::Peer)).await;
+        coord
+            .register(make_echo_agent("debater_a", AgentRole::Peer))
+            .await;
+        coord
+            .register(make_echo_agent("debater_b", AgentRole::Peer))
+            .await;
 
         let eval = coord
             .run_peer_dialogue_with_eval(
@@ -1093,16 +1117,24 @@ mod tests {
         assert!(eval.consensus_score >= 0.5);
         assert_eq!(eval.dtx_id.as_deref(), Some("dtx-test-123"));
 
-        let dtx_msgs = coord.thread_dtx_messages(&eval.thread_id, "dtx-test-123").await;
+        let dtx_msgs = coord
+            .thread_dtx_messages(&eval.thread_id, "dtx-test-123")
+            .await;
         assert!(!dtx_msgs.is_empty());
     }
 
     #[tokio::test]
     async fn test_swv_with_dtx() {
         let coord = MultiAgentCoordinator::new();
-        coord.register(make_echo_agent("supervisor", AgentRole::Supervisor)).await;
-        coord.register(make_echo_agent("coder", AgentRole::Worker)).await;
-        coord.register(make_echo_agent("verifier", AgentRole::Verifier)).await;
+        coord
+            .register(make_echo_agent("supervisor", AgentRole::Supervisor))
+            .await;
+        coord
+            .register(make_echo_agent("coder", AgentRole::Worker))
+            .await;
+        coord
+            .register(make_echo_agent("verifier", AgentRole::Verifier))
+            .await;
 
         let (final_ans, thread_id) = coord
             .run_supervisor_worker_verifier_with_dtx(
