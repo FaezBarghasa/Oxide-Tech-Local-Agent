@@ -28,6 +28,7 @@ quinn = { workspace = true }
 rustls = { workspace = true }
 futures-util = { workspace = true }
 actix-ws = "0.4.0"
+async-stream = "0.3"
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
 
 

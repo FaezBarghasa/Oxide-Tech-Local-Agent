@@ -5,5 +5,5 @@ pub mod trace_logger;
 
 pub use arc_agi::{ArcAgiHarness, ArcGrid, ArcTask};
 pub use gaia::{GaiaHarness, GaiaTask};
-pub use harness::{BenchmarkScore, BenchmarkSuite};
+pub use harness::{BenchmarkScore, BenchmarkSuite, StepInvariantMetrics};
 pub use trace_logger::{BenchmarkTrace, TraceLogger};

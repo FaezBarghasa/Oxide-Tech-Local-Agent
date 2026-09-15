@@ -385,3 +385,42 @@ pub async fn handle_status(cfg: web::Data<AppConfig>) -> impl Responder {
     let router = GatewayRouter::from_config(cfg.get_ref());
     HttpResponse::Ok().json(router.status_summary())
 }
+
+#[post("/api/agent/stream")]
+pub async fn handle_agent_stream(
+    req: web::Json<GenerateRequest>,
+    cfg: web::Data<AppConfig>,
+    rag: web::Data<Option<Arc<RagPipeline>>>,
+) -> impl Responder {
+    let rag_pipeline_opt = rag.get_ref().clone();
+    let generate_req = req.into_inner();
+    let app_cfg = cfg.get_ref().clone();
+
+    // Stream SSE events
+    let stream = async_stream::stream! {
+        yield Ok::<_, actix_web::Error>(web::Bytes::from("data: {\"status\":\"planning\"}\n\n"));
+
+        let rag_borrow = rag_pipeline_opt.as_ref().map(|p| p.as_ref());
+        match run_agent_generate(generate_req, &app_cfg, rag_borrow).await {
+            Ok(res) => {
+                let json_str = serde_json::to_string(&res).unwrap_or_default();
+                yield Ok(web::Bytes::from(format!("data: {}\n\n", json_str)));
+                yield Ok(web::Bytes::from("data: [DONE]\n\n"));
+            }
+            Err(e) => {
+                let err_obj = serde_json::json!({
+                    "status": "error",
+                    "message": e
+                });
+                yield Ok(web::Bytes::from(format!("data: {}\n\n", err_obj)));
+                yield Ok(web::Bytes::from("data: [DONE]\n\n"));
+            }
+        }
+    };
+
+    HttpResponse::Ok()
+        .content_type("text/event-stream")
+        .insert_header(("Cache-Control", "no-cache"))
+        .insert_header(("X-Accel-Buffering", "no"))
+        .streaming(stream)
+}

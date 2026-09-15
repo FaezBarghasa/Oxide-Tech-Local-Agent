@@ -84,6 +84,7 @@ fn main() -> std::io::Result<()> {
                     .service(routes::skidl::handle_skidl_generate)
                     .service(routes::thermal::handle_thermal_simulate)
                     .service(routes::agent::handle_agent_generate)
+                    .service(routes::agent::handle_agent_stream)
                     .service(routes::agent::handle_rag_update)
                     .service(routes::agent::handle_status)
                     .service(routes::health::liveness_probe)

@@ -119,23 +119,120 @@ pub struct LiveDocsScrapeInput {
     pub crate_name: String,
 }
 
+#[derive(Deserialize, JsonSchema)]
+pub struct AnalyzeCompilerFailureInput {
+    /// The compiler stdout/stderr diagnostic log.
+    pub compiler_log: String,
+    /// Relevant source code snippet or file content where the error occurred.
+    pub source_code: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
+pub struct AutonomousCodeReviewInput {
+    /// Unified diff or source code to review.
+    pub code: String,
+    /// Target domain or safety constraints (e.g., 'no_std embedded', 'memory-safety', 'strict-concurrency').
+    pub domain: Option<String>,
+}
+
 // ── McpServer Definition ──────────────────────────────────────────────────────
 
 #[derive(Clone)]
 pub struct McpServer {
     workspace_root: PathBuf,
     rag: Option<Arc<rag_pipeline::RagPipeline>>,
+    inference_provider: Option<Arc<dyn vllm_client::InferenceProvider>>,
     tool_router: ToolRouter<Self>,
 }
 
 #[tool_router]
 impl McpServer {
     /// Create a new McpServer instance.
-    pub fn new(workspace_root: PathBuf, rag: Option<Arc<rag_pipeline::RagPipeline>>) -> Self {
+    pub fn new(
+        workspace_root: PathBuf,
+        rag: Option<Arc<rag_pipeline::RagPipeline>>,
+        inference_provider: Option<Arc<dyn vllm_client::InferenceProvider>>,
+    ) -> Self {
         Self {
             workspace_root,
             rag,
+            inference_provider,
             tool_router: Self::tool_router(),
+        }
+    }
+
+    #[tool(description = "Autonomous compiler failure analysis and fix generation using direct local vLLM/SGLang reasoning")]
+    async fn analyze_compiler_failure(
+        &self,
+        input: AnalyzeCompilerFailureInput,
+    ) -> Result<CallToolResult, McpError> {
+        if let Some(ref provider) = self.inference_provider {
+            let prompt = format!(
+                "You are an expert systems compiler diagnostician.\n\
+                 Analyze the following compiler diagnostic log and source code to identify root cause and provide an exact fix.\n\n\
+                 ### Compiler Log:\n{}\n\n\
+                 ### Source Code:\n{}\n\n\
+                 Provide reasoning inside <think>...</think> tags and output the fix.",
+                input.compiler_log, input.source_code
+            );
+            let req = vllm_client::ChatRequest {
+                messages: vec![vllm_client::ChatMessage {
+                    role: "user".to_string(),
+                    content: prompt,
+                }],
+                max_tokens: Some(2048),
+                temperature: Some(0.2),
+                top_p: Some(0.95),
+                stream: false,
+                tools: None,
+            };
+            match provider.chat(req).await {
+                Ok(resp) => {
+                    let text = resp.choices.first().map(|c| c.message.content.clone()).unwrap_or_default();
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
+                }
+                Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Inference failed: {}", e))])),
+            }
+        } else {
+            Ok(CallToolResult::error(vec![ContentBlock::text("Direct inference provider is not initialized on this MCP server".to_string())]))
+        }
+    }
+
+    #[tool(description = "Autonomous code review for safety, concurrency, memory barriers and no_std constraints using direct local LLM reasoning")]
+    async fn autonomous_code_review(
+        &self,
+        input: AutonomousCodeReviewInput,
+    ) -> Result<CallToolResult, McpError> {
+        if let Some(ref provider) = self.inference_provider {
+            let domain_str = input.domain.as_deref().unwrap_or("no_std embedded & safe concurrency");
+            let prompt = format!(
+                "You are a principal systems verification engineer conducting an autonomous code review.\n\
+                 Domain / Constraints: {}\n\n\
+                 ### Code under review:\n{}\n\n\
+                 Evaluate: memory safety, unsafe blocks, DMA/cache coherency, bounded buffers, zero-allocation rules.\n\
+                 Format findings with severity and remediation suggestions.",
+                domain_str, input.code
+            );
+            let req = vllm_client::ChatRequest {
+                messages: vec![vllm_client::ChatMessage {
+                    role: "user".to_string(),
+                    content: prompt,
+                }],
+                max_tokens: Some(2048),
+                temperature: Some(0.2),
+                top_p: Some(0.95),
+                stream: false,
+                tools: None,
+            };
+            match provider.chat(req).await {
+                Ok(resp) => {
+                    let text = resp.choices.first().map(|c| c.message.content.clone()).unwrap_or_default();
+                    Ok(CallToolResult::success(vec![ContentBlock::text(text)]))
+                }
+                Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!("Inference failed: {}", e))])),
+            }
+        } else {
+            Ok(CallToolResult::error(vec![ContentBlock::text("Direct inference provider is not initialized on this MCP server".to_string())]))
         }
     }
 

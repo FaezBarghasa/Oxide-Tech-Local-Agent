@@ -416,6 +416,7 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "actix-ws",
+ "async-stream",
  "chrono",
  "config-loader",
  "futures-util",

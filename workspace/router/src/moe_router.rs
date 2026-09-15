@@ -77,6 +77,62 @@ impl ExpertModel {
     }
 }
 
+/// Task complexity level determining reasoning compute allocation and `<think>` budget
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TaskComplexity {
+    /// Fast direct tasks (e.g. syntax format, basic regex, lookup) -> 0 to 512 think tokens
+    Routine,
+    /// Standard engineering tasks (refactoring, unit test generation) -> 1024 to 2048 think tokens
+    Moderate,
+    /// Architectural synthesis, embedded driver debugging, multi-agent arbitration -> 4096 to 8192 think tokens
+    DeepReasoning,
+    /// Memory safety proofs, SMT solver constraints, Kani verification -> 8192 to 16384 think tokens
+    FormalProof,
+}
+
+impl TaskComplexity {
+    pub fn recommended_think_budget(&self) -> usize {
+        match self {
+            Self::Routine => 512,
+            Self::Moderate => 2048,
+            Self::DeepReasoning => 6144,
+            Self::FormalProof => 12288,
+        }
+    }
+
+    pub fn classify(prompt: &str, task_type: &TaskType) -> Self {
+        let p_lower = prompt.to_lowercase();
+        if p_lower.contains("formal proof")
+            || p_lower.contains("kani")
+            || p_lower.contains("smt")
+            || p_lower.contains("safety invariant")
+            || p_lower.contains("model check")
+        {
+            Self::FormalProof
+        } else if matches!(
+            task_type,
+            TaskType::Architecture | TaskType::Debugging | TaskType::BinaryAnalysis | TaskType::Verification
+        ) || p_lower.contains("architecture")
+            || p_lower.contains("dma")
+            || p_lower.contains("memory barrier")
+            || p_lower.contains("concurrency")
+            || p_lower.contains("deadlock")
+        {
+            Self::DeepReasoning
+        } else if matches!(
+            task_type,
+            TaskType::CodeCompletion | TaskType::PcbLayout | TaskType::SceneModeling | TaskType::ToolSynthesis
+        ) || p_lower.contains("implement")
+            || p_lower.contains("refactor")
+            || p_lower.contains("synthesize")
+        {
+            Self::Moderate
+        } else {
+            Self::Routine
+        }
+    }
+}
+
 /// Routing decision output from the MoE Gating Network
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct MoeRoutingDecision {
@@ -84,6 +140,8 @@ pub struct MoeRoutingDecision {
     pub secondary_expert: Option<ExpertModel>,
     pub routing_scores: HashMap<String, f32>,
     pub rationale: String,
+    pub complexity: TaskComplexity,
+    pub allocated_think_tokens: usize,
 }
 
 /// Mixture of Experts Gating Network
@@ -317,11 +375,16 @@ impl MoeGatingRouter {
             secondary_expert.map(|e| e.model_id())
         );
 
+        let complexity = TaskComplexity::classify(&req.prompt, &req.task_type);
+        let allocated_think_tokens = complexity.recommended_think_budget();
+
         MoeRoutingDecision {
             primary_expert,
             secondary_expert,
             routing_scores,
             rationale,
+            complexity,
+            allocated_think_tokens,
         }
     }
 }
