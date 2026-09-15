@@ -186,8 +186,7 @@ impl InferenceProvider for SglangProvider {
 
             for line in text.lines() {
                 let line = line.trim();
-                if line.starts_with("data: ") {
-                    let data = &line["data: ".len()..];
+                if let Some(data) = line.strip_prefix("data: ") {
                     if data == "[DONE]" {
                         return Ok(StreamChunk {
                             delta: String::new(),
