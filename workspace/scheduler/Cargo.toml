@@ -21,3 +21,4 @@ tracing = { workspace = true }
 reqwest = { workspace = true }
 uuid = { workspace = true, features = ["serde"] }
 tokio-cron-scheduler = "0.13"
+async-trait = "0.1"
