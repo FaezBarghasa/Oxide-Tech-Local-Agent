@@ -263,7 +263,10 @@ dependencies = [
 name = "agent-journal"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "chrono",
+ "oxide-protocol",
+ "rkyv 0.8.18",
  "serde",
  "serde_json",
  "surrealdb",
@@ -4711,6 +4714,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "model-trainer"
+version = "0.1.0"
+dependencies = [
+ "agent-journal",
+ "blake3",
+ "chrono",
+ "oxide-protocol",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "moka"
 version = "0.12.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5322,6 +5341,8 @@ dependencies = [
 name = "oxide-protocol"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
+ "blake3",
  "chrono",
  "serde",
  "serde_json",

@@ -7,6 +7,9 @@
 //! restore the exact `TaskDag` state at the last committed boundary, giving crash-safe
 //! durable execution comparable to LangGraph's `SqliteSaver` / Restate journal.
 
+pub mod segment;
+pub use segment::*;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::{engine::any::Any, Surreal};

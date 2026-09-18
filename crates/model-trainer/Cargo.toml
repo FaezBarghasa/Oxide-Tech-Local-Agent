@@ -1,15 +1,16 @@
 [package]
-name = "oxide-protocol"
+name = "model-trainer"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+oxide-protocol = { path = "../oxide-protocol" }
+agent-journal = { path = "../agent-journal" }
+tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-uuid = { workspace = true, features = ["v7", "serde"] }
-chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-tokio = { workspace = true }
 blake3 = { workspace = true }
-async-trait = "0.1"
+chrono = { workspace = true }
+uuid = { workspace = true }

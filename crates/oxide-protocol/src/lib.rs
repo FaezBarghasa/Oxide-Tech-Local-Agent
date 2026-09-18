@@ -1,7 +1,14 @@
+pub mod dtx;
+pub mod evidence;
+pub mod manifest;
+
+pub use dtx::*;
+pub use evidence::*;
+pub use manifest::*;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum OxideProtocolError {
@@ -16,30 +23,6 @@ pub enum OxideProtocolError {
 
     #[error("RPC Error [{code}]: {message}")]
     RpcError { code: i64, message: String },
-}
-
-/// A Distributed Transaction ID uniquely identifying multi-domain operations
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct DtxId(pub Uuid);
-
-impl DtxId {
-    /// Generate a new UUIDv7 time-ordered Distributed Transaction ID
-    pub fn new_v7() -> Self {
-        Self(Uuid::now_v7())
-    }
-}
-
-impl Default for DtxId {
-    fn default() -> Self {
-        Self::new_v7()
-    }
-}
-
-impl std::fmt::Display for DtxId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
 }
 
 /// Domain target in the Oxide ecosystem
@@ -157,7 +140,7 @@ pub struct CadImportStepArgs {
 /// Arguments for `cad.brep_boolean`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CadBrepBooleanArgs {
-    pub operation: String, // "union", "difference", "intersection"
+    pub operation: String,
     pub tool_body: String,
     pub target_body: String,
 }
@@ -201,25 +184,22 @@ mod tests {
     }
 
     #[test]
-    fn test_mcp_request_serialization() {
-        let dtx = DtxId::new_v7();
-        let req = OxideMcpRequest {
-            jsonrpc: "2.0".to_string(),
-            id: "req_01".to_string(),
-            method: "tools/call".to_string(),
-            params: OxideMcpParams {
-                name: "eda.route_differential_pair".to_string(),
-                arguments: EdaRouteDiffPairArgs {
-                    net_name: "USB_DP_DN".to_string(),
-                    impedance_ohms: 90.0,
-                    layer: "F.Cu".to_string(),
-                },
-                dtx_id: Some(dtx),
-            },
-        };
+    fn test_session_key_and_evidence_bundle() {
+        let session = SessionKey::new("faez@oxide-tech.io");
+        assert!(session.namespace.starts_with("u_"));
 
-        let json = serde_json::to_string(&req).expect("Failed to serialize");
-        assert!(json.contains("USB_DP_DN"));
-        assert!(json.contains(&dtx.to_string()));
+        let mut bundle = EvidenceBundle::new(DtxId::new_v7(), "sha256:abcd1234");
+        bundle.proofs.push(VerificationProof {
+            proof_id: uuid::Uuid::now_v7(),
+            kind: ProofKind::DifferentialFuzz {
+                iterations: 10000,
+                match_rate: 1.0,
+            },
+            is_formal: true,
+            passed: true,
+            details: serde_json::json!({ "fuzz_target": "lifted_cuda_gemm" }),
+        });
+        let hash = bundle.compute_content_hash();
+        assert_eq!(hash.len(), 64);
     }
 }
