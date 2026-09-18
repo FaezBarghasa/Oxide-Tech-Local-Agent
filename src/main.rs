@@ -385,6 +385,45 @@ fn run_reforge_command(
         .unwrap_or_default()
         .to_lowercase();
 
+    if ext == "bin" || ext == "hex" || arch == "arm" || arch == "cortex-m" {
+        // Raw Embedded / Firmware Binary Analysis
+        let buffer = std::fs::read(&file_path).context("Failed to read firmware image")?;
+        println!("  Target Domain       : Embedded Firmware / Microcontroller");
+        println!("  Image Size          : {} bytes", buffer.len());
+
+        // 1. Vector Table
+        if let Some(ivt) = re_forge::ArmVectorTable::parse(&buffer, 0x0800_0000) {
+            println!("  [+] ARM Cortex-M Interrupt Vector Table:");
+            println!("      Initial SP      : 0x{:08X}", ivt.initial_sp);
+            println!("      Reset Handler   : 0x{:08X}", ivt.reset_handler);
+            println!("      HardFault       : 0x{:08X}", ivt.hardfault_handler);
+            println!("      SysTick Handler : 0x{:08X}", ivt.systick_handler);
+            println!("      Active IRQs     : {}", ivt.external_irqs.len());
+        }
+
+        // 2. RTOS & Runtime Detection
+        let rtos = re_forge::RtosDetector::detect(&buffer);
+        if let Some(name) = rtos.detected_rtos {
+            println!("  [+] Inferred Runtime : {} (Confidence: {:.0}%)", name, rtos.confidence * 100.0);
+            for sig in rtos.signatures_found {
+                println!("      - {}", sig);
+            }
+        } else {
+            println!("  [+] Inferred Runtime : Bare-metal / no_std Superloop");
+        }
+
+        // 3. Shannon Entropy Scan
+        let entropy_chunks = re_forge::EntropyScanner::scan(&buffer, 4096);
+        let avg_entropy: f64 = if !entropy_chunks.is_empty() {
+            entropy_chunks.iter().map(|c| c.entropy).sum::<f64>() / entropy_chunks.len() as f64
+        } else {
+            0.0
+        };
+        println!("  [+] Shannon Entropy  : {:.2} / 8.0 (Avg across {} blocks)", avg_entropy, entropy_chunks.len());
+
+        return Ok(());
+    }
+
     if ext == "ptx" || arch == "cuda" {
         // PTX GPU Analysis
         let ptx_content =
