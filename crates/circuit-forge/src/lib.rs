@@ -1,11 +1,13 @@
 use thiserror::Error;
 
 pub mod builder;
+pub mod drc;
 pub mod erc;
 pub mod kicad_serializer;
 pub mod netlist;
 
 pub use builder::{CircuitBuilder, CircuitCommand, CircuitScript};
+pub use drc::{DrcError, DrcReport, DrcViolation, KiCadDrcRunner, ManufacturerDeck};
 pub use erc::{ErcReport, TopologyIssue, run_erc};
 pub use kicad_serializer::{calculate_grid_layout, serialize_to_kicad_sch};
 pub use netlist::{CircuitGraph, NetlistNode, PinConnection};

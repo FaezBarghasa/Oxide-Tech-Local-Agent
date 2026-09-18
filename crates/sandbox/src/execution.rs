@@ -74,7 +74,17 @@ impl SandboxSpec {
             .unwrap_or(false);
 
         if bwrap_available {
-            self.execute_bwrap(cmd, work_dir).await
+            match self.execute_bwrap(cmd, work_dir).await {
+                Ok(res) if res.exit_code == 0 => Ok(res),
+                Ok(res) => {
+                    tracing::warn!("bwrap exited with code {}, falling back to native sandbox", res.exit_code);
+                    self.execute_native(cmd, work_dir).await
+                }
+                Err(e) => {
+                    tracing::warn!("bwrap failed ({}), falling back to native sandbox", e);
+                    self.execute_native(cmd, work_dir).await
+                }
+            }
         } else {
             self.execute_native(cmd, work_dir).await
         }
