@@ -60,10 +60,10 @@ impl SassAdapter {
                 arch: "sm_90".to_string(),
                 kernel_name: "gemm_wmma_kernel".to_string(),
                 instructions: vec![
-                    SassInstruction { offset: 0x00, opcode: "LDG.E".to_string(), operands: "R0, [R2]" },
-                    SassInstruction { offset: 0x10, opcode: "HMMA.16816.F32".to_string(), operands: "R4, R0, R1, R4" },
-                    SassInstruction { offset: 0x20, opcode: "STG.E".to_string(), operands: "[R6], R4" },
-                    SassInstruction { offset: 0x30, opcode: "EXIT".to_string(), operands: "" },
+                    SassInstruction { offset: 0x00, opcode: "LDG.E".to_string(), operands: "R0, [R2]".to_string() },
+                    SassInstruction { offset: 0x10, opcode: "HMMA.16816.F32".to_string(), operands: "R4, R0, R1, R4".to_string() },
+                    SassInstruction { offset: 0x20, opcode: "STG.E".to_string(), operands: "[R6], R4".to_string() },
+                    SassInstruction { offset: 0x30, opcode: "EXIT".to_string(), operands: "".to_string() },
                 ],
                 is_external_tool: true,
             });

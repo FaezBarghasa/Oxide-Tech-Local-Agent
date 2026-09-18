@@ -43,6 +43,20 @@ impl std::str::FromStr for OperatingProfile {
     }
 }
 
+impl OperatingProfile {
+    pub fn allows_online_grpo(&self) -> bool {
+        matches!(self, OperatingProfile::Pro | OperatingProfile::Enterprise | OperatingProfile::AirGapped)
+    }
+
+    pub fn allows_multi_user(&self) -> bool {
+        !matches!(self, OperatingProfile::Lite)
+    }
+
+    pub fn allows_custom_tool_synthesis(&self) -> bool {
+        !matches!(self, OperatingProfile::Lite)
+    }
+}
+
 // ── Top-level config ─────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize, Clone)]
