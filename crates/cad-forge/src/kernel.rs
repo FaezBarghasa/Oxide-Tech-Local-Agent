@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use crate::dsl::BoolOp;
-use crate::voxelizer::VoxelGrid;
 
 #[derive(Debug, Error)]
 pub enum CadKernelError {
@@ -11,6 +9,13 @@ pub enum CadKernelError {
     OcctError(String),
     #[error("Constraint solver failed to converge")]
     ConvergenceFailed,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BooleanOpKind {
+    Union,
+    Difference,
+    Intersection,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,7 +66,7 @@ pub enum MeasureQuery {
 pub trait GeometryKernel: Send + Sync {
     fn extrude(&self, sketch: &Sketch, d: f64) -> Result<Body, CadKernelError>;
     fn revolve(&self, sketch: &Sketch, axis: Axis, angle_deg: f64) -> Result<Body, CadKernelError>;
-    fn boolean(&self, op: BoolOp, a: &Body, b: &Body) -> Result<Body, CadKernelError>;
+    fn boolean(&self, op: BooleanOpKind, a: &Body, b: &Body) -> Result<Body, CadKernelError>;
     fn tessellate(&self, b: &Body, tol: f64) -> Result<Mesh, CadKernelError>;
     fn measure(&self, b: &Body, q: MeasureQuery) -> Result<f64, CadKernelError>;
 }
@@ -131,11 +136,11 @@ impl GeometryKernel for PolyBackend {
         })
     }
 
-    fn boolean(&self, op: BoolOp, a: &Body, b: &Body) -> Result<Body, CadKernelError> {
+    fn boolean(&self, op: BooleanOpKind, a: &Body, b: &Body) -> Result<Body, CadKernelError> {
         let volume = match op {
-            BoolOp::Union => a.volume_mm3 + b.volume_mm3,
-            BoolOp::Difference => (a.volume_mm3 - b.volume_mm3).max(0.0),
-            BoolOp::Intersection => a.volume_mm3.min(b.volume_mm3),
+            BooleanOpKind::Union => a.volume_mm3 + b.volume_mm3,
+            BooleanOpKind::Difference => (a.volume_mm3 - b.volume_mm3).max(0.0),
+            BooleanOpKind::Intersection => a.volume_mm3.min(b.volume_mm3),
         };
 
         Ok(Body {
@@ -205,7 +210,7 @@ impl GeometryKernel for OcctBackend {
         PolyBackend::default().revolve(sketch, axis, angle_deg)
     }
 
-    fn boolean(&self, op: BoolOp, a: &Body, b: &Body) -> Result<Body, CadKernelError> {
+    fn boolean(&self, op: BooleanOpKind, a: &Body, b: &Body) -> Result<Body, CadKernelError> {
         PolyBackend::default().boolean(op, a, b)
     }
 
@@ -240,7 +245,7 @@ mod tests {
         assert_eq!(body_a.volume_mm3, 500.0);
 
         let body_b = backend.extrude(&sketch, 2.0).unwrap();
-        let union_body = backend.boolean(BoolOp::Union, &body_a, &body_b).unwrap();
+        let union_body = backend.boolean(BooleanOpKind::Union, &body_a, &body_b).unwrap();
         assert_eq!(union_body.volume_mm3, 700.0);
     }
 }
