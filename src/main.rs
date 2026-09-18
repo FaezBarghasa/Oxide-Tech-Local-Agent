@@ -233,6 +233,8 @@ fn run_doctor_command(json_output: bool) -> Result<()> {
         check_system_tool("probe-rs (STM32/ARM)", "probe-rs", false),
         check_system_tool("QEMU x86_64", "qemu-system-x86_64", false),
         check_system_tool("KiCad CLI (EDA)", "kicad-cli", false),
+        check_system_tool("Ngspice (Electrical Sim)", "ngspice", false),
+        check_system_tool("nvdisasm (CUDA Disasm)", "nvdisasm", false),
         // 3. Inference & Accelerators
         check_system_tool("Ollama (Local LLM)", "ollama", false),
     ];

@@ -223,10 +223,14 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
     spec.execute(cmd, work_dir).await
 }
 
-pub async fn execute_wasm_sandbox(wasm_path: &Path) -> Result<ExecutionResult, String> {
-    info!("Executing Wasm sandbox for {:?}", wasm_path);
-    if !wasm_path.exists() {
-        return Err(format!("Wasm binary does not exist at {:?}", wasm_path));
+pub async fn execute_wasm_sandbox(
+    wasm_bytes: &[u8],
+    _inputs: &[u8],
+    _fuel: u64,
+) -> Result<ExecutionResult, String> {
+    info!("Executing Wasm sandbox for {} bytes", wasm_bytes.len());
+    if wasm_bytes.is_empty() {
+        return Err("Wasm binary is empty".to_string());
     }
     Ok(ExecutionResult {
         exit_code: 0,

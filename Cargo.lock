@@ -4731,6 +4731,7 @@ name = "model-trainer"
 version = "0.1.0"
 dependencies = [
  "agent-journal",
+ "async-trait",
  "blake3",
  "chrono",
  "oxide-protocol",
