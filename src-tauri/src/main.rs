@@ -422,11 +422,13 @@ fn run_status(gateway_url: &str) {
 
 fn main() {
     let raw: Vec<String> = std::env::args().skip(1).collect();
-    if raw.iter().any(|a| a == "-h" || a == "--help" || a == "help") {
+    // Top-level help/version only when no subcommand precedes them, so
+    // `memory search --help` still reaches oxide-embed's own help.
+    if raw.is_empty() || matches!(raw[0].as_str(), "-h" | "--help" | "help") {
         println!("{}", usage());
         return;
     }
-    if raw.iter().any(|a| a == "-V" || a == "--version" || a == "version") {
+    if matches!(raw[0].as_str(), "-V" | "--version" | "version") {
         println!("oxide-tech-local-agent {VERSION}");
         return;
     }

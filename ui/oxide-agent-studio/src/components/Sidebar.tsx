@@ -115,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
           <div>
             <div className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">
-              oxide-agent-studio
+              Oxide-tech-local-agent
             </div>
             <div className="text-[10px] text-gray-400 font-mono">
               Unsloth · SGLang TP=2

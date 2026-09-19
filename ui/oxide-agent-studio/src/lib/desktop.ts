@@ -148,4 +148,25 @@ export const desktop = {
       hops: opts.hops ?? null,
     });
   },
+
+  async memoryConflicts(cwd?: string): Promise<EmbedResult> {
+    if (!isTauriRuntime()) throw new Error('memory conflicts requires the desktop app');
+    return tauriInvoke<EmbedResult>('memory_conflicts', { cwd: cwd ?? null });
+  },
+
+  /** STAIR Code-ToC search + pack results as chat context prefix. Returns injected prefix (empty when disabled/unavailable). */
+  async injectStairContext(prompt: string, opts: { cwd?: string; budget?: number; limit?: number } = {}): Promise<{ prefix: string; breadcrumbs: string[]; tokens: number }> {
+    if (!isTauriRuntime()) return { prefix: '', breadcrumbs: [], tokens: 0 };
+    try {
+      const res = await this.memorySearch(prompt, { cwd: opts.cwd, stair: true, limit: opts.limit ?? 5, budget: opts.budget ?? 1500, withGraph: true });
+      const text = embedText(res);
+      const lines = text.split('\n').filter((l) => l.trim()).slice(0, opts.limit ?? 5);
+      const prefix = lines.length
+        ? `[STAIR Code-ToC context, budget ${opts.budget ?? 1500} tokens]\n${lines.join('\n')}\n---\n`
+        : '';
+      return { prefix, breadcrumbs: lines, tokens: prefix.length >> 2 };
+    } catch {
+      return { prefix: '', breadcrumbs: [], tokens: 0 };
+    }
+  },
 };

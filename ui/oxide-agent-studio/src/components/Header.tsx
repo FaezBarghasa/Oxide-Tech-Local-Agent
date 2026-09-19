@@ -28,7 +28,7 @@ const tabInfo: Record<TabId, { title: string; subtitle: string; category: string
 };
 
 export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onNewSession, onQuickDeploy }) => {
-  const current = tabInfo[currentTab] || { title: 'oxide-agent-studio', subtitle: '', category: 'Workspace' };
+  const current = tabInfo[currentTab] || { title: 'Oxide-tech-local-agent', subtitle: '', category: 'Workspace' };
 
   // Sub-navigation configurations
   const tuningTabs = [

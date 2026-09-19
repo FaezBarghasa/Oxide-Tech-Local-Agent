@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMode, ChatMessage } from '../types';
+import { desktop } from '../lib/desktop';
 import {
   MessageSquare,
   Code2,
@@ -27,6 +28,9 @@ export const ChatTab: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [stairContext, setStairContext] = useState(true);
+  const [stairBudget] = useState(1500);
+  const [stairInfo, setStairInfo] = useState<{ tokens: number; crumbs: number } | null>(null);
   const [expandedThoughts, setExpandedThoughts] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -86,11 +90,21 @@ export const ChatTab: React.FC = () => {
     setIsLoading(true);
 
     try {
+      let stairPrefix = '';
+      if (stairContext) {
+        try {
+          const packed = await desktop.injectStairContext(textToSend.trim(), { budget: stairBudget });
+          stairPrefix = packed.prefix;
+          setStairInfo({ tokens: packed.tokens, crumbs: packed.breadcrumbs.length });
+        } catch {
+          setStairInfo(null);
+        }
+      }
       const response = await fetch('/api/gemini/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: textToSend.trim(),
+          message: `${stairPrefix}${textToSend.trim()}`,
           mode,
           history: messages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
         }),
@@ -387,7 +401,24 @@ export const ChatTab: React.FC = () => {
               <button className="p-1 hover:text-white rounded transition cursor-pointer" title="Agent Settings">
                 <Settings className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[10px] mono text-gray-500 ml-auto">
+              <button
+                onClick={() => setStairContext((v) => !v)}
+                title="Toggle STAIR Code-ToC context packing via oxide-embed"
+                className={`ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] mono transition cursor-pointer ${
+                  stairContext
+                    ? 'text-orange-300 border-orange-500/30 bg-orange-500/10'
+                    : 'text-gray-500 border-[#262838] bg-transparent'
+                }`}
+              >
+                <BrainCircuit className="w-3 h-3" />
+                STAIR Context {stairContext ? 'ON' : 'OFF'}
+                {stairInfo && stairContext && (
+                  <span className="text-gray-400">
+                    · ~{stairInfo.tokens} tok · {stairInfo.crumbs} crumbs · {stairBudget} budget
+                  </span>
+                )}
+              </button>
+              <span className="text-[10px] mono text-gray-500">
                 Shift + Enter for new line
               </span>
             </div>
