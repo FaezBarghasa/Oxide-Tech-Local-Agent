@@ -1,5 +1,5 @@
 [package]
-name = "oxide-agent"
+name = "oxide-tech-local-agent"
 version = "0.5.0"
 edition = "2024"
 description = "Oxide-Tech Local Agent OS — single-binary Tauri desktop (embedded gateway + oxide-embed memory + studio UI)"
@@ -8,10 +8,10 @@ authors = ["Oxide-Tech Systems Engineering"]
 homepage = "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent"
 repository = "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent"
 rust-version = "1.85"
-default-run = "oxide-agent"
+default-run = "oxide-tech-local-agent"
 
 [[bin]]
-name = "oxide-agent"
+name = "oxide-tech-local-agent"
 path = "src/main.rs"
 
 [dependencies]
@@ -26,6 +26,10 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 gateway = { path = "../workspace/gateway" }
 common = { path = "../workspace/common" }
+re-forge = { path = "../crates/re-forge" }
+verifier = { path = "../workspace/verifier" }
+config-loader = { path = "../crates/config-loader" }
+mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

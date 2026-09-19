@@ -6726,24 +6726,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oxide-agent"
-version = "0.5.0"
-dependencies = [
- "anyhow",
- "common",
- "gateway",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-opener",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oxide-protocol"
 version = "0.1.0"
 dependencies = [
@@ -6756,6 +6738,28 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "oxide-tech-local-agent"
+version = "0.5.0"
+dependencies = [
+ "anyhow",
+ "common",
+ "config-loader",
+ "gateway",
+ "mimalloc",
+ "re-forge",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-opener",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "verifier",
 ]
 
 [[package]]

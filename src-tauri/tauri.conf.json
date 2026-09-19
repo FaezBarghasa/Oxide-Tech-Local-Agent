@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Oxide Agent",
+  "productName": "Oxide-tech-local-agent",
   "version": "0.5.0",
   "identifier": "com.oxide-tech.local-agent",
   "build": {
@@ -41,7 +41,7 @@
     "category": "DeveloperTool",
     "publisher": "Oxide-Tech Engineering <contact@oxide-tech.local>",
     "homepage": "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent",
-    "shortDescription": "Local-first deterministic agent OS for systems, embedded, EDA and reverse engineering",
+    "shortDescription": "Oxide-tech-local-agent: Local-first deterministic agent OS for systems, embedded, EDA and reverse engineering",
     "longDescription": "Oxide-Tech Local Agent OS is a local-first, high-performance, self-evolving cognitive operating system for systems and hardware engineering. This single binary runs the full stack: embedded gateway and control plane, oxide-embed project memory fabric, and the Oxide Agent Studio desktop UI. No separate services to install.",
     "linux": {
       "deb": {
