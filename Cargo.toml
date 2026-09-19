@@ -157,6 +157,8 @@ re-forge = { path = "crates/re-forge" }
 verifier = { path = "workspace/verifier" }
 model-trainer = { path = "crates/model-trainer" }
 reqwest = { workspace = true }
+tauri = "2.11.5"
+tauri-cli = "2.11.4"
 
 [profile.release]
 opt-level = 3            # Enable maximum performance optimizations
