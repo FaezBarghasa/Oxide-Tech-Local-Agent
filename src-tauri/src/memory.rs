@@ -39,8 +39,10 @@ fn candidate_paths() -> Vec<PathBuf> {
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
             out.push(dir.join("oxide-embed"));
+            out.push(dir.join("binaries").join("oxide-embed"));
         }
     }
+    out.push(PathBuf::from("/usr/lib/oxide-tech-local-agent/oxide-embed"));
     out.push(PathBuf::from("/usr/lib/oxide-agent/oxide-embed"));
     out.push(PathBuf::from("/usr/bin/oxide-embed"));
     out
