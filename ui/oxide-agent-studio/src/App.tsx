@@ -16,6 +16,7 @@ import { SglangTab } from './components/SglangTab';
 import { EndpointsTab } from './components/EndpointsTab';
 import { VerificationTab } from './components/VerificationTab';
 import { KnowledgeGraphTab } from './components/KnowledgeGraphTab';
+import { MemoryTab } from './components/MemoryTab';
 import { GraphTopologyTab } from './components/GraphTopologyTab';
 import { HardwareClusterStatus } from './components/HardwareClusterStatus';
 
@@ -60,6 +61,7 @@ export default function App() {
           {currentTab === 'chat' && <ChatTab />}
           {currentTab === 'overview' && <OverviewTab onNavigateTab={setCurrentTab} />}
           {currentTab === 'graph' && <GraphTopologyTab />}
+          {currentTab === 'memory' && <MemoryTab />}
           {currentTab === 'infra' && <InfraTab />}
           {currentTab === 'grpc' && <GrpcBridgeTab />}
           {currentTab === 'rag' && <RagPipelineTab />}

@@ -1,15 +1,18 @@
 {
-  "name": "react-example",
+  "name": "oxide-agent-studio",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
+    "dev:tauri": "vite --port 1420 --strictPort",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build:tauri": "vite build",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",

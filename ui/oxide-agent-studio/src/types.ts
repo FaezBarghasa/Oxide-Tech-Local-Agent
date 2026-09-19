@@ -2,6 +2,7 @@ export type TabId =
   | 'chat'
   | 'overview'
   | 'graph'
+  | 'memory'
   | 'infra'
   | 'grpc'
   | 'rag'

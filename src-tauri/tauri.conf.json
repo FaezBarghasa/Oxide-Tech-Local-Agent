@@ -1,0 +1,67 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Oxide Agent",
+  "version": "0.5.0",
+  "identifier": "com.oxide-tech.local-agent",
+  "build": {
+    "frontendDist": "../ui/oxide-agent-studio/dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm --dir ui/oxide-agent-studio dev:tauri",
+    "beforeBuildCommand": "pnpm --dir ui/oxide-agent-studio build:tauri"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Oxide Agent — Local Agent OS",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1100,
+        "minHeight": 700,
+        "center": true,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "externalBin": ["binaries/oxide-embed"],
+    "category": "DeveloperTool",
+    "publisher": "Oxide-Tech Engineering <contact@oxide-tech.local>",
+    "homepage": "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent",
+    "shortDescription": "Local-first deterministic agent OS for systems, embedded, EDA and reverse engineering",
+    "longDescription": "Oxide-Tech Local Agent OS is a local-first, high-performance, self-evolving cognitive operating system for systems and hardware engineering. This single binary runs the full stack: embedded gateway and control plane, oxide-embed project memory fabric, and the Oxide Agent Studio desktop UI. No separate services to install.",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1 | libappindicator3-1",
+          "librsvg2-2",
+          "libssl3 | libssl1.1",
+          "ca-certificates",
+          "bubblewrap"
+        ],
+        "section": "utils",
+        "priority": "optional",
+        "provides": ["oxide-agent"],
+        "replaces": ["oxide-tech-local-agent"]
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  }
+}

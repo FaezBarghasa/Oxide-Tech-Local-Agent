@@ -1,0 +1,34 @@
+[package]
+name = "oxide-agent"
+version = "0.5.0"
+edition = "2024"
+description = "Oxide-Tech Local Agent OS — single-binary Tauri desktop (embedded gateway + oxide-embed memory + studio UI)"
+license = "MIT"
+authors = ["Oxide-Tech Systems Engineering"]
+homepage = "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent"
+repository = "https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent"
+rust-version = "1.85"
+default-run = "oxide-agent"
+
+[[bin]]
+name = "oxide-agent"
+path = "src/main.rs"
+
+[dependencies]
+tauri = { version = "2.11.5", features = [] }
+tauri-plugin-opener = "2"
+tokio = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+gateway = { path = "../workspace/gateway" }
+common = { path = "../workspace/common" }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+# Release tuning (opt-level, LTO, strip) is inherited from the workspace root
+# [profile.release]; per-package profiles are ignored in a workspace.

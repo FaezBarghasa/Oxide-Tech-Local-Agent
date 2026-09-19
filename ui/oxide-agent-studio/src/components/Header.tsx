@@ -13,6 +13,7 @@ const tabInfo: Record<TabId, { title: string; subtitle: string; category: string
   chat: { title: 'AI Assistant', subtitle: 'Fast local agent with tools & firmware synthesis', category: 'Chat' },
   overview: { title: 'Overview & Plan', subtitle: '7-phase deep plan & dual RTX 3090 telemetry', category: 'Overview' },
   graph: { title: 'Knowledge Graph', subtitle: 'Interactive relational topology of all hardware & firmware projects', category: 'Projects' },
+  memory: { title: 'Project Memory', subtitle: 'oxide-embed semantic memory: search, recall, remember & context packs', category: 'Projects' },
   training: { title: 'Unsloth GRPO RLVR', subtitle: '5x faster reinforcement learning with verifiable compiler rewards', category: 'Tuning' },
   catalog: { title: 'Model Catalog & VRAM', subtitle: 'Model memory profiling & 4-bit / 16-bit fit calculator', category: 'Tuning' },
   dataset: { title: 'Dataset Recipes', subtitle: 'Visual recipe studio for synthetic multi-source data', category: 'Tuning' },

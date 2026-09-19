@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17181f"/>
+      <stop offset="1" stop-color="#0b0c10"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#bg)"/>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="none" stroke="#2a2d3a" stroke-width="10"/>
+  <g fill="none" stroke="url(#ring)" stroke-width="64" stroke-linejoin="round">
+    <polygon points="512,238 748,374 748,650 512,786 276,650 276,374"/>
+  </g>
+  <circle cx="512" cy="512" r="72" fill="url(#ring)"/>
+  <g stroke="#fbbf24" stroke-width="22" stroke-linecap="round" opacity="0.9">
+    <line x1="512" y1="150" x2="512" y2="206"/>
+    <line x1="512" y1="818" x2="512" y2="874"/>
+    <line x1="162" y1="512" x2="218" y2="512"/>
+    <line x1="806" y1="512" x2="862" y2="512"/>
+  </g>
+</svg>

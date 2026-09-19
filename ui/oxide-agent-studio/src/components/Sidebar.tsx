@@ -4,6 +4,7 @@ import {
   MessageSquare,
   LayoutDashboard,
   Network,
+  Brain,
   Zap,
   Layers,
   Cpu,
@@ -51,6 +52,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       icon: Network,
       active: currentTab === 'graph',
       badge: 'SurrealDB v3',
+      badgeColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
+    },
+    {
+      id: 'memory' as TabId,
+      label: 'Project Memory',
+      desc: 'oxide-embed search & recall',
+      icon: Brain,
+      active: currentTab === 'memory',
+      badge: 'oxide-embed',
       badgeColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
     },
     {

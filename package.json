@@ -1,4 +1,12 @@
 {
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "sidecar": "bash scripts/fetch-sidecar.sh",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "bash scripts/fetch-sidecar.sh && tauri build --bundles deb"
+  },
   "dependencies": {
     "@tauri-apps/api": "2.11.1",
     "@tauri-apps/cli": "2.11.4"

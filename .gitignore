@@ -1,2 +1,5 @@
 /target
 .fastembed_cache/
+# Tauri bundler inputs regenerated at build time (70MB+ sidecar copy)
+/src-tauri/binaries/
+/src-tauri/target/
