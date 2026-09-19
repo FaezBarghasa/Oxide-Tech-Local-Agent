@@ -15,12 +15,20 @@
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+mod doctor;
 mod gateway_rt;
+mod hardware_ipc;
 mod memory;
+mod reforge_ipc;
+mod verifier_ipc;
 
 use anyhow::{Context, Result};
+use doctor::{DoctorResult, UdevInstallResult};
+use hardware_ipc::{ChipInfoDto, FlashRequest, FlashResult, ProbeDevicesResult};
+use reforge_ipc::{ReforgeRequest, ReforgeResult};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use verifier_ipc::{EvidenceBundleDto, VerifierRequest, VerifierResult};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const DEFAULT_GATEWAY_URL: &str = "http://127.0.0.1:8080";
@@ -61,6 +69,7 @@ fn run_desktop(config: Option<String>) {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            // Memory / oxide-embed
             memory::memory_env,
             memory::memory_status,
             memory::memory_init,
@@ -70,6 +79,27 @@ fn run_desktop(config: Option<String>) {
             memory::memory_remember,
             memory::memory_recall,
             memory::memory_explain,
+            // Doctor diagnostics
+            doctor_run_diagnostics,
+            doctor_install_udev_rules,
+            // RE-Forge binary/PTX analysis
+            reforge_analyze_file,
+            // Verifier suite & evidence bundles
+            verifier_run_suite,
+            verifier_export_evidence,
+            // Hardware / probe-rs
+            probe_rs_list_devices,
+            probe_rs_get_chip_info,
+            probe_rs_flash_firmware,
+            // Gateway daemon control
+            gateway_daemon_start,
+            gateway_daemon_stop,
+            gateway_daemon_restart,
+            gateway_daemon_logs,
+            // Config
+            config_load,
+            config_save,
+            // Legacy
             gateway_status,
         ])
         .run(tauri::generate_context!())
@@ -80,6 +110,99 @@ fn run_desktop(config: Option<String>) {
 async fn gateway_status(base_url: Option<String>) -> Result<u16, String> {
     let base = base_url.unwrap_or_else(|| DEFAULT_GATEWAY_URL.to_string());
     gateway_rt::probe_gateway(&base, 3).await
+}
+
+// ── Tauri Command Handlers ────────────────────────────────────────────────
+
+#[tauri::command]
+async fn doctor_run_diagnostics() -> Result<DoctorResult, String> {
+    doctor::run_diagnostics().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn doctor_install_udev_rules() -> Result<UdevInstallResult, String> {
+    doctor::install_udev_rules().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn reforge_analyze_file(request: ReforgeRequest) -> Result<ReforgeResult, String> {
+    reforge_ipc::analyze_file(request).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn verifier_run_suite(request: VerifierRequest) -> Result<VerifierResult, String> {
+    verifier_ipc::run_verifier_suite(request).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn verifier_export_evidence(export_path: String) -> Result<EvidenceBundleDto, String> {
+    verifier_ipc::export_evidence_bundle(export_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn probe_rs_list_devices() -> Result<ProbeDevicesResult, String> {
+    hardware_ipc::list_probe_devices().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn probe_rs_get_chip_info(device_identifier: String) -> Result<ChipInfoDto, String> {
+    hardware_ipc::get_chip_info(device_identifier).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn probe_rs_flash_firmware(request: FlashRequest) -> Result<FlashResult, String> {
+    hardware_ipc::flash_firmware(request).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn gateway_daemon_start(config: Option<String>) -> Result<String, String> {
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(8)
+        .thread_name("oxide-gateway-worker")
+        .enable_all()
+        .build()
+        .map_err(|e| e.to_string())?;
+    rt.spawn(async move {
+        if let Err(e) = gateway_rt::run_headless(config.as_deref()).await {
+            tracing::error!("Gateway daemon error: {:?}", e);
+        }
+    });
+    Ok("Gateway daemon started".to_string())
+}
+
+#[tauri::command]
+async fn gateway_daemon_stop() -> Result<String, String> {
+    // In a real implementation, this would signal the gateway to stop
+    Ok("Gateway daemon stop requested (not fully implemented)".to_string())
+}
+
+#[tauri::command]
+async fn gateway_daemon_restart(config: Option<String>) -> Result<String, String> {
+    let _ = gateway_daemon_stop().await;
+    gateway_daemon_start(config).await
+}
+
+#[tauri::command]
+async fn gateway_daemon_logs() -> Result<Vec<String>, String> {
+    // Return recent log entries - placeholder implementation
+    Ok(vec!["[INFO] Gateway daemon log stream would appear here".to_string()])
+}
+
+#[tauri::command]
+async fn config_load() -> Result<String, String> {
+    let config_path = std::env::var("OXIDE_CONFIG")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("/etc/oxide-tech/config.toml"));
+    std::fs::read_to_string(config_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn config_save(content: String) -> Result<String, String> {
+    let config_path = std::env::var("OXIDE_CONFIG")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("/etc/oxide-tech/config.toml"));
+    std::fs::write(config_path, content).map_err(|e| e.to_string())?;
+    Ok("Configuration saved".to_string())
 }
 
 #[derive(serde::Serialize)]

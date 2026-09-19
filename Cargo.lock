@@ -6745,6 +6745,7 @@ name = "oxide-tech-local-agent"
 version = "0.5.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "common",
  "config-loader",
  "gateway",

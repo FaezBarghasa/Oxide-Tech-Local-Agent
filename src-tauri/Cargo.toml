@@ -24,12 +24,18 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+chrono = { version = "0.4", features = ["serde"] }
 gateway = { path = "../workspace/gateway" }
 common = { path = "../workspace/common" }
 re-forge = { path = "../crates/re-forge" }
 verifier = { path = "../workspace/verifier" }
 config-loader = { path = "../crates/config-loader" }
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
+probe-rs = { version = "0.32", features = ["stlink", "jlink", "cmsis-dap", "rtt", "ftdi", "debug-sequence"], optional = true }
+
+[features]
+default = []
+probe-rs = ["dep:probe-rs"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
