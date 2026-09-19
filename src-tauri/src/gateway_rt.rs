@@ -43,6 +43,18 @@ pub fn spawn_background(config_path: Option<String>) {
     std::thread::Builder::new()
         .name("oxide-gateway".to_string())
         .spawn(move || {
+            let rt_probe = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build();
+            if let Ok(rt) = rt_probe {
+                if let Ok(status) = rt.block_on(probe_gateway(crate::DEFAULT_GATEWAY_URL, 1)) {
+                    if status == 200 {
+                        tracing::info!("Oxide Gateway already active on {} (HTTP 200).", crate::DEFAULT_GATEWAY_URL);
+                        return;
+                    }
+                }
+            }
+
             let cfg = load_config(config_path.as_deref());
             let rt = tokio::runtime::Builder::new_multi_thread()
                 .worker_threads(8)
@@ -53,7 +65,7 @@ pub fn spawn_background(config_path: Option<String>) {
             match rt {
                 Ok(rt) => {
                     if let Err(e) = rt.block_on(async { gateway::run_gateway_server(cfg).await }) {
-                        tracing::error!("embedded gateway exited with error: {e:?}");
+                        tracing::warn!("embedded gateway status: {e:?}");
                     }
                 }
                 Err(e) => {
