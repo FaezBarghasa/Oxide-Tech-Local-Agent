@@ -1,15 +1,17 @@
 Package: oxide-tech-local-agent
 Version: @VERSION@
-Section: utils
+Section: devel
 Priority: optional
 Architecture: @ARCH@
 Maintainer: Oxide-Tech Engineering <contact@oxide-tech.local>
-Depends: libc6 (>= 2.34), libssl3 (>= 3.0.0) | libssl1.1, ca-certificates, bubblewrap
-Recommends: qdrant, git
+Depends: libc6 (>= 2.34), libssl3 (>= 3.0.0) | libssl1.1, ca-certificates, bubblewrap, libwebkit2gtk-4.1-0, libgtk-3-0, libayatana-appindicator3-1 | libappindicator3-1, librsvg2-2
+Provides: oxide-tech-local-agent, oxide-agent, oxide-gateway
+Replaces: oxide-agent, oxide-tech-local-agent
+Recommends: qdrant, git, probe-rs, ollama
 Suggests: nvidia-cuda-toolkit
 Homepage: https://github.com/FaezBarghasa/Oxide-Tech-Local-Agent
-Description: High-performance cognitive operating system and agent gateway
+Description: High-performance cognitive operating system, desktop studio and agent gateway
  Oxide-Tech Local Agent OS is a premier local-first, high-performance,
  self-evolving cognitive operating system for systems and hardware engineering.
- Features multi-modal code graph topology mapping, dynamic LoRA adapter hot-swapping,
- atomic sandbox execution, and tri-fold self-evolution.
+ Single universal binary delivers the Tauri desktop workstation, embedded
+ gateway, oxide-embed STAIR Code-ToC memory fabric, and RE-Forge reverse engineering.

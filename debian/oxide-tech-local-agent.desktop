@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Oxide-tech-local-agent
+GenericName=Local Agent OS & AI Engineering Workstation
+Comment=Local-first deterministic AI agent operating system for systems, embedded, EDA and reverse engineering
+Exec=/usr/bin/oxide-tech-local-agent %U
+Icon=oxide-tech-local-agent
+Terminal=false
+Type=Application
+Categories=Development;IDE;Utility;Science;Electronics;
+StartupNotify=true
+StartupWMClass=oxide-tech-local-agent
+Keywords=AI;Agent;Rust;Embedded;EDA;KiCad;STM32;LLM;Unsloth;
