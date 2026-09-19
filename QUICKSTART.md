@@ -74,6 +74,11 @@ Open **http://localhost:3000** to access Oxide Studio.
 oxide-agent re-forge path/to/binary --arch x86_64 --decompile
 ```
 
+### Polyglot to Rust Refactoring & Synthesis
+```bash
+oxide-agent forge-rust path/to/source.py --out ./refactored_rust --verify
+```
+
 ### Deterministic Verifier & Evidence Bundling
 ```bash
 oxide-agent verify --workspace . --export-evidence ./target/evidence

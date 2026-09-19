@@ -92,3 +92,37 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
 - **`POST /api/self-evolve/synthesize-tool`**:
   - Request: `{ "tool_name": "fast_crc32_simd", "language": "mojo", "script": "..." }`
   - Response: `{ "status": "verified", "sandbox": "bwrap", "mounted_path": "/tmp/jit_tools/fast_crc32_simd.mojo" }`
+
+---
+
+## 3. Polyglot to Rust Refactoring Endpoints (`crates/forge-rust`)
+
+### A. Refactor Codebase to Idiomatic Rust
+- **`POST /api/forge-rust/refactor`**:
+  - Request:
+    ```json
+    {
+      "source": "package main\n\ntype MotorState struct {\n    RPM int\n    Enabled bool\n}\n\nfunc (m *MotorState) SetSpeed(targetRPM int) error {\n    return nil\n}",
+      "module_name": "motor_ctrl",
+      "language_hint": "Go",
+      "verify_syntax": true,
+      "is_binary": false
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "source_language": "Go",
+      "rust_code": "pub struct MotorState {\n    pub rpm: isize,\n    pub enabled: bool,\n}\n\nimpl MotorState {\n    pub fn set_speed(&mut self, target_rpm: isize) -> Result<(), anyhow::Error> {\n        Ok(())\n    }\n}\n",
+      "files": {
+        "Cargo.toml": "[package]\nname = \"motor_ctrl\"\n...",
+        "src/lib.rs": "..."
+      }
+    }
+    ```
+
+### B. Language Detection & Inspection
+- **`POST /api/forge-rust/detect`**:
+  - Request: `{ "source": "#include <stdio.h>\nint main() { return 0; }", "file_path": "main.c" }`
+  - Response: `{ "detected_language": "C" }`
+

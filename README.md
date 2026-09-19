@@ -45,6 +45,7 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 ┌───────▼──────────────▼──────────────▼──────────────▼───────────▼──────┐
 │ Tool Execution & Domain Engineering Stack                             │
 │ - re-forge: Pure-Rust Binary RE (CPU + CUDA/cuDNN PTX/SASS)           │
+│ - forge-rust: Universal Polyglot to Idiomatic Rust 2024 Refactorer    │
 │ - circuit-forge: Schematic EDA ERC/DRC & KiCad S-Expr                 │
 │ - cad-forge: Parametric 3D CAD modeling & B-Rep kernel                │
 │ - cross-domain-verifier: Electro-Thermal-Mechanical Co-Simulation     │
@@ -67,6 +68,7 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | Crate | Directory | Purpose |
 |---|---|---|
 | **`oxide-protocol`** | `crates/oxide-protocol/` | Universal communication specification, JSON-RPC 2.0 schemas for EDA/CAD, and time-ordered UUIDv7 Distributed Transaction IDs (`DtxId`). |
+| **`forge-rust`** | `crates/forge-rust/` | Polyglot-to-Rust refactoring engine (C/C++, Python, TypeScript, Go, Java, Generic) lifting to UIR, converting ownership/errors/concurrency to idiomatic Rust 2024 with `syn` validation and Cargo crate scaffolding. |
 | **`cross-domain-verifier`** | `crates/cross-domain-verifier/` | Multi-physics electro-thermal-mechanical co-simulation loop (firmware duty cycle $\to$ PCB wattage $\to$ CAD thermal FEA mesh). |
 | **`re-forge`** | `crates/re-forge/` | Zero-copy pure-Rust CPU binary disassembler (`goblin`, `yaxpeax-arch`, `petgraph`) & GPU/CUDA cuDNN lifting (PTX parser, Tensor Core detection, neural decompilation to safe Rust and CUDA C++). |
 | **`circuit-forge`** | `crates/circuit-forge/` | EDA schematic builder, Electrical Rule Checking (ERC), topology analysis, and native KiCad S-expression serialization. |

@@ -4,6 +4,25 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v0.8.0-forge-rust] - 2026-09-19
+
+This milestone delivers the **Universal Polyglot-to-Rust Refactoring Engine (`crates/forge-rust`)**, providing automated AST lifting, semantic restructuring, safe ownership/error mapping, and crate scaffolding for converting arbitrary foreign codebases into idiomatic Rust 2024.
+
+### Major Upgrades & Enhancements
+
+#### 1. Universal Polyglot to Rust Refactoring Engine (`crates/forge-rust`)
+- **Multi-Language Frontends**: Implemented dedicated AST and pattern lifters for C/C++, Python, TypeScript/JavaScript, Go, and Generic procedural/OOP source code.
+- **Polyglot UIR**: Designed Universal Intermediate Representation (`UirModule`, `UirStruct`, `UirFunction`, `UirTrait`, `UirType`, `UirStmt`, `UirExpr`) capturing cross-language type semantics.
+- **Idiomatic Rust Refactoring Pipeline**:
+  - `NamingPass`: Normalizes identifiers into Rust casing (`snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`).
+  - `OwnershipPass`: Lifts raw pointers and garbage-collected references into safe Rust references (`&`, `&mut`), `Box<T>`, and `Arc<Mutex<T>>`.
+  - `ErrorHandlingPass`: Maps nullable types, errno codes, and exceptions into idiomatic `Result<T, E>` and `Option<T>` with `?` operator support.
+  - `CompositionPass`: Converts OOP inheritance and method receivers into struct `impl` blocks and traits.
+  - `ConcurrencyPass`: Analyzes async/await and goroutines to inject `tokio` dependencies.
+- **Syntax Validation & Scaffolding**: Built-in verification via `syn::parse_file` and full `Cargo.toml` / workspace crate generation.
+
+---
+
 ## [v0.7.0-modernization-2026] - 2026-09-15
 
 This milestone delivers the **2026 Agentic Architecture Modernization**, implementing Model Context Protocol (MCP) 2026 conformance, hybrid test-time compute routing, step-level invariant telemetry, GRPO reward tracking, AST-netlist coupling in GraphRAG, and deep-thinking trace visualization in Oxide Agent Studio.

@@ -83,12 +83,17 @@ graph TD
   - `code_function -> constrains -> cad_feature`
 - **Cross-Domain Context Packing (`cross_domain_packer.rs`)**: Packs Firmware AST, Electronics Netlists, and 3D CAD feature trees within LLM token budgets.
 
-### Layer 4: Multi-Physics Co-Simulation & Verification (`crates/cross-domain-verifier`)
+### Layer 4: Multi-Physics Co-Simulation & Verification (`crates/cross-domain-verifier` & `crates/forge-rust`)
 - **Electro-Thermal-Mechanical Loop**:
   1. Computes dynamic MCU wattage from firmware duty cycles.
   2. Evaluates PCB power density across copper layers.
   3. Simulates thermal dissipation over CAD enclosure meshes and material conductivities (Aluminum 6061, PETG, ABS).
   4. Automatically triggers heatsink fin and thermal via generation if silicon junction temperature exceeds $85^\circ\text{C}$.
+- **Polyglot Refactoring & Synthesis (`crates/forge-rust`)**:
+  - Ingests foreign language codebases (C/C++, Python, TypeScript, Go, Java, Generic).
+  - Normalizes syntax into a Polyglot Universal Intermediate Representation (UIR).
+  - Refactors memory layouts, error propagation, and concurrency models to safe, idiomatic Rust 2024.
+  - Automatically verifies syntax with `syn` and scaffolds complete Cargo workspaces.
 
 ### Layer 5 & 6: Distributed Transactions & Self-Evolution (`crates/oxide-protocol` & `crates/self-evolver`)
 - **The Oxide Protocol**: Standardized JSON-RPC 2.0 schemas for EDA and 3D CAD tools with time-ordered **UUIDv7 Distributed Transaction IDs (`DtxId`)** and automatic atomic rollbacks (`rollback_dtx`).

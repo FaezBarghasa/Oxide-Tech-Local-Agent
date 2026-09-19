@@ -147,3 +147,37 @@ This document details the step-by-step logic, runtime control loops, and executi
 [Tool Registration & Dynamic Mounting]
   - If self-test passes, mounts tool into active agent registry
 ```
+
+---
+
+## 8. Polyglot to Rust Refactoring Flow (`forge-rust`)
+
+```
+[Foreign Source Code (C/C++, Python, TypeScript, Go, Java, Generic)]
+                                │
+                                ▼
+[LanguageDetector (detector.rs)]
+  - Heuristic classifier (extensions, shebangs, syntax signatures)
+                                │
+                                ▼
+[LanguageLifter (src/lifter/*)]
+  - Translates foreign AST / regex tokens into Polyglot UIR
+                                │
+                                ▼
+[RefactorPipeline (src/refactor/*)]
+  - NamingPass: Enforces snake_case / PascalCase / SCREAMING_SNAKE_CASE
+  - OwnershipPass: Pointers & GC refs -> &, &mut, Box<T>, Arc<Mutex<T>>
+  - ErrorHandlingPass: -1/errno/exceptions -> Result<T, E> & Option<T>
+  - CompositionPass: Methods & classes -> struct impl blocks & traits
+  - ConcurrencyPass: Async / goroutines -> Tokio runtime integration
+                                │
+                                ▼
+[RustEmitter (emitter.rs)]
+  - Generates idiomatic Rust source code with formatted derives & imports
+                                │
+                                ▼
+[RustVerifier (verifier.rs) & ProjectScaffolder (scaffold.rs)]
+  - Validates syntax with syn::parse_file
+  - Generates Cargo.toml, src/lib.rs / src/main.rs, and README.md
+```
+
