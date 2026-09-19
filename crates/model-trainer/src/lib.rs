@@ -20,6 +20,10 @@ pub enum TrainerError {
     ProcessError(String),
     #[error("Adapter verification failed benchmark gate: {0}")]
     BenchmarkRegression(String),
+    #[error("Quantization error: {0}")]
+    QuantizationError(String),
+    #[error("GGUF conversion or export error: {0}")]
+    GgufError(String),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("Serialization error: {0}")]
@@ -27,10 +31,61 @@ pub enum TrainerError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GgufQuantType {
+    Q4_0,
+    Q4_K_M,
+    Q4_K_S,
+    Q5_0,
+    Q5_K_M,
+    Q8_0,
+    F16,
+    BF16,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum QLoraQuantMethod {
+    NF4,
+    FP4,
+    Gguf(GgufQuantType),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QLoraConfig {
+    pub quant_method: QLoraQuantMethod,
+    pub double_quant: bool,
+    pub compute_dtype: String,
+    pub target_modules: Vec<String>,
+    pub lora_dropout: f32,
+    pub export_gguf: bool,
+}
+
+impl Default for QLoraConfig {
+    fn default() -> Self {
+        Self {
+            quant_method: QLoraQuantMethod::NF4,
+            double_quant: true,
+            compute_dtype: "bfloat16".to_string(),
+            target_modules: vec![
+                "q_proj".to_string(),
+                "k_proj".to_string(),
+                "v_proj".to_string(),
+                "o_proj".to_string(),
+                "gate_proj".to_string(),
+                "up_proj".to_string(),
+                "down_proj".to_string(),
+            ],
+            lora_dropout: 0.05,
+            export_gguf: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TrainKind {
     Sft,
     Dpo,
     Grpo,
+    QLora,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +100,8 @@ pub struct TrainRequest {
     pub batch_size: u32,
     pub lora_rank: u32,
     pub lora_alpha: u32,
+    #[serde(default)]
+    pub qlora_config: Option<QLoraConfig>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,6 +110,7 @@ pub struct AdapterBuild {
     pub base_model: String,
     pub kind: TrainKind,
     pub weights_path: PathBuf,
+    pub gguf_adapter_path: Option<PathBuf>,
     pub checksum_blake3: String,
     pub created_at: DateTime<Utc>,
     pub metadata: serde_json::Value,
