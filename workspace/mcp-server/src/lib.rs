@@ -26,6 +26,7 @@ pub mod cad;
 pub mod embedded;
 pub mod foundation;
 pub mod knowledge_mcp;
+pub mod oxide_embed;
 pub mod pcb;
 pub mod verification;
 pub mod web;
@@ -1077,6 +1078,99 @@ impl McpServer {
         Parameters(input): Parameters<ExperienceInput>,
     ) -> Result<CallToolResult, McpError> {
         verification::experience_learning_extract(&input.task_outcome, &self.surreal)
+            .await
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+            .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    // ── Oxide-Embed Tools ────────────────────────────────────────────────────────
+
+    #[tool(description = "STAIR (Structure-Aware Information Retriever) hierarchical Code-ToC search")]
+    async fn oxide_stair_search(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideStairSearchInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::stair_search(&input.query, input.limit, &self.workspace_root)
+            .await
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+            .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Synthesize token-budgeted cognitive context for a task (rules + active handoff + 2-hop GraphRAG)")]
+    async fn oxide_context(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideContextInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::context(&input.task, input.budget, &self.workspace_root)
+            .await
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+            .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Search code symbols and knowledge graph with optional budget limit")]
+    async fn oxide_search(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideSearchInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::search(&input.query, input.budget, input.with_graph, &self.workspace_root)
+            .await
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+            .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Store a typed semantic memory (instruction, decision, preference, fact, goal, learning, etc.) in the project's long-term memory")]
+    async fn oxide_remember(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideRememberInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::remember(
+            &input.content,
+            input.kind.as_deref(),
+            input.tags.as_deref(),
+            input.symbol.as_deref(),
+            input.auto_resolve,
+            &self.workspace_root,
+        )
+        .await
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+        .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Recall typed semantic memories with category, vector similarity, and temporal filters")]
+    async fn oxide_recall(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideRecallInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::recall(
+            &input.query,
+            input.kind.as_deref(),
+            input.tags.as_deref(),
+            input.budget,
+            input.limit,
+            &self.workspace_root,
+        )
+        .await
+        .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+        .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Explain a symbol's multi-hop call graph and documentation topology")]
+    async fn oxide_explain(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideExplainInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::explain(&input.symbol, input.hops, &self.workspace_root)
+            .await
+            .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
+            .map_err(|e| McpError::internal_error(e, None))
+    }
+
+    #[tool(description = "Surgically read only the exact AST symbol definition and docstring from a file")]
+    async fn oxide_read_symbol(
+        &self,
+        Parameters(input): Parameters<oxide_embed::OxideReadSymbolInput>,
+    ) -> Result<CallToolResult, McpError> {
+        oxide_embed::read_symbol(&input.file_path, &input.symbol, &self.workspace_root)
             .await
             .map(|r| CallToolResult::success(vec![ContentBlock::text(r)]))
             .map_err(|e| McpError::internal_error(e, None))

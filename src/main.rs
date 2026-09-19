@@ -90,6 +90,116 @@ enum Commands {
         #[arg(short, long, default_value_t = 3000)]
         port: u16,
     },
+
+    /// High-throughput AST-aware STAIR Code-ToC, Memanto memory fabric, and token-budgeted context
+    #[command(subcommand)]
+    Embed(EmbedCommands),
+}
+
+#[derive(Subcommand, Debug)]
+enum EmbedCommands {
+    /// Initialize .oxide memory and graph container in workspace
+    Init {
+        /// Project name override
+        #[arg(short, long)]
+        name: Option<String>,
+    },
+
+    /// Index project files and build AST knowledge graph
+    Index {
+        /// Force re-indexing of all files
+        #[arg(short, long)]
+        force: bool,
+    },
+
+    /// STAIR Code-ToC or hybrid semantic search
+    Search {
+        /// Symbol or search query
+        query: String,
+
+        /// Use STAIR hierarchical Code-ToC search
+        #[arg(long)]
+        stair: bool,
+
+        /// Maximum results to return
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+
+        /// Token budget ceiling
+        #[arg(short, long)]
+        budget: Option<usize>,
+
+        /// Include AST call & documentation subgraph
+        #[arg(long)]
+        with_graph: bool,
+    },
+
+    /// Synthesize multi-layer token-budgeted context for an engineering task
+    Context {
+        /// Task description
+        task: String,
+
+        /// Maximum token budget ceiling (default 1500)
+        #[arg(short, long, default_value = "1500")]
+        budget: usize,
+    },
+
+    /// Store a typed semantic memory (decision, rule, instruction, preference)
+    Remember {
+        /// Memory assertion content
+        content: String,
+
+        /// Category: instruction, decision, preference, fact, goal, learning, etc.
+        #[arg(short, long)]
+        kind: Option<String>,
+
+        /// Optional comma-separated tags
+        #[arg(short, long)]
+        tags: Option<String>,
+
+        /// Target symbol governed by this memory
+        #[arg(short, long)]
+        symbol: Option<String>,
+
+        /// Automatically supersede older conflicting memories
+        #[arg(long)]
+        auto_resolve: bool,
+    },
+
+    /// Recall typed semantic memories
+    Recall {
+        /// Search query or topic
+        query: String,
+
+        /// Category filter
+        #[arg(short, long)]
+        kind: Option<String>,
+
+        /// Tag filters
+        #[arg(short, long)]
+        tags: Option<String>,
+
+        /// Token budget ceiling
+        #[arg(short, long)]
+        budget: Option<usize>,
+
+        /// Max results
+        #[arg(short, long, default_value = "5")]
+        limit: usize,
+    },
+
+    /// Audit active contradictions and conflicts across rules
+    Conflicts,
+
+    /// Multi-hop GraphRAG explanation for a symbol
+    Explain {
+        /// Symbol name or identifier
+        symbol: String,
+
+        /// Traversal hop depth (default 2)
+        #[arg(short, long, default_value = "2")]
+        hops: usize,
+    },
 }
 
 fn main() -> Result<()> {
@@ -115,6 +225,7 @@ fn main() -> Result<()> {
         } => run_verify_command(workspace, export_evidence),
         Commands::Status { gateway_url } => run_status_command(gateway_url),
         Commands::Studio { port } => run_studio_command(port),
+        Commands::Embed(embed_cmd) => run_embed_command(embed_cmd),
     }
 }
 
@@ -662,6 +773,125 @@ fn run_studio_command(port: u16) -> Result<()> {
     } else {
         println!("[!] Production bundle not yet built.");
         println!("    Run: (cd ui/oxide-agent-studio && pnpm run build && node dist/server.cjs)");
+    }
+
+    Ok(())
+}
+
+// ── Subcommand: Embed ─────────────────────────────────────────────────────────
+
+fn run_embed_command(cmd: EmbedCommands) -> Result<()> {
+    let mut args: Vec<String> = Vec::new();
+
+    match cmd {
+        EmbedCommands::Init { name } => {
+            args.push("init".to_string());
+            if let Some(n) = name {
+                args.push("--name".to_string());
+                args.push(n);
+            }
+        }
+        EmbedCommands::Index { force } => {
+            args.push("index".to_string());
+            if force {
+                args.push("--force".to_string());
+            }
+        }
+        EmbedCommands::Search {
+            query,
+            stair,
+            limit,
+            budget,
+            with_graph,
+        } => {
+            args.push("search".to_string());
+            args.push(query);
+            if stair {
+                args.push("--stair".to_string());
+            }
+            args.push("--limit".to_string());
+            args.push(limit.to_string());
+            if let Some(b) = budget {
+                args.push("--budget".to_string());
+                args.push(b.to_string());
+            }
+            if with_graph {
+                args.push("--with-graph".to_string());
+            }
+        }
+        EmbedCommands::Context { task, budget } => {
+            args.push("context".to_string());
+            args.push(task);
+            args.push("--budget".to_string());
+            args.push(budget.to_string());
+        }
+        EmbedCommands::Remember {
+            content,
+            kind,
+            tags,
+            symbol,
+            auto_resolve,
+        } => {
+            args.push("remember".to_string());
+            args.push(content);
+            if let Some(k) = kind {
+                args.push("--kind".to_string());
+                args.push(k);
+            }
+            if let Some(t) = tags {
+                args.push("--tags".to_string());
+                args.push(t);
+            }
+            if let Some(s) = symbol {
+                args.push("--symbol".to_string());
+                args.push(s);
+            }
+            if auto_resolve {
+                args.push("--auto-resolve".to_string());
+            }
+        }
+        EmbedCommands::Recall {
+            query,
+            kind,
+            tags,
+            budget,
+            limit,
+        } => {
+            args.push("recall".to_string());
+            args.push(query);
+            if let Some(k) = kind {
+                args.push("--kind".to_string());
+                args.push(k);
+            }
+            if let Some(t) = tags {
+                args.push("--tags".to_string());
+                args.push(t);
+            }
+            if let Some(b) = budget {
+                args.push("--budget".to_string());
+                args.push(b.to_string());
+            }
+            args.push("--limit".to_string());
+            args.push(limit.to_string());
+        }
+        EmbedCommands::Conflicts => {
+            args.push("conflicts".to_string());
+        }
+        EmbedCommands::Explain { symbol, hops } => {
+            args.push("explain".to_string());
+            args.push(symbol);
+            args.push("--hops".to_string());
+            args.push(hops.to_string());
+        }
+    }
+
+    let status = Command::new("oxide-embed")
+        .args(&args)
+        .status()
+        .context("Failed to execute 'oxide-embed'. Verify that oxide-embed is installed on PATH (~/.local/bin/oxide-embed).")?;
+
+    if !status.success() {
+        std::process::exit(status.code().unwrap_or(1));
     }
 
     Ok(())

@@ -23,6 +23,11 @@ impl ClientHandler for LocalClientHandler {
 }
 
 impl EiosMcpClient {
+    /// Connect directly to local oxide-embed MCP server over stdio
+    pub async fn connect_oxide_embed() -> Result<Self> {
+        Self::connect_stdio("oxide-embed", &["mcp"]).await
+    }
+
     /// Spawn a local process (stdio transport) and bind a client to it.
     pub async fn connect_stdio(command: &str, args: &[&str]) -> Result<Self> {
         info!("Connecting to MCP server via stdio: {} {:?}", command, args);
