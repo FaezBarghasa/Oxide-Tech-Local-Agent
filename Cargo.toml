@@ -45,6 +45,10 @@ members = [
     "crates/oxide-protocol",
     "crates/cross-domain-verifier",
     "crates/model-trainer",
+    "crates/surface-api",
+    "crates/ratchet",
+    "targets/llm-pretraining-rs/surface",
+    "targets/llm-pretraining-rs/harness",
 ]
 
 resolver = "3"
@@ -125,6 +129,7 @@ mqtt-async-embedded = { git = "https://github.com/FaezBarghasa/mqtt-async-embedd
 miette = { version = "7.2", features = ["fancy"] }
 glam = { version = "0.33.7", features = ["std", "serde"] }
 clap = { version = "4.5", features = ["derive", "env"] }
+libloading = "0.9.0"
 parametric-forge = { path = "crates/parametric-forge" }
 visual-forge = { path = "crates/visual-forge" }
 
@@ -148,6 +153,7 @@ common = { path = "workspace/common" }
 config-loader = { path = "crates/config-loader" }
 re-forge = { path = "crates/re-forge" }
 verifier = { path = "workspace/verifier" }
+model-trainer = { path = "crates/model-trainer" }
 reqwest = { workspace = true }
 
 [profile.release]

@@ -12,6 +12,7 @@ dependencies = [
  "config-loader",
  "gateway",
  "mimalloc",
+ "model-trainer",
  "re-forge",
  "reqwest 0.12.28",
  "serde",

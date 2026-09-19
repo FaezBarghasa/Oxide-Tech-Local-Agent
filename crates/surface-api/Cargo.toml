@@ -1,0 +1,9 @@
+[package]
+name = "surface-api"
+version = "0.1.0"
+edition = "2024"
+authors = ["Faez Barghasa"]
+description = "Frozen repr(C) ABI and safe zero-cost newtypes for autoresearch training surfaces"
+
+[dependencies]
+# No candle, no complex dependencies, zero runtime allocations in core ABI
