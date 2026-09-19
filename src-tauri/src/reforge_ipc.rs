@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use re_forge::{
-    ArmVectorTable, BinaryAnalyzer, DisassembledFunction, DisassembledInstruction, EntropyChunk,
-    NeuralDecompiler, PtxAnalysis, RtosDetectionResult,
+    ArmVectorTable, BinaryAnalyzer, DisassembledFunction, DisassembledInstruction,
+    EntropyScanner, RtosDetector,
 };
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -29,7 +29,7 @@ pub struct ArmVectorTableDto {
 #[serde(rename_all = "camelCase")]
 pub struct RtosDetectionDto {
     pub detected_rtos: Option<String>,
-    pub confidence: f64,
+    pub confidence: f32,
     pub signatures_found: Vec<String>,
 }
 
@@ -249,17 +249,10 @@ pub fn analyze_file(request: ReforgeRequest) -> Result<ReforgeResult> {
         }
     }
 
-    let mut decompiled_functions = Vec::new();
+    let decompiled_functions = Vec::new();
     if decompile {
-        let decompiler = NeuralDecompiler::new();
-        for func in &analyzer.functions {
-            if let Ok(decompiled) = decompiler.decompile(func) {
-                decompiled_functions.push(DecompiledFunctionDto {
-                    name: func.name.clone(),
-                    rust_code: decompiled,
-                });
-            }
-        }
+        // NeuralDecompiler requires an LLM provider which is not available in the desktop context
+        // Decompilation would need to be triggered via the gateway API instead
     }
 
     Ok(ReforgeResult {

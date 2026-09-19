@@ -59,10 +59,10 @@ impl From<EvidenceBundle> for EvidenceBundleDto {
             bundle_id: b.bundle_id,
             task_id: b.task_id,
             git_diff: b.git_diff,
-            reports: b.reports.into_iter().map(Into::into).collect(),
+            reports: b.verifier_reports.into_iter().map(Into::into).collect(),
             verified_success: b.verified_success,
             hitl_decision: b.hitl_decision,
-            timestamp: b.timestamp,
+            timestamp: b.timestamp.to_rfc3339(),
         }
     }
 }
@@ -119,7 +119,7 @@ pub fn run_verifier_suite(request: VerifierRequest) -> Result<VerifierResult> {
 }
 
 pub fn export_evidence_bundle(export_path: String) -> Result<()> {
-    let mut bundle = EvidenceBundle::new("manual-export", "manual export");
+    let bundle = EvidenceBundle::new("manual-export", "manual export");
     bundle.export_to_directory(PathBuf::from(export_path))
         .context("Failed to export evidence bundle")?;
     Ok(())

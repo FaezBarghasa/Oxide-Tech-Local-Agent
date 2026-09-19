@@ -31,7 +31,7 @@ re-forge = { path = "../crates/re-forge" }
 verifier = { path = "../workspace/verifier" }
 config-loader = { path = "../crates/config-loader" }
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
-probe-rs = { version = "0.32", features = ["stlink", "jlink", "cmsis-dap", "rtt", "ftdi", "debug-sequence"], optional = true }
+probe-rs = { version = "0.32", features = ["default"], optional = true }
 
 [features]
 default = []

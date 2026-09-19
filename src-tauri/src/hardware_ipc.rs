@@ -96,7 +96,7 @@ pub fn list_probe_devices() -> Result<ProbeDevicesResult> {
     }
 }
 
-pub fn get_chip_info(device_identifier: String) -> Result<ChipInfoDto> {
+pub fn get_chip_info(_device_identifier: String) -> Result<ChipInfoDto> {
     #[cfg(feature = "probe-rs")]
     {
         use probe_rs::{DebugProbeInfo, Probe, Permissions};
@@ -148,7 +148,7 @@ pub fn get_chip_info(device_identifier: String) -> Result<ChipInfoDto> {
     }
 }
 
-pub fn flash_firmware(request: FlashRequest) -> Result<FlashResult> {
+pub fn flash_firmware(_request: FlashRequest) -> Result<FlashResult> {
     #[cfg(feature = "probe-rs")]
     {
         use probe_rs::{DebugProbeInfo, Probe, Permissions};

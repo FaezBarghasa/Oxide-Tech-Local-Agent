@@ -28,7 +28,7 @@ use hardware_ipc::{ChipInfoDto, FlashRequest, FlashResult, ProbeDevicesResult};
 use reforge_ipc::{ReforgeRequest, ReforgeResult};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use verifier_ipc::{EvidenceBundleDto, VerifierRequest, VerifierResult};
+use verifier_ipc::{VerifierRequest, VerifierResult};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const DEFAULT_GATEWAY_URL: &str = "http://127.0.0.1:8080";
@@ -135,8 +135,9 @@ async fn verifier_run_suite(request: VerifierRequest) -> Result<VerifierResult, 
 }
 
 #[tauri::command]
-async fn verifier_export_evidence(export_path: String) -> Result<EvidenceBundleDto, String> {
-    verifier_ipc::export_evidence_bundle(export_path).map_err(|e| e.to_string())
+async fn verifier_export_evidence(export_path: String) -> Result<String, String> {
+    verifier_ipc::export_evidence_bundle(export_path).map_err(|e| e.to_string())?;
+    Ok("Evidence bundle exported".to_string())
 }
 
 #[tauri::command]
@@ -156,18 +157,22 @@ async fn probe_rs_flash_firmware(request: FlashRequest) -> Result<FlashResult, S
 
 #[tauri::command]
 async fn gateway_daemon_start(config: Option<String>) -> Result<String, String> {
-    let rt = tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(8)
-        .thread_name("oxide-gateway-worker")
-        .enable_all()
-        .build()
-        .map_err(|e| e.to_string())?;
-    rt.spawn(async move {
-        if let Err(e) = gateway_rt::run_headless(config.as_deref()).await {
-            tracing::error!("Gateway daemon error: {:?}", e);
-        }
+    let config_clone = config.clone();
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(8)
+            .thread_name("oxide-gateway-worker")
+            .enable_all()
+            .build()
+            .map_err(|e| e.to_string())?;
+        rt.block_on(async move {
+            if let Err(e) = gateway_rt::run_headless(config_clone.as_deref()) {
+                tracing::error!("Gateway daemon error: {:?}", e);
+            }
+        });
+        Ok::<(), String>(())
     });
-    Ok("Gateway daemon started".to_string())
+    Ok("Gateway daemon started in background".to_string())
 }
 
 #[tauri::command]
