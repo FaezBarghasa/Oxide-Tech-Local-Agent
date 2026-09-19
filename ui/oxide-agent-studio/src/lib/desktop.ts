@@ -169,4 +169,80 @@ export const desktop = {
       return { prefix: '', breadcrumbs: [], tokens: 0 };
     }
   },
+
+  // Doctor Diagnostics
+  async doctorRunDiagnostics(): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('doctor diagnostics requires the desktop app');
+    return tauriInvoke<any>('doctor_run_diagnostics', {});
+  },
+
+  async doctorInstallUdevRules(): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('udev install requires the desktop app');
+    return tauriInvoke<any>('doctor_install_udev_rules', {});
+  },
+
+  // RE-Forge Binary/PTX Analysis
+  async reforgeAnalyzeFile(request: any): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('reforge analysis requires the desktop app');
+    return tauriInvoke<any>('reforge_analyze_file', request);
+  },
+
+  // Verifier Suite
+  async verifierRunSuite(request: any): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('verifier suite requires the desktop app');
+    return tauriInvoke<any>('verifier_run_suite', request);
+  },
+
+  async verifierExportEvidence(exportPath: string): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('verifier export requires the desktop app');
+    return tauriInvoke<any>('verifier_export_evidence', { exportPath });
+  },
+
+  // Hardware / probe-rs
+  async probeRsListDevices(): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('probe-rs requires the desktop app');
+    return tauriInvoke<any>('probe_rs_list_devices', {});
+  },
+
+  async probeRsGetChipInfo(deviceIdentifier: string): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('probe-rs requires the desktop app');
+    return tauriInvoke<any>('probe_rs_get_chip_info', { deviceIdentifier });
+  },
+
+  async probeRsFlashFirmware(request: any): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('probe-rs requires the desktop app');
+    return tauriInvoke<any>('probe_rs_flash_firmware', request);
+  },
+
+  // Gateway Daemon Control
+  async gatewayDaemonStart(config?: string): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('gateway daemon control requires the desktop app');
+    return tauriInvoke<any>('gateway_daemon_start', { config: config ?? null });
+  },
+
+  async gatewayDaemonStop(): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('gateway daemon control requires the desktop app');
+    return tauriInvoke<any>('gateway_daemon_stop', {});
+  },
+
+  async gatewayDaemonRestart(config?: string): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('gateway daemon control requires the desktop app');
+    return tauriInvoke<any>('gateway_daemon_restart', { config: config ?? null });
+  },
+
+  async gatewayDaemonLogs(): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('gateway daemon control requires the desktop app');
+    return tauriInvoke<any>('gateway_daemon_logs', {});
+  },
+
+  // Config
+  async configLoad(): Promise<string> {
+    if (!isTauriRuntime()) throw new Error('config load requires the desktop app');
+    return tauriInvoke<string>('config_load', {});
+  },
+
+  async configSave(content: string): Promise<any> {
+    if (!isTauriRuntime()) throw new Error('config save requires the desktop app');
+    return tauriInvoke<any>('config_save', { content });
+  },
 };
