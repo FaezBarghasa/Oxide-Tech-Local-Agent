@@ -47,6 +47,7 @@ members = [
     "crates/model-trainer",
     "crates/surface-api",
     "crates/ratchet",
+    "crates/forge-rust",
     "targets/llm-pretraining-rs/surface",
     "targets/llm-pretraining-rs/harness",
 ]
@@ -132,6 +133,7 @@ clap = { version = "4.5", features = ["derive", "env"] }
 libloading = "0.9.0"
 parametric-forge = { path = "crates/parametric-forge" }
 visual-forge = { path = "crates/visual-forge" }
+forge-rust = { path = "crates/forge-rust" }
 
 
 [package]
@@ -160,6 +162,14 @@ reqwest = { workspace = true }
 opt-level = 3            # Enable maximum performance optimizations
 lto = "fat"              # Perform full Link-Time Optimization across all workspace crates
 codegen-units = 1        # Restrict compilation to a single unit for deeper global optimization
-panic = "abort"          # Strip stack-unwinding code, reducing binary size and call-site overhead
-strip = "symbols"        # Strip all debug symbols and tables from the target binary
+panic = "unwind"         # Required for catch_unwind FFI fault boundary isolation
+strip = "debuginfo"      # Strip debuginfo while preserving panic unwinding tables
 incremental = false      # Disable incremental compilation in release to allow broader optimizations
+
+[profile.surface]
+inherits = "release"
+lto = "thin"             # Fast incremental linking for mutable surface candidate
+codegen-units = 16       # Parallelize codegen units for sub-second compile latency
+incremental = true       # Warm incremental cache
+opt-level = 3
+debug = false
