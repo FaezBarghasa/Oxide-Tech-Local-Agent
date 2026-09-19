@@ -1,0 +1,16 @@
+[package]
+name = "harness"
+version = "0.1.0"
+edition = "2024"
+authors = ["Faez Barghasa"]
+description = "Frozen training harness, libloading hot-swap loader, and sealed dataset evaluation"
+
+[dependencies]
+surface-api = { path = "../../../crates/surface-api" }
+libloading = { workspace = true }
+tokio = { workspace = true }
+blake3 = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

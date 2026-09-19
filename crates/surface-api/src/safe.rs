@@ -29,7 +29,7 @@ impl<'h> Model<'h> {
         Self { handle, host: h }
     }
 
-    pub fn attention(&mut self, cfg: AttentionCfg) -> &mut Self {
+    pub fn attention(&mut self, _cfg: AttentionCfg) -> &mut Self {
         // Configure attention properties on host
         self
     }

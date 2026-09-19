@@ -3218,6 +3218,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "harness"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "libloading",
+ "serde",
+ "serde_json",
+ "surface-api",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "hash32"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4244,6 +4258,16 @@ checksum = "a9fd2f41a1cba099f79a0b6b6c35656cf7c03351a7bae8ff0f28f25270f929d2"
 dependencies = [
  "arbitrary",
  "cc",
+]
+
+[[package]]
+name = "libloading"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
+dependencies = [
+ "cfg-if",
+ "windows-link 0.2.1",
 ]
 
 [[package]]
@@ -6404,6 +6428,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ratchet"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "chrono",
+ "libloading",
+ "serde",
+ "serde_json",
+ "surface-api",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "rav1e"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7995,6 +8035,17 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "surface"
+version = "0.1.0"
+dependencies = [
+ "surface-api",
+]
+
+[[package]]
+name = "surface-api"
+version = "0.1.0"
 
 [[package]]
 name = "surrealdb"
