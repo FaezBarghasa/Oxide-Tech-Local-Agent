@@ -25,6 +25,9 @@ const tabInfo: Record<TabId, { title: string; subtitle: string; category: string
   infra: { title: 'System Daemons', subtitle: 'SurrealDB, Qdrant & native LLVM toolchain health', category: 'Serving' },
   endpoints: { title: 'API Specifications', subtitle: 'Interactive API runner for Trainer, Runner & Nexus endpoints', category: 'Serving' },
   verify: { title: 'Verification Matrix', subtitle: 'End-to-end subsystem latency & precision tests', category: 'Serving' },
+  doctor: { title: 'System Diagnostics & Doctor', subtitle: 'Deterministic host environment, compiler & GPU checks', category: 'System' },
+  reforge: { title: 'RE-Forge Studio', subtitle: 'Binary disassembly, ARM IVT parsing, PTX GPU analysis & safe Rust decompiler', category: 'Reverse Engineering' },
+  settings: { title: 'Settings & Profiles', subtitle: 'Operating profiles, hardware limits & config.toml editor', category: 'System' },
 };
 
 export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onNewSession, onQuickDeploy }) => {

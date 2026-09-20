@@ -25,6 +25,8 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 chrono = { version = "0.4", features = ["serde"] }
+uuid = { workspace = true }
+toml = { workspace = true }
 gateway = { path = "../workspace/gateway" }
 common = { path = "../workspace/common" }
 re-forge = { path = "../crates/re-forge" }
