@@ -4,10 +4,10 @@
   "version": "0.5.0",
   "identifier": "com.oxide-tech.local-agent",
   "build": {
-    "frontendDist": "../ui/oxide-agent-studio/dist",
+    "frontendDist": "../src/dist",
     "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "pnpm --dir ui/oxide-agent-studio dev:tauri",
-    "beforeBuildCommand": "pnpm --dir ui/oxide-agent-studio build:tauri"
+    "beforeDevCommand": "pnpm --dir src dev:tauri",
+    "beforeBuildCommand": "pnpm --dir src build:tauri"
   },
   "app": {
     "windows": [
