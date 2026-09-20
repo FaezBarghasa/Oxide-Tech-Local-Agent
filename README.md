@@ -26,7 +26,7 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ JSON-RPC 2.0 / SSE / QUIC HTTP/3
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│ Gateway & Control Plane (workspace/gateway, :8080)                     │
+│ Gateway & Control Plane (crates/gateway, :8080)                        │
 │ - Actix-Web + Quinn HTTP/3, JWT Guards, Prometheus /metrics            │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
