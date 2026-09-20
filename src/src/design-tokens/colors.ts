@@ -254,7 +254,7 @@ export const semanticColors = {
 } as const;
 
 export type ThemeMode = keyof typeof semanticColors;
-export type SemanticColor = typeof semanticColors.dark;
+export type SemanticColor = (typeof semanticColors)[ThemeMode];
 
 export function getSemanticColors(mode: ThemeMode): SemanticColor {
   return semanticColors[mode];

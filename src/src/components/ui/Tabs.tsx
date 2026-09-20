@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect, useId } from 'react';
+import React, { createContext, useContext, useState, useRef, useEffect, useId, forwardRef } from 'react';
 
 interface TabsContextValue {
   activeTab: string;

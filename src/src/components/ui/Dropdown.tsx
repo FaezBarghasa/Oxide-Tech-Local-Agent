@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useId, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useId, useCallback, createContext, useContext, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 
 interface DropdownContextValue {
@@ -143,7 +143,6 @@ export interface DropdownContentProps extends React.HTMLAttributes<HTMLDivElemen
   className?: string;
   position?: 'bottom' | 'top';
   align?: 'start' | 'end';
-  className?: string;
 }
 
 export const DropdownContent = forwardRef<HTMLDivElement, DropdownContentProps>(

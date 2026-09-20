@@ -19,6 +19,8 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+let globalAddToast: ((t: Omit<Toast, 'id'>) => string) | null = null;
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -32,6 +34,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  useEffect(() => {
+    globalAddToast = addToast;
+    return () => {
+      globalAddToast = null;
+    };
+  }, [addToast]);
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
@@ -163,9 +172,9 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose }) => {
 }
 
 export function toast(toast: Omit<Toast, 'id'>) {
-  if (typeof window === 'undefined') return;
-  const event = new CustomEvent('oxide:toast', { detail: toast });
-  window.dispatchEvent(event);
+  if (globalAddToast) {
+    globalAddToast(toast);
+  }
 }
 
 toast.success = (title: string, options?: Partial<Toast>) =>
@@ -176,18 +185,3 @@ toast.warning = (title: string, options?: Partial<Toast>) =>
   toast({ type: 'warning', title, ...options });
 toast.info = (title: string, options?: Partial<Toast>) =>
   toast({ type: 'info', title, ...options });
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('oxide:toast', (event: CustomEvent<Omit<Toast, 'id'>>) => {
-    const root = document.querySelector('[data-toast-root]');
-    if (root && root._reactRootContainer) {
-      const fiber = root._reactRootContainer.current;
-      if (fiber) {
-        const provider = fiber.memoizedState;
-        if (provider?.addToast) {
-          provider.addToast(event.detail);
-        }
-      }
-    }
-  });
-}

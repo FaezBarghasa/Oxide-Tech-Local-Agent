@@ -138,9 +138,13 @@ forge-rust = { path = "crates/forge-rust" }
 
 
 [package]
-name = "Oxide-Tech-Local-Agent"
+name = "oxide-tech-local-agent"
 version = "0.1.0"
 edition = "2024"
+
+[[bin]]
+name = "oxide-tech-local-agent"
+path = "src-tauri/src/main.rs"
 
 [dependencies]
 clap = { workspace = true }
