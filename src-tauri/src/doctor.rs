@@ -1,11 +1,8 @@
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
-use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DiagnosticCheck {
     pub name: String,
     pub command: String,
@@ -16,24 +13,14 @@ pub struct DiagnosticCheck {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DoctorResult {
-    pub checks: Vec<DiagnosticCheck>,
     pub passed: usize,
     pub warnings: usize,
     pub failed: usize,
-    pub ready: bool,
-    pub timestamp: String,
+    pub checks: Vec<DiagnosticCheck>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UdevInstallResult {
-    pub success: bool,
-    pub message: String,
-}
-
-fn check_system_tool(name: &str, cmd: &str, required: bool) -> DiagnosticCheck {
+pub fn check_system_tool(name: &str, cmd: &str, required: bool) -> DiagnosticCheck {
     match Command::new(cmd).arg("--version").output() {
         Ok(out) if out.status.success() => {
             let ver = String::from_utf8_lossy(&out.stdout)
@@ -73,9 +60,7 @@ fn check_system_tool(name: &str, cmd: &str, required: bool) -> DiagnosticCheck {
     }
 }
 
-pub fn run_diagnostics() -> Result<DoctorResult> {
-    info!("Running comprehensive system diagnostics");
-
+pub fn run_diagnostics_scan() -> DoctorResult {
     let mut checks = vec![
         check_system_tool("Rust Compiler", "rustc", true),
         check_system_tool("Cargo", "cargo", true),
@@ -123,33 +108,17 @@ pub fn run_diagnostics() -> Result<DoctorResult> {
         command: "/etc/udev/rules.d/99-probe-rs.rules".to_string(),
         required: false,
         passed: udev_present,
-        version: if udev_present { "present" } else { "missing" }.to_string(),
+        version: if udev_present {
+            "present".to_string()
+        } else {
+            "missing".to_string()
+        },
         error: if udev_present {
             None
         } else {
             Some("Run udev setup for non-root ST-Link/J-Link access".to_string())
         },
     });
-
-    let embed_check = match crate::memory::resolve_embed_bin() {
-        Ok(p) => DiagnosticCheck {
-            name: "Oxide-Embed STAIR Context Engine".to_string(),
-            command: p.display().to_string(),
-            required: false,
-            passed: true,
-            version: "bundled sidecar ready".to_string(),
-            error: None,
-        },
-        Err(e) => DiagnosticCheck {
-            name: "Oxide-Embed STAIR Context Engine".to_string(),
-            command: "oxide-embed".to_string(),
-            required: false,
-            passed: false,
-            version: "missing".to_string(),
-            error: Some(e),
-        },
-    };
-    checks.push(embed_check);
 
     let mut passed = 0;
     let mut warnings = 0;
@@ -165,64 +134,50 @@ pub fn run_diagnostics() -> Result<DoctorResult> {
         }
     }
 
-    let ready = failed == 0;
-
-    Ok(DoctorResult {
-        checks,
+    DoctorResult {
         passed,
         warnings,
         failed,
-        ready,
-        timestamp: chrono::Utc::now().to_rfc3339(),
-    })
+        checks,
+    }
 }
 
-pub fn install_udev_rules() -> Result<UdevInstallResult> {
-    info!("Installing udev rules for hardware debuggers");
+pub fn install_udev_rules() -> Result<String, String> {
+    let script_path = Path::new("scripts/install_udev_rules.sh");
+    let cmd = if script_path.exists() {
+        format!("bash {}", script_path.display())
+    } else {
+        "curl -s https://probe.rs/files/69-probe-rs.rules | tee /etc/udev/rules.d/99-probe-rs.rules && udevadm control --reload && udevadm trigger".to_string()
+    };
 
-    let rules_content = r#"# probe-rs udev rules for ST-Link, J-Link, CMSIS-DAP
-SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374[48bc]", MODE="0666", GROUP="plugdev", TAG+="uaccess"
-SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374b", MODE="0666", GROUP="plugdev", TAG+="uaccess"
-SUBSYSTEM=="usb", ATTR{idVendor}=="1366", ATTR{idProduct}=="010[1-5]", MODE="0666", GROUP="plugdev", TAG+="uaccess"
-SUBSYSTEM=="usb", ATTR{idVendor}=="2b73", ATTR{idProduct}=="0[0-9a-f]{3}", MODE="0666", GROUP="plugdev", TAG+="uaccess"
-"#;
+    let output = Command::new("pkexec")
+        .arg("sh")
+        .arg("-c")
+        .arg(&cmd)
+        .output()
+        .map_err(|e| format!("Failed to execute pkexec: {}", e))?;
 
-    let dest = Path::new("/etc/udev/rules.d/99-probe-rs.rules");
-
-    let pkexec_result = Command::new("pkexec")
-        .args([
-            "tee",
-            dest.to_str().unwrap(),
-        ])
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn();
-
-    match pkexec_result {
-        Ok(mut child) => {
-            use std::io::Write;
-            if let Some(stdin) = child.stdin.as_mut() {
-                stdin.write_all(rules_content.as_bytes())?;
-            }
-            let output = child.wait()?;
-            if output.success() {
-                let _ = Command::new("udevadm").args(["control", "--reload-rules"]).status();
-                let _ = Command::new("udevadm").args(["trigger"]).status();
-                Ok(UdevInstallResult {
-                    success: true,
-                    message: "udev rules installed successfully. Unplug and replug your debugger.".to_string(),
-                })
-            } else {
-                Ok(UdevInstallResult {
-                    success: false,
-                    message: "pkexec failed (user cancelled or policy denied)".to_string(),
-                })
-            }
-        }
-        Err(e) => Ok(UdevInstallResult {
-            success: false,
-            message: format!("Failed to invoke pkexec: {e}. Is polkit installed?"),
-        }),
+    if output.status.success() {
+        Ok("Successfully installed probe-rs udev rules and reloaded daemon.".to_string())
+    } else {
+        Err(format!(
+            "Failed with status: {}. {}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr)
+        ))
     }
+}
+
+#[tauri::command]
+pub async fn doctor_run_diagnostics() -> Result<DoctorResult, String> {
+    tokio::task::spawn_blocking(run_diagnostics_scan)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn doctor_install_udev_rules() -> Result<String, String> {
+    tokio::task::spawn_blocking(install_udev_rules)
+        .await
+        .map_err(|e| e.to_string())?
 }

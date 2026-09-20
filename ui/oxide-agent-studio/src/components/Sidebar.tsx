@@ -16,6 +16,9 @@ import {
   Server,
   Code2,
   CheckCircle2,
+  Stethoscope,
+  Binary,
+  Settings,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -44,6 +47,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       desc: '7-phase roadmap & telemetry',
       icon: LayoutDashboard,
       active: currentTab === 'overview',
+    },
+    {
+      id: 'doctor' as TabId,
+      label: 'Doctor & System',
+      desc: 'Toolchains, GPU & udev diagnostic',
+      icon: Stethoscope,
+      active: currentTab === 'doctor',
+      badge: 'Diagnostics',
+      badgeColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+    },
+    {
+      id: 'reforge' as TabId,
+      label: 'RE-Forge Studio',
+      desc: 'Binary, ARM IVT & GPU PTX lifter',
+      icon: Binary,
+      active: currentTab === 'reforge',
+      badge: 'Disasm & Decompile',
+      badgeColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
     },
     {
       id: 'graph' as TabId,
@@ -103,6 +124,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
         { id: 'verify' as TabId, label: 'Verification Suite', icon: CheckCircle2 },
       ],
     },
+    {
+      id: 'settings' as TabId,
+      label: 'Settings & Config',
+      desc: 'Profiles, ports & config.toml',
+      icon: Settings,
+      active: currentTab === 'settings',
+    },
   ];
 
   return (
@@ -118,12 +146,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
               Oxide-tech-local-agent
             </div>
             <div className="text-[10px] text-gray-400 font-mono">
-              Unsloth · SGLang TP=2
+              Desktop-First OS
             </div>
           </div>
         </div>
         <span className="text-[9px] mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-          LIVE
+          DESKTOP
         </span>
       </div>
 

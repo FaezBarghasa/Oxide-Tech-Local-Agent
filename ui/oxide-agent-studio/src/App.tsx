@@ -19,6 +19,9 @@ import { KnowledgeGraphTab } from './components/KnowledgeGraphTab';
 import { MemoryTab } from './components/MemoryTab';
 import { GraphTopologyTab } from './components/GraphTopologyTab';
 import { HardwareClusterStatus } from './components/HardwareClusterStatus';
+import { DoctorTab } from './components/DoctorTab';
+import { ReForgeTab } from './components/ReForgeTab';
+import { SettingsTab } from './components/SettingsTab';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<TabId>('chat');
@@ -73,6 +76,9 @@ export default function App() {
           {currentTab === 'sglang' && <SglangTab />}
           {currentTab === 'endpoints' && <EndpointsTab />}
           {currentTab === 'verify' && <VerificationTab />}
+          {currentTab === 'doctor' && <DoctorTab />}
+          {currentTab === 'reforge' && <ReForgeTab />}
+          {currentTab === 'settings' && <SettingsTab />}
         </main>
 
         {/* Real-time Hardware Telemetry & Cluster Status */}
