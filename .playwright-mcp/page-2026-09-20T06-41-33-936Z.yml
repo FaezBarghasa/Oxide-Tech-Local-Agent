@@ -1,0 +1,138 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - generic [ref=f1e7]: 🦥
+        - generic [ref=f1e8]:
+          - generic [ref=f1e9]: Oxide-tech-local-agent
+          - generic [ref=f1e10]: Desktop-First OS
+      - generic [ref=f1e11]: DESKTOP
+    - generic [ref=f1e12]:
+      - generic [ref=f1e13]: Workspaces
+      - button "AI Assistant Fast Chat, code & firmware" [ref=f1e15] [cursor=pointer]:
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [ref=f1e22]: AI Assistant
+            - generic [ref=f1e23]: Fast
+          - generic [ref=f1e24]: Chat, code & firmware
+      - button "Overview & Plan 7-phase roadmap & telemetry" [ref=f1e26] [cursor=pointer]:
+        - generic [ref=f1e33]:
+          - generic [ref=f1e34]: Overview & Plan
+          - generic [ref=f1e36]: 7-phase roadmap & telemetry
+      - button "Doctor & System Diagnostics Toolchains, GPU & udev diagnostic" [ref=f1e38] [cursor=pointer]:
+        - generic [ref=f1e44]:
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: Doctor & System
+            - generic [ref=f1e47]: Diagnostics
+          - generic [ref=f1e48]: Toolchains, GPU & udev diagnostic
+      - button "RE-Forge Studio Disasm & Decompile Binary, ARM IVT & GPU PTX lifter" [ref=f1e50] [cursor=pointer]:
+        - generic [ref=f1e57]:
+          - generic [ref=f1e58]:
+            - generic [ref=f1e59]: RE-Forge Studio
+            - generic [ref=f1e60]: Disasm & Decompile
+          - generic [ref=f1e61]: Binary, ARM IVT & GPU PTX lifter
+      - button "Graph Engineering SurrealDB v3 AST, Call & Topology Map" [ref=f1e63] [cursor=pointer]:
+        - generic [ref=f1e70]:
+          - generic [ref=f1e71]:
+            - generic [ref=f1e72]: Graph Engineering
+            - generic [ref=f1e73]: SurrealDB v3
+          - generic [ref=f1e74]: AST, Call & Topology Map
+      - button "Project Memory oxide-embed oxide-embed search & recall" [ref=f1e76] [cursor=pointer]:
+        - generic [ref=f1e86]:
+          - generic [ref=f1e87]:
+            - generic [ref=f1e88]: Project Memory
+            - generic [ref=f1e89]: oxide-embed
+          - generic [ref=f1e90]: oxide-embed search & recall
+      - button "Unsloth Tuning 5x Turbo GRPO, QDoRA & Model Soup" [ref=f1e92] [cursor=pointer]:
+        - generic [ref=f1e96]:
+          - generic [ref=f1e97]:
+            - generic [ref=f1e98]: Unsloth Tuning
+            - generic [ref=f1e99]: 5x Turbo
+          - generic [ref=f1e100]: GRPO, QDoRA & Model Soup
+      - button "CAD & Schematics KiCad netlists, DRC & AST" [ref=f1e102] [cursor=pointer]:
+        - generic [ref=f1e108]:
+          - generic [ref=f1e109]: CAD & Schematics
+          - generic [ref=f1e111]: KiCad netlists, DRC & AST
+      - button "Serving & System SGLang TP=2, APIs & health" [ref=f1e113] [cursor=pointer]:
+        - generic [ref=f1e118]:
+          - generic [ref=f1e119]: Serving & System
+          - generic [ref=f1e121]: SGLang TP=2, APIs & health
+      - button "Settings & Config Profiles, ports & config.toml" [ref=f1e123] [cursor=pointer]:
+        - generic [ref=f1e128]:
+          - generic [ref=f1e129]: Settings & Config
+          - generic [ref=f1e131]: Profiles, ports & config.toml
+    - generic [ref=f1e132]:
+      - generic [ref=f1e133]:
+        - generic [ref=f1e134]: Dual RTX 3090
+        - generic [ref=f1e137]: 48GB VRAM
+      - generic [ref=f1e138]:
+        - generic [ref=f1e139]: SGLang :8080
+        - generic [ref=f1e140]: gRPC :50051
+        - generic [ref=f1e141]: TP=2
+  - generic [ref=f1e142]:
+    - banner [ref=f1e143]:
+      - generic [ref=f1e144]:
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]: Chat
+          - heading "AI Assistant" [level=1] [ref=f1e148]
+        - generic [ref=f1e149]:
+          - generic [ref=f1e150]: Rust Gateway :8080 (HTTP/3)
+          - button "New Session" [ref=f1e153] [cursor=pointer]
+          - button "Deploy" [ref=f1e156] [cursor=pointer]
+    - main [ref=f1e160]:
+      - generic [ref=f1e161]:
+        - generic [ref=f1e162]:
+          - generic [ref=f1e164]:
+            - generic [ref=f1e165]: Oxide Local Agent Assistant
+            - generic [ref=f1e170]: Qwen3.8-35B-Instruct-AWQ · SGLang TP=2 · RadixAttention Active
+          - generic [ref=f1e171]:
+            - generic [ref=f1e172]:
+              - generic [ref=f1e173]: "Mode:"
+              - button "General Assistant" [ref=f1e174] [cursor=pointer]
+              - button "Firmware & Rust" [ref=f1e178] [cursor=pointer]
+              - button "CAD & KiCad Tools" [ref=f1e184] [cursor=pointer]
+            - button "Clear" [ref=f1e189] [cursor=pointer]
+        - generic [ref=f1e194]:
+          - generic [ref=f1e197]:
+            - generic [ref=f1e198]:
+              - generic [ref=f1e199]: Assistant · Oxide Agent
+              - generic [ref=f1e200]:
+                - generic [ref=f1e201]: 14:23
+                - button "Copy text" [ref=f1e202] [cursor=pointer]
+            - generic [ref=f1e206]: "Hello! I am your local AI Assistant for the **oxide-agent-studio** workspace. I am wired to the **SGLang TP=2 runtime** on your dual RTX 3090 rig with active LoRA routing, **Tree-Sitter AST context compaction**, and the **gRPC CAD Bridge**. Choose a mode below or try one of the quick actions:"
+          - generic [ref=f1e207]:
+            - generic [ref=f1e208]: "Quick:"
+            - button "🦀 Embassy SPI Driver" [ref=f1e209] [cursor=pointer]
+            - button "⚡ KiCad DRC & Netlist" [ref=f1e210] [cursor=pointer]
+            - button "🧠 Unsloth GRPO vs PPO" [ref=f1e211] [cursor=pointer]
+            - button "🍲 LoRA Model Soup Blend" [ref=f1e212] [cursor=pointer]
+          - generic [ref=f1e214]:
+            - generic [ref=f1e215]:
+              - button "Tools Palette" [ref=f1e216] [cursor=pointer]
+              - button "Attach Schematic/CAD" [ref=f1e219] [cursor=pointer]
+              - button "Agent Settings" [ref=f1e222] [cursor=pointer]
+              - button "STAIR Context ON" [ref=f1e226] [cursor=pointer]
+              - generic [ref=f1e239]: Shift + Enter for new line
+            - textbox "Ask in chat mode (e.g. Write Embassy SPI driver, convert STEP to GLTF, run DRC test)..." [ref=f1e240]
+            - generic [ref=f1e241]:
+              - generic [ref=f1e242]: TP=2 · AWQ 4-bit · 32K context
+              - button "Send" [disabled] [ref=f1e247] [cursor=pointer]
+    - generic [ref=f1e253]:
+      - generic [ref=f1e254]:
+        - generic [ref=f1e255]: TP=2 CLUSTER
+        - generic [ref=f1e262]: "|"
+        - generic [ref=f1e263]:
+          - generic [ref=f1e264]: Dual RTX 3090
+          - generic [ref=f1e265]: 36.3/48 GB (76%)
+      - generic [ref=f1e266]:
+        - generic [ref=f1e267]:
+          - generic [ref=f1e268]: "GPU 0:"
+          - generic [ref=f1e271]: 18.4G
+          - generic [ref=f1e272]: (87% load)
+        - generic [ref=f1e273]:
+          - generic [ref=f1e274]: "GPU 1:"
+          - generic [ref=f1e277]: 17.9G
+          - generic [ref=f1e278]: (85% load)
+      - generic [ref=f1e279]:
+        - button "LIVE" [ref=f1e280] [cursor=pointer]
+        - button "Cluster Telemetry" [ref=f1e284] [cursor=pointer]

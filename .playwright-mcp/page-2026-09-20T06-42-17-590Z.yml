@@ -1,0 +1,389 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - generic [ref=f1e7]: 🦥
+        - generic [ref=f1e8]:
+          - generic [ref=f1e9]: Oxide-tech-local-agent
+          - generic [ref=f1e10]: Desktop-First OS
+      - generic [ref=f1e11]: DESKTOP
+    - generic [ref=f1e12]:
+      - generic [ref=f1e13]: Workspaces
+      - button "AI Assistant Fast Chat, code & firmware" [ref=f1e15] [cursor=pointer]:
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [ref=f1e22]: AI Assistant
+            - generic [ref=f1e23]: Fast
+          - generic [ref=f1e24]: Chat, code & firmware
+      - button "Overview & Plan 7-phase roadmap & telemetry" [active] [ref=f1e26] [cursor=pointer]:
+        - generic [ref=f1e33]:
+          - generic [ref=f1e34]: Overview & Plan
+          - generic [ref=f1e36]: 7-phase roadmap & telemetry
+      - button "Doctor & System Diagnostics Toolchains, GPU & udev diagnostic" [ref=f1e38] [cursor=pointer]:
+        - generic [ref=f1e44]:
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: Doctor & System
+            - generic [ref=f1e47]: Diagnostics
+          - generic [ref=f1e48]: Toolchains, GPU & udev diagnostic
+      - button "RE-Forge Studio Disasm & Decompile Binary, ARM IVT & GPU PTX lifter" [ref=f1e50] [cursor=pointer]:
+        - generic [ref=f1e57]:
+          - generic [ref=f1e58]:
+            - generic [ref=f1e59]: RE-Forge Studio
+            - generic [ref=f1e60]: Disasm & Decompile
+          - generic [ref=f1e61]: Binary, ARM IVT & GPU PTX lifter
+      - button "Graph Engineering SurrealDB v3 AST, Call & Topology Map" [ref=f1e63] [cursor=pointer]:
+        - generic [ref=f1e70]:
+          - generic [ref=f1e71]:
+            - generic [ref=f1e72]: Graph Engineering
+            - generic [ref=f1e73]: SurrealDB v3
+          - generic [ref=f1e74]: AST, Call & Topology Map
+      - button "Project Memory oxide-embed oxide-embed search & recall" [ref=f1e76] [cursor=pointer]:
+        - generic [ref=f1e86]:
+          - generic [ref=f1e87]:
+            - generic [ref=f1e88]: Project Memory
+            - generic [ref=f1e89]: oxide-embed
+          - generic [ref=f1e90]: oxide-embed search & recall
+      - button "Unsloth Tuning 5x Turbo GRPO, QDoRA & Model Soup" [ref=f1e92] [cursor=pointer]:
+        - generic [ref=f1e96]:
+          - generic [ref=f1e97]:
+            - generic [ref=f1e98]: Unsloth Tuning
+            - generic [ref=f1e99]: 5x Turbo
+          - generic [ref=f1e100]: GRPO, QDoRA & Model Soup
+      - button "CAD & Schematics KiCad netlists, DRC & AST" [ref=f1e102] [cursor=pointer]:
+        - generic [ref=f1e108]:
+          - generic [ref=f1e109]: CAD & Schematics
+          - generic [ref=f1e111]: KiCad netlists, DRC & AST
+      - button "Serving & System SGLang TP=2, APIs & health" [ref=f1e113] [cursor=pointer]:
+        - generic [ref=f1e118]:
+          - generic [ref=f1e119]: Serving & System
+          - generic [ref=f1e121]: SGLang TP=2, APIs & health
+      - button "Settings & Config Profiles, ports & config.toml" [ref=f1e123] [cursor=pointer]:
+        - generic [ref=f1e128]:
+          - generic [ref=f1e129]: Settings & Config
+          - generic [ref=f1e131]: Profiles, ports & config.toml
+    - generic [ref=f1e132]:
+      - generic [ref=f1e133]:
+        - generic [ref=f1e134]: Dual RTX 3090
+        - generic [ref=f1e137]: 48GB VRAM
+      - generic [ref=f1e138]:
+        - generic [ref=f1e139]: SGLang :8080
+        - generic [ref=f1e140]: gRPC :50051
+        - generic [ref=f1e141]: TP=2
+  - generic [ref=f1e142]:
+    - banner [ref=f1e143]:
+      - generic [ref=f1e144]:
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]: Overview
+          - heading "Overview & Plan" [level=1] [ref=f1e498]
+          - generic [ref=f1e290]: — 7-phase deep plan & dual RTX 3090 telemetry
+        - generic [ref=f1e149]:
+          - generic [ref=f1e150]: Rust Gateway :8080 (HTTP/3)
+          - generic [ref=f1e291]: Dual RTX 3090 (48GB)
+          - button "New Session" [ref=f1e153] [cursor=pointer]
+          - button "Deploy" [ref=f1e156] [cursor=pointer]
+    - main [ref=f1e160]:
+      - generic [ref=f1e499]:
+        - generic [ref=f1e500]:
+          - generic [ref=f1e501]:
+            - generic [ref=f1e502]:
+              - generic [ref=f1e503]: 🦥
+              - text: UNSLOTH FAST-RL
+            - generic [ref=f1e504]: ⚡ 5X FASTER · 80% LESS VRAM
+            - generic [ref=f1e505]: DUAL RTX 3090 (48GB) TP=2
+            - generic [ref=f1e506]: SGLANG :8080
+          - generic [ref=f1e507]:
+            - generic [ref=f1e508]:
+              - heading "oxide-agent-studio v0.2.0" [level=1] [ref=f1e509]:
+                - generic [ref=f1e510]: oxide-agent-studio
+                - generic [ref=f1e511]: v0.2.0
+              - paragraph [ref=f1e512]: High-performance local agent studio built on Unsloth FastLanguageModel & GRPO RL fine-tuning, SGLang TP=2 serving, gRPC KiCad/FreeCAD bridge, Tree-Sitter RAG context compactor, and LoRA Model Soup blending.
+            - generic [ref=f1e513]:
+              - generic [ref=f1e514]:
+                - generic [ref=f1e515]: Fine-Tuning Engine
+                - generic [ref=f1e516]: Unsloth FastLanguageModel
+              - generic [ref=f1e517]: 🦥
+          - generic [ref=f1e518]:
+            - button "Explore Projects Knowledge Graph" [ref=f1e519] [cursor=pointer]
+            - button "Launch Unsloth GRPO (Phase 5)" [ref=f1e525] [cursor=pointer]
+            - button "gRPC CAD Bridge (Phase 1)" [ref=f1e528] [cursor=pointer]
+            - button "LoRA Model Soup Blender" [ref=f1e533] [cursor=pointer]
+        - generic [ref=f1e537]:
+          - generic [ref=f1e538]:
+            - generic [ref=f1e539]:
+              - heading "Deep Execution Plan · 7 Phases" [level=2] [ref=f1e540]
+              - generic [ref=f1e541]: Pop!_OS 24.04 · Ryzen 9 9950X · 96GB DDR5 · Dual RTX 3090
+            - generic [ref=f1e542]: "Overall: 23.8% (Phase 1 active)"
+          - generic [ref=f1e543]:
+            - generic [ref=f1e544] [cursor=pointer]:
+              - generic [ref=f1e545]:
+                - generic [ref=f1e546]:
+                  - generic [ref=f1e547]: Phase 0
+                  - generic [ref=f1e548]: COMPLETE
+                - generic [ref=f1e549]: System Toolchains & Native Infra
+                - generic [ref=f1e550]: Pop!_OS 24.04 toolchains, sccache+lld, SurrealDB, Qdrant, SGLang TP=2 server
+              - generic [ref=f1e554]:
+                - generic [ref=f1e555]: Days 1–2
+                - generic [ref=f1e556]: 3 tasks
+            - generic [ref=f1e557] [cursor=pointer]:
+              - generic [ref=f1e558]:
+                - generic [ref=f1e559]:
+                  - generic [ref=f1e560]: Phase 1
+                  - generic [ref=f1e561]: IN PROGRESS
+                - generic [ref=f1e562]: gRPC Python CAD Bridge
+                - generic [ref=f1e563]: Protobuf codegen, KiCad 8/9 schematic generation, Blender STEP→GLTF tessellation
+              - generic [ref=f1e567]:
+                - generic [ref=f1e568]: Days 3–5
+                - generic [ref=f1e569]: 3 tasks
+            - generic [ref=f1e570] [cursor=pointer]:
+              - generic [ref=f1e571]:
+                - generic [ref=f1e572]:
+                  - generic [ref=f1e573]: Phase 2
+                  - generic [ref=f1e574]: PENDING
+                - generic [ref=f1e575]: RAG & Context Compression
+                - generic [ref=f1e576]: Tree-Sitter AST pruning, steno.rs token compression, Qdrant vector search
+              - generic [ref=f1e580]:
+                - generic [ref=f1e581]: Days 6–8
+                - generic [ref=f1e582]: 2 tasks
+            - generic [ref=f1e583] [cursor=pointer]:
+              - generic [ref=f1e584]:
+                - generic [ref=f1e585]:
+                  - generic [ref=f1e586]: Phase 3
+                  - generic [ref=f1e587]: PENDING
+                - generic [ref=f1e588]: MCP Server Suite & Sandbox
+                - generic [ref=f1e589]: STDIO JSON-RPC 2.0 protocol, JIT tool synthesizer, bubblewrap sandboxing
+              - generic [ref=f1e593]:
+                - generic [ref=f1e594]: Days 9–11
+                - generic [ref=f1e595]: 2 tasks
+            - generic [ref=f1e596] [cursor=pointer]:
+              - generic [ref=f1e597]:
+                - generic [ref=f1e598]:
+                  - generic [ref=f1e599]: Phase 4
+                  - generic [ref=f1e600]: PENDING
+                - generic [ref=f1e601]: ReAct Execution Engine
+                - generic [ref=f1e602]: DAG orchestration in crates/optio, oscillation guard, SRAE gateway router
+              - generic [ref=f1e606]:
+                - generic [ref=f1e607]: Days 12–14
+                - generic [ref=f1e608]: 2 tasks
+            - generic [ref=f1e609] [cursor=pointer]:
+              - generic [ref=f1e610]:
+                - generic [ref=f1e611]:
+                  - generic [ref=f1e612]: Phase 5
+                  - generic [ref=f1e613]: PENDING
+                - generic [ref=f1e614]: Unsloth GRPO RLVR
+                - generic [ref=f1e615]: FastLanguageModel FSDP-QDoRA, cargo check verifier rewards, self-evolution loop
+              - generic [ref=f1e618]:
+                - generic [ref=f1e619]: Days 15+
+                - generic [ref=f1e620]: 1 tasks
+            - generic [ref=f1e621] [cursor=pointer]:
+              - generic [ref=f1e622]:
+                - generic [ref=f1e623]:
+                  - generic [ref=f1e624]: Phase 6
+                  - generic [ref=f1e625]: PENDING
+                - generic [ref=f1e626]: LoRA Model Soup & Serving
+                - generic [ref=f1e627]: Model Catalog, Dataset Recipes, Training Telemetry, LoRA Soup Blender
+              - generic [ref=f1e630]:
+                - generic [ref=f1e631]: Days 18+
+                - generic [ref=f1e632]: 4 tasks
+            - generic [ref=f1e633]:
+              - generic [ref=f1e634]:
+                - generic [ref=f1e635]:
+                  - generic [ref=f1e636]: Overall
+                  - generic [ref=f1e637]: 23.8%
+                - generic [ref=f1e638]: Total Roadmap Progress
+                - generic [ref=f1e639]: 7 phases · 17 total tasks · estimated ~18 engineering days
+              - generic [ref=f1e643]:
+                - generic [ref=f1e644]: On Track
+                - generic [ref=f1e645]: Phase 1 active
+        - generic [ref=f1e646]:
+          - generic [ref=f1e647]:
+            - generic [ref=f1e648]:
+              - generic [ref=f1e649]: GPU 0 · RTX 3090
+              - generic [ref=f1e650]: QDoRA 4-bit
+            - generic [ref=f1e651]:
+              - text: "18.4"
+              - generic [ref=f1e652]: GB
+            - generic [ref=f1e653]: / 24 GB · 76.6%
+          - generic [ref=f1e656]:
+            - generic [ref=f1e657]:
+              - generic [ref=f1e658]: GPU 1 · RTX 3090
+              - generic [ref=f1e659]: TP=2
+            - generic [ref=f1e660]:
+              - text: "18.1"
+              - generic [ref=f1e661]: GB
+            - generic [ref=f1e662]: / 24 GB · 75.4%
+          - generic [ref=f1e665]:
+            - generic [ref=f1e666]:
+              - generic [ref=f1e667]: SGLang Cache Hit
+              - generic [ref=f1e668]: Radix Tree
+            - generic [ref=f1e669]:
+              - text: "87.3"
+              - generic [ref=f1e670]: "%"
+            - generic [ref=f1e671]: Prefix Cache LRU
+          - generic [ref=f1e674]:
+            - generic [ref=f1e675]:
+              - generic [ref=f1e676]: Unsloth Speedup
+              - generic [ref=f1e677]: RLVR
+            - generic [ref=f1e678]:
+              - text: 5.2x
+              - generic [ref=f1e679]: faster
+            - generic [ref=f1e680]: 80% VRAM Reduction
+        - generic [ref=f1e683]:
+          - generic [ref=f1e684]:
+            - generic [ref=f1e685]:
+              - generic [ref=f1e686]:
+                - generic [ref=f1e687]: Inference Latency (TTFT)
+                - generic [ref=f1e688]: "P50: 132ms · P90: 144ms · P99: 158ms"
+              - generic [ref=f1e689]: ~138 ms
+            - generic [ref=f1e690]:
+              - generic [ref=f1e691]:
+                - generic "132 ms"
+                - generic [ref=f1e692]: "1"
+              - generic [ref=f1e693]:
+                - generic "138 ms"
+                - generic [ref=f1e694]: "2"
+              - generic [ref=f1e695]:
+                - generic "142 ms"
+                - generic [ref=f1e696]: "3"
+              - generic [ref=f1e697]:
+                - generic "135 ms"
+                - generic [ref=f1e698]: "4"
+              - generic [ref=f1e699]:
+                - generic "129 ms"
+                - generic [ref=f1e700]: "5"
+              - generic [ref=f1e701]:
+                - generic "145 ms"
+                - generic [ref=f1e702]: "6"
+              - generic [ref=f1e703]:
+                - generic "150 ms"
+                - generic [ref=f1e704]: "7"
+              - generic [ref=f1e705]:
+                - generic "141 ms"
+                - generic [ref=f1e706]: "8"
+              - generic [ref=f1e707]:
+                - generic "137 ms"
+                - generic [ref=f1e708]: "9"
+              - generic [ref=f1e709]:
+                - generic "133 ms"
+                - generic [ref=f1e710]: "10"
+              - generic [ref=f1e711]:
+                - generic "140 ms"
+                - generic [ref=f1e712]: "11"
+              - generic [ref=f1e713]:
+                - generic "136 ms"
+                - generic [ref=f1e714]: "12"
+              - generic [ref=f1e715]:
+                - generic "144 ms"
+                - generic [ref=f1e716]: "13"
+              - generic [ref=f1e717]:
+                - generic "139 ms"
+                - generic [ref=f1e718]: "14"
+              - generic [ref=f1e719]:
+                - generic "142 ms"
+                - generic [ref=f1e720]: "15"
+          - generic [ref=f1e721]:
+            - generic [ref=f1e722]:
+              - generic [ref=f1e723]:
+                - generic [ref=f1e724]: Mojo SIMD Throughput
+                - generic [ref=f1e725]: Cosine Distance · 512-bit AVX-512
+              - generic [ref=f1e726]: 847 MB/s
+            - generic [ref=f1e727]:
+              - generic [ref=f1e728]:
+                - generic "810 MB/s"
+                - generic [ref=f1e729]: "1"
+              - generic [ref=f1e730]:
+                - generic "825 MB/s"
+                - generic [ref=f1e731]: "2"
+              - generic [ref=f1e732]:
+                - generic "840 MB/s"
+                - generic [ref=f1e733]: "3"
+              - generic [ref=f1e734]:
+                - generic "835 MB/s"
+                - generic [ref=f1e735]: "4"
+              - generic [ref=f1e736]:
+                - generic "860 MB/s"
+                - generic [ref=f1e737]: "5"
+              - generic [ref=f1e738]:
+                - generic "847 MB/s"
+                - generic [ref=f1e739]: "6"
+              - generic [ref=f1e740]:
+                - generic "855 MB/s"
+                - generic [ref=f1e741]: "7"
+              - generic [ref=f1e742]:
+                - generic "830 MB/s"
+                - generic [ref=f1e743]: "8"
+              - generic [ref=f1e744]:
+                - generic "845 MB/s"
+                - generic [ref=f1e745]: "9"
+              - generic [ref=f1e746]:
+                - generic "865 MB/s"
+                - generic [ref=f1e747]: "10"
+              - generic [ref=f1e748]:
+                - generic "870 MB/s"
+                - generic [ref=f1e749]: "11"
+              - generic [ref=f1e750]:
+                - generic "852 MB/s"
+                - generic [ref=f1e751]: "12"
+              - generic [ref=f1e752]:
+                - generic "848 MB/s"
+                - generic [ref=f1e753]: "13"
+              - generic [ref=f1e754]:
+                - generic "860 MB/s"
+                - generic [ref=f1e755]: "14"
+              - generic [ref=f1e756]:
+                - generic "847 MB/s"
+                - generic [ref=f1e757]: "15"
+        - generic [ref=f1e758]:
+          - generic [ref=f1e759]:
+            - generic [ref=f1e760]:
+              - generic [ref=f1e763]: System Activity Stream
+              - generic [ref=f1e764]: Real-time Telemetry
+            - button "Clear" [ref=f1e765] [cursor=pointer]
+          - generic [ref=f1e766]:
+            - generic [ref=f1e767]:
+              - generic [ref=f1e768]: "[14:23:01]"
+              - generic [ref=f1e769]: "Unsloth FastLanguageModel:"
+              - generic [ref=f1e770]: FastLanguageModel.from_pretrained("Qwen/Qwen2.5-32B-Instruct", max_seq_length=16384, load_in_4bit=True)
+            - generic [ref=f1e771]:
+              - generic [ref=f1e772]: "[14:23:02]"
+              - generic [ref=f1e773]: "SGLang TP=2:"
+              - generic [ref=f1e774]: Request req_8f3m · TTFT=142ms · 284 tokens · TP=2 · RadixAttention hit
+            - generic [ref=f1e775]:
+              - generic [ref=f1e776]: "[14:23:03]"
+              - generic [ref=f1e777]: "Mojo SIMD:"
+              - generic [ref=f1e778]: SIMD embedding batch · 1,240 chunks · 847 MB/s throughput
+            - generic [ref=f1e779]:
+              - generic [ref=f1e780]: "[14:23:05]"
+              - generic [ref=f1e781]: "Unsloth GRPO:"
+              - generic [ref=f1e782]: Step 420/1200 · loss=0.0381 · cargo check reward pass=91.2% · 5.2x speedup
+            - generic [ref=f1e783]:
+              - generic [ref=f1e784]: "[14:23:07]"
+              - generic [ref=f1e785]: "GPU Watchdog:"
+              - generic [ref=f1e786]: Dual RTX 3090 VRAM at 76.6% (Unsloth QDoRA saves 80% VRAM vs FP16)
+            - generic [ref=f1e787]:
+              - generic [ref=f1e788]: "[14:23:08]"
+              - generic [ref=f1e789]: "gRPC CAD Bridge:"
+              - generic [ref=f1e790]: kicad_bridge.RunDRC completed · 0 violations · 38ms
+            - generic [ref=f1e791]:
+              - generic [ref=f1e792]: "[14:23:10]"
+              - generic [ref=f1e793]: "RadixAttention:"
+              - generic [ref=f1e794]: Prefix cache hit ratio 87.3% across 16K active context window
+    - generic [ref=f1e253]:
+      - generic [ref=f1e254]:
+        - generic [ref=f1e255]: TP=2 CLUSTER
+        - generic [ref=f1e262]: "|"
+        - generic [ref=f1e263]:
+          - generic [ref=f1e264]: Dual RTX 3090
+          - generic [ref=f1e265]: 36/48 GB (75%)
+      - generic [ref=f1e266]:
+        - generic [ref=f1e267]:
+          - generic [ref=f1e268]: "GPU 0:"
+          - generic [ref=f1e271]: 18.2G
+          - generic [ref=f1e272]: (85% load)
+        - generic [ref=f1e273]:
+          - generic [ref=f1e274]: "GPU 1:"
+          - generic [ref=f1e277]: 17.8G
+          - generic [ref=f1e278]: (69% load)
+        - generic [ref=f1e313]: "NCCL: 0.85ms"
+      - generic [ref=f1e279]:
+        - button "LIVE" [ref=f1e280] [cursor=pointer]
+        - button "Cluster Telemetry" [ref=f1e284] [cursor=pointer]

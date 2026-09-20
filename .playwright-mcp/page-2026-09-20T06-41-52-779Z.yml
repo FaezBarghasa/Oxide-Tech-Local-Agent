@@ -1,0 +1,158 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - generic [ref=f1e7]: 🦥
+        - generic [ref=f1e8]:
+          - generic [ref=f1e9]: Oxide-tech-local-agent
+          - generic [ref=f1e10]: Desktop-First OS
+      - generic [ref=f1e11]: DESKTOP
+    - generic [ref=f1e12]:
+      - generic [ref=f1e13]: Workspaces
+      - button "AI Assistant Fast Chat, code & firmware" [ref=f1e15] [cursor=pointer]:
+        - generic [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [ref=f1e22]: AI Assistant
+            - generic [ref=f1e23]: Fast
+          - generic [ref=f1e24]: Chat, code & firmware
+      - button "Overview & Plan 7-phase roadmap & telemetry" [ref=f1e26] [cursor=pointer]:
+        - generic [ref=f1e33]:
+          - generic [ref=f1e34]: Overview & Plan
+          - generic [ref=f1e36]: 7-phase roadmap & telemetry
+      - button "Doctor & System Diagnostics Toolchains, GPU & udev diagnostic" [ref=f1e38] [cursor=pointer]:
+        - generic [ref=f1e44]:
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: Doctor & System
+            - generic [ref=f1e47]: Diagnostics
+          - generic [ref=f1e48]: Toolchains, GPU & udev diagnostic
+      - button "RE-Forge Studio Disasm & Decompile Binary, ARM IVT & GPU PTX lifter" [ref=f1e50] [cursor=pointer]:
+        - generic [ref=f1e57]:
+          - generic [ref=f1e58]:
+            - generic [ref=f1e59]: RE-Forge Studio
+            - generic [ref=f1e60]: Disasm & Decompile
+          - generic [ref=f1e61]: Binary, ARM IVT & GPU PTX lifter
+      - button "Graph Engineering SurrealDB v3 AST, Call & Topology Map" [ref=f1e63] [cursor=pointer]:
+        - generic [ref=f1e70]:
+          - generic [ref=f1e71]:
+            - generic [ref=f1e72]: Graph Engineering
+            - generic [ref=f1e73]: SurrealDB v3
+          - generic [ref=f1e74]: AST, Call & Topology Map
+      - button "Project Memory oxide-embed oxide-embed search & recall" [active] [ref=f1e76] [cursor=pointer]:
+        - generic [ref=f1e86]:
+          - generic [ref=f1e87]:
+            - generic [ref=f1e88]: Project Memory
+            - generic [ref=f1e89]: oxide-embed
+          - generic [ref=f1e90]: oxide-embed search & recall
+      - button "Unsloth Tuning 5x Turbo GRPO, QDoRA & Model Soup" [ref=f1e92] [cursor=pointer]:
+        - generic [ref=f1e96]:
+          - generic [ref=f1e97]:
+            - generic [ref=f1e98]: Unsloth Tuning
+            - generic [ref=f1e99]: 5x Turbo
+          - generic [ref=f1e100]: GRPO, QDoRA & Model Soup
+      - button "CAD & Schematics KiCad netlists, DRC & AST" [ref=f1e102] [cursor=pointer]:
+        - generic [ref=f1e108]:
+          - generic [ref=f1e109]: CAD & Schematics
+          - generic [ref=f1e111]: KiCad netlists, DRC & AST
+      - button "Serving & System SGLang TP=2, APIs & health" [ref=f1e113] [cursor=pointer]:
+        - generic [ref=f1e118]:
+          - generic [ref=f1e119]: Serving & System
+          - generic [ref=f1e121]: SGLang TP=2, APIs & health
+      - button "Settings & Config Profiles, ports & config.toml" [ref=f1e123] [cursor=pointer]:
+        - generic [ref=f1e128]:
+          - generic [ref=f1e129]: Settings & Config
+          - generic [ref=f1e131]: Profiles, ports & config.toml
+    - generic [ref=f1e132]:
+      - generic [ref=f1e133]:
+        - generic [ref=f1e134]: Dual RTX 3090
+        - generic [ref=f1e137]: 48GB VRAM
+      - generic [ref=f1e138]:
+        - generic [ref=f1e139]: SGLang :8080
+        - generic [ref=f1e140]: gRPC :50051
+        - generic [ref=f1e141]: TP=2
+  - generic [ref=f1e142]:
+    - banner [ref=f1e143]:
+      - generic [ref=f1e144]:
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]: Projects
+          - heading "Project Memory" [level=1] [ref=f1e318]
+          - generic [ref=f1e290]: "— oxide-embed semantic memory: search, recall, remember & context packs"
+        - generic [ref=f1e149]:
+          - generic [ref=f1e150]: Rust Gateway :8080 (HTTP/3)
+          - generic [ref=f1e291]: Dual RTX 3090 (48GB)
+          - button "New Session" [ref=f1e153] [cursor=pointer]
+          - button "Deploy" [ref=f1e156] [cursor=pointer]
+    - main [ref=f1e160]:
+      - generic [ref=f1e319]:
+        - generic [ref=f1e320]:
+          - generic [ref=f1e321]:
+            - generic [ref=f1e322]:
+              - heading "Project Memory · oxide-embed" [level=2] [ref=f1e323]
+              - paragraph [ref=f1e333]: oxide-embed (via gateway host PATH) · browser mode — use desktop app for direct memory access · manifest missing · browser mode (read-only gateway fallback)
+            - button "Refresh" [ref=f1e334] [cursor=pointer]
+          - generic [ref=f1e341]:
+            - generic [ref=f1e342]:
+              - generic [ref=f1e343]: Project directory (contains .oxide/)
+              - textbox "Project directory (contains .oxide/)" [ref=f1e349]:
+                - /placeholder: /path/to/project
+            - button "Status" [disabled] [ref=f1e350] [cursor=pointer]
+            - button "Init" [disabled] [ref=f1e356] [cursor=pointer]
+            - button "Re-index" [disabled] [ref=f1e358] [cursor=pointer]
+        - generic [ref=f1e360]:
+          - heading "Semantic search & recall" [level=3] [ref=f1e361]
+          - generic [ref=f1e365]:
+            - textbox "symbol, topic, or question…" [ref=f1e366]
+            - generic [ref=f1e367]:
+              - generic [ref=f1e368]: Limit
+              - textbox "Limit" [ref=f1e369]: "8"
+            - generic [ref=f1e370]:
+              - button "Search" [disabled] [ref=f1e371] [cursor=pointer]
+              - button "Recall" [disabled] [ref=f1e380] [cursor=pointer]
+          - generic [ref=f1e382] [cursor=pointer]:
+            - checkbox "hierarchical (--stair) search" [checked] [ref=f1e383]
+            - text: hierarchical (--stair) search
+        - generic [ref=f1e384]:
+          - generic [ref=f1e385]:
+            - heading "Remember assertion" [level=3] [ref=f1e386]
+            - generic [ref=f1e389]:
+              - textbox "Decision, fact, preference, or goal to store…" [ref=f1e390]
+              - generic [ref=f1e391]:
+                - textbox "kind" [ref=f1e392]: fact
+                - textbox "tags a,b" [ref=f1e393]
+                - textbox "symbol" [ref=f1e394]
+              - generic [ref=f1e395]:
+                - generic [ref=f1e396] [cursor=pointer]:
+                  - checkbox "auto-resolve conflicts" [checked] [ref=f1e397]
+                  - text: auto-resolve conflicts
+                - button "Remember" [disabled] [ref=f1e398] [cursor=pointer]
+          - generic [ref=f1e400]:
+            - heading "Task context pack" [level=3] [ref=f1e401]
+            - generic [ref=f1e405]:
+              - textbox "Describe the engineering task to pack context for…" [ref=f1e406]
+              - generic [ref=f1e407]:
+                - generic [ref=f1e408]:
+                  - text: budget
+                  - textbox "budget" [ref=f1e409]: "1500"
+                - button "Pack context" [disabled] [ref=f1e410] [cursor=pointer]
+        - generic [ref=f1e412]:
+          - generic [ref=f1e413]: oxide-embed console
+          - generic [ref=f1e414]: // oxide-embed output appears here
+    - generic [ref=f1e253]:
+      - generic [ref=f1e254]:
+        - generic [ref=f1e255]: TP=2 CLUSTER
+        - generic [ref=f1e262]: "|"
+        - generic [ref=f1e263]:
+          - generic [ref=f1e264]: Dual RTX 3090
+          - generic [ref=f1e265]: 36.4/48 GB (76%)
+      - generic [ref=f1e266]:
+        - generic [ref=f1e267]:
+          - generic [ref=f1e268]: "GPU 0:"
+          - generic [ref=f1e271]: 18.4G
+          - generic [ref=f1e272]: (82% load)
+        - generic [ref=f1e273]:
+          - generic [ref=f1e274]: "GPU 1:"
+          - generic [ref=f1e277]: 18G
+          - generic [ref=f1e278]: (80% load)
+        - generic [ref=f1e313]: "NCCL: 0.86ms"
+      - generic [ref=f1e279]:
+        - button "LIVE" [ref=f1e280] [cursor=pointer]
+        - button "Cluster Telemetry" [ref=f1e284] [cursor=pointer]
