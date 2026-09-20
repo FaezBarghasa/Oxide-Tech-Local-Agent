@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'crypto';
 
 let msgId = 0;
 const nextId = () => `msg-${++msgId}-${Date.now()}`;
@@ -50,6 +49,7 @@ export const ChatTab: React.FC = () => {
     if (!textToSend || isLoading) return;
 
     const userMsg: ChatMessage = {
+      id: nextId(),
       role: 'user',
       content: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -85,20 +85,22 @@ export const ChatTab: React.FC = () => {
       setMessages((prev) => [
         ...prev,
         {
+          id: nextId(),
           role: 'assistant',
           content: reply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          meta: { mode, tokens: data.tokens || 0, source: data.source || 'Local Thinker Engine' },
+          meta: { mode, tokens: data.tokens || 0 },
         },
       ]);
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
         {
+          id: nextId(),
           role: 'assistant',
           content: `Agent runtime response: ${err.message || 'Standalone mode'}.\n\n(Ensure gateway is running on :8080 or use desktop native commands).`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          meta: { mode, source: 'Standalone' },
+          meta: { mode },
         },
       ]);
     } finally {
