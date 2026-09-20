@@ -55,19 +55,26 @@ oxide-agent daemon --profile pro --port 8080
 
 ---
 
-## 3. Launching the Studio UI
+## 3. Launching the Desktop Application (Studio UI)
 
-The web-based visual control plane provides real-time agent loops, HITL approval inboxes, AST knowledge graph exploration, and multi-physics verifier logs.
+Oxide-Tech Local Agent is designed **Desktop-First**. The native Tauri v2 desktop application integrates all subsystems into an interactive workspace:
+- **Doctor Tab**: Hardware connectivity, toolchain checks, and udev rules installer.
+- **RE-Forge Tab**: Interactive vector table inspection, entropy graphing, and decompilation.
+- **Verifier Tab**: Real-time multi-suite testing & cryptographic evidence bundle export.
+- **Settings Tab**: Fast profile switching (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`).
 
 ```bash
-# Launch Studio UI directly
+# Launch Native Desktop Studio
+cargo tauri dev
+
+# Or launch local web studio server
 oxide-agent studio --port 3000
 ```
-Open **http://localhost:3000** to access Oxide Studio.
+Access the desktop app directly or open **http://localhost:3000** for headless web access.
 
 ---
 
-## 4. Key Workflows & CLI Subcommands
+## 4. Key Workflows & CLI Subcommands (Headless Automation)
 
 ### High-Throughput Binary Reverse Engineering & Decompilation
 ```bash

@@ -76,7 +76,7 @@ graph TD
 - **Stealth Local Extraction (`d4vinci/Scrapling`)**: Fast Python-based extraction worker handling `docs.rs`, GitHub issues, and crates.io with sub-200ms DOM parsing.
 - **Local Interactive Browser Daemon (`pinchtab/pinchtab`)**: Lightweight Go daemon delivering accessibility-tree snapshots and Cloak Mode automation.
 
-### Layer 2 & 3: Multi-Domain Graph & Unified Memory (`workspace/knowledge` & `workspace/memory`)
+### Layer 2 & 3: Multi-Domain Graph & Unified Memory (`crates/knowledge` & `crates/memory`)
 - **Cross-Domain Topology Mapping**:
   - `code_symbol -> maps_to -> eda_component`
   - `eda_component -> mates_with -> cad_body`
@@ -98,3 +98,14 @@ graph TD
 ### Layer 5 & 6: Distributed Transactions & Self-Evolution (`crates/oxide-protocol` & `crates/self-evolver`)
 - **The Oxide Protocol**: Standardized JSON-RPC 2.0 schemas for EDA and 3D CAD tools with time-ordered **UUIDv7 Distributed Transaction IDs (`DtxId`)** and automatic atomic rollbacks (`rollback_dtx`).
 - **Self-Evolution Engine**: `DeltaHarvester` and JIT MCP synthesizer running inside unshared `bwrap` namespaces.
+
+---
+
+## 3. Desktop-First Integration (`src-tauri` & `ui/oxide-agent-studio`)
+
+The desktop application directly mounts the full suite of backend capabilities across specialized studio views:
+- **System Doctor**: Direct target connectivity, hardware permissions, and udev rule deployment.
+- **RE-Forge Studio**: Binary architecture analysis, ARM vector table parsing, entropy graphs, and safe-Rust decompilation.
+- **Verification Matrix**: Real-time multi-suite verification execution, checkpointer rollback, and evidence bundle generation.
+- **Memory & Rule Fabric**: Persistent decision inspection, contradiction detection, and 2-hop GraphRAG traversals.
+- **Settings & Profile Manager**: Real-time TOML profile switching (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`).

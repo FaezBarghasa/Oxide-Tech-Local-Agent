@@ -126,3 +126,37 @@ The Oxide-Tech Local Agent OS exposes endpoints over TCP (HTTP/1.1, HTTP/2, WebS
   - Request: `{ "source": "#include <stdio.h>\nint main() { return 0; }", "file_path": "main.c" }`
   - Response: `{ "detected_language": "C" }`
 
+---
+
+## 4. Desktop-First Tauri v2 IPC Command Matrix (`src-tauri`)
+
+The native desktop application connects directly to core engine modules via strongly typed `#[tauri::command]` IPC handlers:
+
+### A. Hardware & System Doctor
+- `doctor_run_diagnostics()` $\to$ `DoctorReportDto`: Scans probe-rs targets, Qdrant/SurrealDB health, and Linux permissions.
+- `doctor_install_udev_rules()` $\to$ `UdevInstallResultDto`: Safely installs hardware debug probe rules to `/etc/udev/rules.d/69-probe-rs.rules`.
+
+### B. RE-Forge Studio Binary Analysis
+- `reforge_analyze_file(request: ReforgeFileRequestDto)` $\to$ `ReforgeAnalysisResultDto`:
+  - Zero-copy ELF/PE/Mach-O header analysis.
+  - ARM Cortex-M Vector Table (`IvtEntryDto`) decoding.
+  - RTOS signature detection (`FreeRTOS`, `Embassy`, `RTIC`, `Zephyr`).
+  - Shannon byte entropy graphing across binary chunks.
+  - Neural/Safe-Rust decompilation output.
+
+### C. Deterministic Verifier Matrix
+- `verifier_run_suite(request: VerifierRunRequestDto)` $\to$ `VerifierRunResultDto`:
+  - Executes unit tests, formal verification, or hardware simulation suites.
+  - Automatically captures git stash rollback checkpoints.
+- `verifier_export_evidence(bundle: EvidenceBundleDto)` $\to$ `String`: Exports signed, timestamped cryptographic proof bundles.
+
+### D. Memory, GraphRAG & Rules Fabric
+- `memory_conflicts()` $\to$ `Vec<ConflictReportDto>`: Identifies contradictory project rules and architectural decisions.
+- `memory_explain(symbol: String, hops: u32)` $\to$ `GraphExplanationDto`: Computes multi-hop topological call graphs and blast radius.
+- `memory_remember(content: String, kind: String, tags: Vec<String>)` $\to$ `MemoryRecordDto`: Persists scoped architectural rules.
+- `memory_recall(query: String, limit: usize)` $\to$ `Vec<MemoryRecordDto>`: Retrieves relevant project knowledge.
+
+### E. Profile & Configuration
+- `config_read()` $\to$ `ConfigDto`: Reads local `config.toml` parameters.
+- `config_save(content: String)` $\to$ `ConfigSaveResultDto`: Validates and writes profile changes in real time.
+

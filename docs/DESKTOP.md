@@ -77,18 +77,28 @@ Browser-only fallback still works (`cd ui/oxide-agent-studio && pnpm dev`,
 gateway at `:8080`); the Memory tab shows a banner there because direct
 `oxide-embed` access requires the desktop runtime.
 
-## Project memory quickstart (inside the app)
+## Desktop Studio View Matrix
 
-1. Open the **Project Memory** tab, set the project directory (the one with `.oxide/`).
-2. `Re-index` (runs `oxide-embed index --force`), then search / recall / remember.
-3. Same operations from a terminal: `oxide-agent memory search "dma init" --stair`.
+The desktop application includes a comprehensive engineering studio:
+- **System Doctor (`DoctorTab.tsx`)**: Target probe discovery (`probe-rs`), Linux udev rules deployment, and database connectivity.
+- **RE-Forge Studio (`ReForgeTab.tsx`)**: Zero-copy binary parsing, ARM Cortex-M Vector Table decoding, Shannon entropy graphing, and neural safe-Rust decompilation.
+- **Verification Matrix (`VerificationTab.tsx`)**: Real-time test suite execution, atomic git stash checkpointer rollback, and signed cryptographic evidence bundle export.
+- **Project Memory & GraphRAG (`MemoryTab.tsx`)**: Integrated `oxide-embed` semantic memory fabric, STAIR Code-ToC leaf search, contradiction detection, and 2-hop topological call graphs.
+- **Configuration & Profiles (`SettingsTab.tsx`)**: Dynamic TOML profile switching (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`).
 
 ## Files
 
-- `src-tauri/` — Tauri app: `src/main.rs` (single binary), `src/memory.rs`
-  (oxide-embed bridge + `memory_*` commands), `src/gateway_rt.rs` (embedded
-  gateway), `tauri.conf.json` (bundle → single `.deb`), `capabilities/`.
-- `scripts/fetch-sidecar.sh` — stages `oxide-embed` for the bundler.
-- `ui/oxide-agent-studio/src/lib/desktop.ts` — typed Tauri `invoke` wrappers
-  with gateway-HTTP fallback in browsers.
-- `ui/oxide-agent-studio/src/components/MemoryTab.tsx` — studio Memory tab.
+- `src-tauri/` — Tauri v2 app:
+  - `src/main.rs`: Entry point and 18 registered IPC commands.
+  - `src/doctor.rs`: Hardware and system diagnostics.
+  - `src/reforge_ipc.rs`: Binary reverse engineering and decompilation.
+  - `src/verifier_ipc.rs`: Deterministic verification and evidence bundles.
+  - `src/config_ipc.rs`: Dynamic TOML profile persistence.
+  - `src/memory.rs`: `oxide-embed` bridge, STAIR search, and conflict auditor.
+  - `src/gateway_rt.rs`: Embedded Actix-Web + Quinn QUIC runtime.
+- `ui/oxide-agent-studio/` — React 19 / Vite UI:
+  - `src/components/DoctorTab.tsx`: Interactive hardware & permissions panel.
+  - `src/components/ReForgeTab.tsx`: Disassembly, vector table, and entropy viewer.
+  - `src/components/VerificationTab.tsx`: Test runner & evidence exporter.
+  - `src/components/MemoryTab.tsx`: Semantic memory & GraphRAG browser.
+  - `src/components/SettingsTab.tsx`: Real-time configuration editor.
