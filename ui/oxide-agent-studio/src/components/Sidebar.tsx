@@ -132,8 +132,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       {/* Brand Header */}
       <div className="p-4 border-b border-white/[0.07] flex items-center justify-between bg-[#121216]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center font-bold text-zinc-950 text-base shadow-[0_0_12px_rgba(245,158,11,0.3)]">
-            🦀
+          <div className="w-8 h-8 rounded-lg bg-[#18181e] border border-white/[0.1] p-1 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+            <img
+              src="/assets/oxide-logo.png"
+              alt="Oxide-Tech Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">

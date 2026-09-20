@@ -138,8 +138,12 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
               <div className="text-[10px] font-mono uppercase text-zinc-400 font-semibold">Memory Fabric</div>
               <div className="text-xs font-mono font-bold text-amber-400">oxide-embed AST</div>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-              🦀
+            <div className="w-12 h-12 rounded-xl bg-[#18181e] border border-white/[0.1] p-2 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+              <img
+                src="/assets/oxide-logo.png"
+                alt="Oxide-Tech Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
         </div>

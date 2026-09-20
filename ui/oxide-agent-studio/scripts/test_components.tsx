@@ -72,21 +72,21 @@ console.log('\x1b[1;34m=========================================================
 
 // 1. Full App & Layout
 testComponent('App Layout & Ambient Glows', <App />, [
-  { name: 'Warm carbon background glow', pattern: 'bg-orange-600/10' },
+  { name: 'Warm carbon background glow', pattern: 'bg-amber-500/5' },
   { name: 'Sidebar rendered', pattern: 'AI Assistant' },
-  { name: 'Hardware Cluster status bar', pattern: 'TP=2 CLUSTER' },
+  { name: 'Hardware Cluster status bar', pattern: 'Local Workstation' },
 ]);
 
 // 2. Navigation & Header
 testComponent('Header Bar', <Header currentTab="chat" onSelectTab={() => {}} onNewSession={() => {}} onQuickDeploy={() => {}} />, [
   { name: 'Deploy action button', pattern: 'Deploy' },
   { name: 'New Session action button', pattern: 'New Session' },
-  { name: 'Latency & health indicator', pattern: 'ms' },
+  { name: 'Category badge', pattern: 'Chat' },
 ]);
 
 testComponent('Sidebar Nav Matrix', <Sidebar currentTab="chat" onSelectTab={() => {}} />, [
   { name: 'AI Assistant tab button', pattern: 'AI Assistant' },
-  { name: 'Overview tab button', pattern: 'Overview &amp; Plan' },
+  { name: 'Overview tab button', pattern: 'Overview &amp; Crates' },
   { name: 'Doctor tab button', pattern: 'Doctor &amp; System' },
   { name: 'RE-Forge tab button', pattern: 'RE-Forge Studio' },
   { name: 'Memory tab button', pattern: 'Project Memory' },
@@ -95,14 +95,14 @@ testComponent('Sidebar Nav Matrix', <Sidebar currentTab="chat" onSelectTab={() =
 
 // 3. Specialized Studio Tabs
 testComponent('ChatTab', <ChatTab />, [
-  { name: 'Initial assistant greeting', pattern: 'oxide-agent-studio' },
-  { name: 'SGLang runtime reference', pattern: 'SGLang TP=2 runtime' },
-  { name: 'Tree-Sitter AST context', pattern: 'Tree-Sitter AST' },
+  { name: 'Initial assistant greeting', pattern: 'Oxide-Tech Local Agent' },
+  { name: 'STAIR AST retrieval reference', pattern: 'STAIR Code-ToC' },
+  { name: 'Verified crates context', pattern: 'verified crates' },
 ]);
 
 testComponent('OverviewTab', <OverviewTab onNavigateTab={() => {}} />, [
-  { name: 'Plan milestones', pattern: 'Phase' },
-  { name: 'Telemetry panels', pattern: 'Dual RTX 3090' },
+  { name: 'Verified crates section', pattern: 'Verified Crates' },
+  { name: 'Telemetry panels', pattern: 'Desktop-First Workstation' },
 ]);
 
 testComponent('MemoryTab (oxide-embed)', <MemoryTab />, [
@@ -130,8 +130,8 @@ testComponent('VerificationTab', <VerificationTab />, [
 ]);
 
 testComponent('HardwareClusterStatus', <HardwareClusterStatus />, [
-  { name: 'Dual GPU VRAM status', pattern: 'Dual RTX 3090' },
-  { name: 'TP=2 cluster indicator', pattern: 'TP=2' },
+  { name: 'Local workstation hardware', pattern: 'Local Workstation Telemetry' },
+  { name: 'In-process execution indicator', pattern: 'In-Process Native Runtime' },
   { name: 'Expand/collapse chevron', pattern: 'button' },
 ]);
 
