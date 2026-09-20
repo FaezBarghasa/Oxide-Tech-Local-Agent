@@ -1,0 +1,6 @@
+{
+  "base_model": "Qwen/Qwen3.8-35B-Instruct",
+  "sample_count": 2,
+  "lora_rank": 32,
+  "status": "ADAPTER_EXPORT_READY"
+}
