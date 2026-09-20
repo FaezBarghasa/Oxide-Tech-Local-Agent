@@ -131,11 +131,11 @@ forge-rust = { path = "crates/forge-rust" }
 
 [profile.release]
 opt-level = 3            # Enable maximum performance optimizations
-lto = "fat"              # Perform full Link-Time Optimization across all workspace crates
-codegen-units = 1        # Restrict compilation to a single unit for deeper global optimization
+lto = "thin"             # Fast Link-Time Optimization without OOM exhaustion
+codegen-units = 16       # Parallelize compilation and linking within memory budget
 panic = "unwind"         # Required for catch_unwind FFI fault boundary isolation
 strip = "debuginfo"      # Strip debuginfo while preserving panic unwinding tables
-incremental = false      # Disable incremental compilation in release to allow broader optimizations
+incremental = false
 
 [profile.surface]
 inherits = "release"

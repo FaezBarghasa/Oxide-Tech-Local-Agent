@@ -257,7 +257,11 @@ fn run_status(gateway_url: &str) {
 
 fn main() {
     let raw: Vec<String> = std::env::args().skip(1).collect();
-    if raw.is_empty() || matches!(raw[0].as_str(), "-h" | "--help" | "help") {
+    if raw.is_empty() {
+        run_desktop(None);
+        return;
+    }
+    if matches!(raw[0].as_str(), "-h" | "--help" | "help") {
         println!("{}", usage());
         return;
     }
