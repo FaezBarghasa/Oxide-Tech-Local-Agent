@@ -90,7 +90,16 @@ pub fn start_scheduler(config: AppConfig, db: Surreal<Any>) -> tokio::task::Join
 
 pub async fn run_update_cycle(config: &AppConfig, db: &Surreal<Any>) -> Result<(), anyhow::Error> {
     info!("Initializing KnowledgeClient and ThinkerClient for update cycle...");
-    let knowledge_client = KnowledgeClient::new().await?;
+    let knowledge_client = match KnowledgeClient::new().await {
+        Ok(kc) => Some(kc),
+        Err(e) => {
+            warn!(
+                "Qdrant knowledge service unavailable ({}). Running update cycle in offline mode (vector indexing skipped).",
+                e
+            );
+            None
+        }
+    };
     let thinker_client = ThinkerClient::new();
 
     let mut raw_news = Vec::new();
@@ -98,8 +107,10 @@ pub async fn run_update_cycle(config: &AppConfig, db: &Surreal<Any>) -> Result<(
     // 1. Ingest RSS feeds
     for (name, url) in &config.knowledge.news_sources {
         info!("Ingesting news source: {} from {}", name, url);
-        if let Err(e) = knowledge_client.ingest_rss_feed(url, name).await {
-            warn!("Failed to ingest RSS feed {}: {}", name, e);
+        if let Some(ref kc) = knowledge_client {
+            if let Err(e) = kc.ingest_rss_feed(url, name).await {
+                warn!("Failed to ingest RSS feed {}: {}", name, e);
+            }
         }
 
         // Also fetch and parse locally for curation
@@ -121,8 +132,10 @@ pub async fn run_update_cycle(config: &AppConfig, db: &Surreal<Any>) -> Result<(
     // 2. Ingest GitHub repos
     for repo in &config.knowledge.github_repos {
         info!("Ingesting GitHub repo: {}", repo);
-        if let Err(e) = knowledge_client.ingest_github_releases(repo).await {
-            warn!("Failed to ingest GitHub repo {}: {}", repo, e);
+        if let Some(ref kc) = knowledge_client {
+            if let Err(e) = kc.ingest_github_releases(repo).await {
+                warn!("Failed to ingest GitHub repo {}: {}", repo, e);
+            }
         }
 
         let clean_url = repo.trim_end_matches('/');
@@ -158,19 +171,20 @@ pub async fn run_update_cycle(config: &AppConfig, db: &Surreal<Any>) -> Result<(
     // 3. Ingest custom URLs
     for url in &config.knowledge.custom_urls {
         info!("Ingesting custom URL: {}", url);
-        if let Err(e) = knowledge_client.ingest_custom_url(url).await {
-            warn!("Failed to ingest custom URL {}: {}", url, e);
+        if let Some(ref kc) = knowledge_client {
+            if let Err(e) = kc.ingest_custom_url(url).await {
+                warn!("Failed to ingest custom URL {}: {}", url, e);
+            }
         }
     }
 
     // 4. Ingest watchlist crate docs.rs
     for crate_name in &config.knowledge.watchlist {
         info!("Ingesting docs for crate: {}", crate_name);
-        if let Err(e) = knowledge_client
-            .ingest_crate_docs(crate_name, "latest")
-            .await
-        {
-            warn!("Failed to ingest crate docs for {}: {}", crate_name, e);
+        if let Some(ref kc) = knowledge_client {
+            if let Err(e) = kc.ingest_crate_docs(crate_name, "latest").await {
+                warn!("Failed to ingest crate docs for {}: {}", crate_name, e);
+            }
         }
         tokio::time::sleep(Duration::from_millis(config.knowledge.request_delay_ms)).await;
     }

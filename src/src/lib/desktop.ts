@@ -287,4 +287,101 @@ export const desktop = {
     if (!isTauriRuntime()) return { success: true };
     return tauriInvoke<any>('config_save', { content });
   },
+
+  // Model Discovery & Unsloth-Style Execution
+  async modelListAvailable(): Promise<ModelListResponse> {
+    if (!isTauriRuntime()) {
+      return {
+        active_model: 'qwen2.5-coder:7b',
+        active_provider: 'ollama',
+        local_gguf_count: 0,
+        ollama_count: 1,
+        models: [
+          {
+            id: 'ollama:qwen2.5-coder:7b',
+            name: 'Qwen 2.5 Coder 7B',
+            provider: 'ollama',
+            size_formatted: '4.7 GB',
+            path: null,
+            is_running: true,
+            context_length: 32768,
+            description: 'Local Ollama Model',
+          },
+          {
+            id: 'preset:deepseek-r1:8b',
+            name: 'DeepSeek R1 8B',
+            provider: 'ollama',
+            size_formatted: '4.9 GB',
+            path: null,
+            is_running: false,
+            context_length: 16384,
+            description: 'Reasoning Model',
+          },
+        ],
+      };
+    }
+    return tauriInvoke<ModelListResponse>('model_list_available', {});
+  },
+
+  async modelRunPrompt(req: RunPromptRequest): Promise<RunPromptResponse> {
+    if (!isTauriRuntime()) {
+      const res = await fetch(`${GATEWAY}/api/agent/think`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: req.prompt }),
+      });
+      if (!res.ok) throw new Error(`Gateway returned HTTP ${res.status}`);
+      const data = await res.json();
+      return {
+        text: JSON.stringify(data, null, 2),
+        model: req.model,
+        provider: req.provider,
+        tokens_used: 120,
+        latency_ms: 350,
+        error: null,
+      };
+    }
+    return tauriInvoke<RunPromptResponse>('model_run_prompt', { req });
+  },
 };
+
+export interface ModelInfo {
+  id: string;
+  name: string;
+  provider: string;
+  size_formatted: string;
+  path: string | null;
+  is_running: boolean;
+  context_length: number;
+  description: string;
+}
+
+export interface ModelListResponse {
+  active_model: string;
+  active_provider: string;
+  local_gguf_count: usize | number;
+  ollama_count: usize | number;
+  models: ModelInfo[];
+}
+
+export interface RunPromptRequest {
+  prompt: string;
+  system_prompt?: string | null;
+  model: string;
+  provider: string;
+  base_url?: string | null;
+  temperature?: number | null;
+  max_tokens?: number | null;
+  stair_context?: string | null;
+}
+
+export interface RunPromptResponse {
+  text: string;
+  model: string;
+  provider: string;
+  tokens_used: number | null;
+  latency_ms: number;
+  error: string | null;
+}
+type usize = number;
+

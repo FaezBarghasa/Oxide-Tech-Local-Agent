@@ -20,6 +20,7 @@ mod doctor;
 mod gateway_rt;
 mod hardware_ipc;
 mod memory;
+mod model_ipc;
 mod reforge_ipc;
 mod verifier_ipc;
 
@@ -85,6 +86,9 @@ fn run_desktop(config: Option<String>) {
             hardware_ipc::hardware_list_probes,
             hardware_ipc::hardware_get_chip_info,
             hardware_ipc::hardware_flash_firmware,
+            // Model & Unsloth-Style Execution
+            model_ipc::model_list_available,
+            model_ipc::model_run_prompt,
             // RE-Forge
             reforge_ipc::reforge_analyze_file,
             // Verifier

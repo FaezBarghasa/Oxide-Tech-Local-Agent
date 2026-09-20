@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PKG_NAME="oxide-tech-local-agent"
-PKG_VERSION="0.5.0"
+PKG_VERSION="0.5.1"
 TARGET_DIR="${ROOT_DIR}/target"
 OUTPUT_DIR="${TARGET_DIR}/debian"
 STAGE_DIR="${OUTPUT_DIR}/stage"
@@ -38,10 +38,9 @@ if [[ -d "${UI_DIR}" ]]; then
     fi
 fi
 
-# 3. Build Universal Rust Desktop Binary (Tauri v2 + CLI engines)
-echo "[+] Step 2: Compiling universal release binary (oxide-tech-local-agent)..."
-cd "${ROOT_DIR}"
-cargo build --release -p oxide-tech-local-agent
+# 3. Build Universal Rust Desktop Binary (Tauri v2 + CLI engines in production embedded mode)
+echo "[+] Step 2: Compiling universal release binary with Tauri v2 production bundle..."
+(cd "${ROOT_DIR}/src-tauri" && cargo tauri build --no-bundle)
 
 AGENT_BIN="${TARGET_DIR}/release/oxide-tech-local-agent"
 if [[ ! -f "${AGENT_BIN}" ]]; then
