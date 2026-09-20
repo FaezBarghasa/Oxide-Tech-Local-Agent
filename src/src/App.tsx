@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { TabId } from './types';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
@@ -13,39 +13,25 @@ import { DatasetRecipeTab } from './components/DatasetRecipeTab';
 import { TrainingTab } from './components/TrainingTab';
 import { ModelSoupTab } from './components/ModelSoupTab';
 import { SglangTab } from './components/SglangTab';
-import { EndpointsTab } from './components/EndpointsTab';
 import { VerificationTab } from './components/VerificationTab';
 import { KnowledgeGraphTab } from './components/KnowledgeGraphTab';
 import { MemoryTab } from './components/MemoryTab';
 import { GraphTopologyTab } from './components/GraphTopologyTab';
-import { HardwareClusterStatus } from './components/HardwareClusterStatus';
 import { DoctorTab } from './components/DoctorTab';
 import { ReForgeTab } from './components/ReForgeTab';
 import { SettingsTab } from './components/SettingsTab';
+import { StatusBar } from './components/StatusBar';
+import { CommandPalette } from './components/CommandPalette';
+import { DeploySlideOver } from './components/DeploySlideOver';
+import { GatewayTab } from './components/GatewayTab';
+import { UIProvider, useUI } from './store/uiStore';
 
-export default function App() {
-  const [currentTab, setCurrentTab] = useState<TabId>('chat');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    const timer = setTimeout(() => setToastMessage(null), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleNewSession = useCallback(() => {
-    setCurrentTab('chat');
-    showToast('Session initialized');
-  }, [showToast]);
-
-  const handleQuickDeploy = useCallback(() => {
-    showToast('Deploy initiated');
-  }, [showToast]);
-
+function Shell() {
+  const { tab, setTab, toasts, toast, setDeployModel, setPalette, toggleSidebar } = useUI();
   const renderTab = () => {
-    switch (currentTab) {
+    switch (tab as TabId) {
       case 'chat': return <ChatTab />;
-      case 'overview': return <OverviewTab onNavigateTab={(t) => setCurrentTab(t as TabId)} />;
+      case 'overview': return <OverviewTab onNavigateTab={(t) => setTab(t as TabId)} />;
       case 'infra': return <InfraTab />;
       case 'grpc': return <GrpcBridgeTab />;
       case 'rag': return <RagPipelineTab />;
@@ -55,7 +41,7 @@ export default function App() {
       case 'training': return <TrainingTab />;
       case 'soup': return <ModelSoupTab />;
       case 'sglang': return <SglangTab />;
-      case 'endpoints': return <EndpointsTab />;
+      case 'endpoints': return <GatewayTab notify={toast} />;
       case 'verify': return <VerificationTab />;
       case 'doctor': return <DoctorTab />;
       case 'reforge': return <ReForgeTab />;
@@ -65,36 +51,36 @@ export default function App() {
       default: return <ChatTab />;
     }
   };
-
+  const onPalette = (id: string) => {
+    if (id === 'deploy') setDeployModel('Qwen3-8B');
+    else if (id === 'gateway') setTab('endpoints' as TabId);
+    else if (id === 'playground') setTab('chat' as TabId);
+    else if (id === 'dataset') setTab('dataset' as TabId);
+    else if (id === 'theme') toggleSidebar();
+    else toast(`Action: ${id}`);
+  };
   return (
-    <div className="min-h-screen bg-[#09090b] text-gray-100 flex flex-row antialiased selection:bg-amber-500/20 selection:text-amber-200 relative overflow-x-hidden font-sans">
-      <Sidebar currentTab={currentTab} onSelectTab={setCurrentTab} />
-
-      <div className="flex-1 flex flex-col min-w-0 z-10 relative">
-        <Header
-          currentTab={currentTab}
-          onSelectTab={setCurrentTab}
-          onNewSession={handleNewSession}
-          onQuickDeploy={handleQuickDeploy}
-        />
-
-        <main className="flex-1 p-4 md:p-6 max-w-[1720px] w-full mx-auto">
-          {renderTab()}
-        </main>
+    <div className="h-screen bg-[#0A0A0A] text-[#FAFAFA] flex flex-row antialiased overflow-hidden font-sans">
+      <Sidebar currentTab={tab} onSelectTab={setTab} />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header currentTab={tab} onSelectTab={setTab} onNewSession={() => { setTab('chat' as TabId); toast('Session initialized'); }} onQuickDeploy={() => setDeployModel('Qwen3-8B')} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 max-w-[1720px] w-full mx-auto">{renderTab()}</main>
+        <StatusBar />
       </div>
-
-      {/* Ambient atmosphere - restrained, low-contrast */}
-      <div className="fixed top-[-10%] left-[-5%] w-[600px] h-[600px] bg-amber-500/[0.03] rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="fixed bottom-[-10%] right-[-5%] w-[550px] h-[550px] bg-amber-600/[0.03] rounded-full blur-[130px] pointer-events-none z-0" />
-      <div className="fixed top-[45%] right-[25%] w-[450px] h-[450px] bg-zinc-800/[0.05] rounded-full blur-[150px] pointer-events-none z-0" />
-
-      {/* Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-[#18181b]/95 border border-white/[0.08] text-xs text-zinc-300 backdrop-blur-xl flex items-center gap-2.5 fade-in shadow-lg">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-          {toastMessage}
-        </div>
-      )}
+      <CommandPalette onAction={onPalette} />
+      <DeploySlideOver />
+      <div className="fixed bottom-12 right-6 z-[70] flex flex-col gap-2 items-end" aria-live="polite">
+        {toasts.map((t) => (
+          <div key={t.id} className="px-4 py-2.5 rounded-lg bg-[#111113] border border-[#27272A] text-xs text-zinc-200 shadow-xl flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />{t.msg}
+          </div>
+        ))}
+      </div>
+      <button onClick={() => setPalette(true)} aria-label="open command palette" className="sr-only">palette</button>
     </div>
   );
+}
+
+export default function App() {
+  return <UIProvider initialTab={'chat' as TabId}><Shell /></UIProvider>;
 }

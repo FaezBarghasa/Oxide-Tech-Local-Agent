@@ -1,0 +1,18 @@
+[package]
+name = "engines"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+reqwest = { workspace = true }
+surrealdb = { workspace = true }
+futures-util = { workspace = true }
+async-trait = "0.1"
+dashmap = "6"

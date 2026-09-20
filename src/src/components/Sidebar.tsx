@@ -48,9 +48,9 @@ const navItems: { id: TabId; label: string; icon: React.ReactNode; desc: string 
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
   return (
-    <aside className="w-60 bg-[#09090b]/95 backdrop-blur-2xl border-r border-white/[0.07] flex flex-col h-screen sticky top-0 shrink-0 z-30 font-sans">
+    <aside className="w-60 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.07] flex flex-col h-screen sticky top-0 shrink-0 z-30 font-sans">
       {/* Logo */}
-      <div className="p-3.5 border-b border-white/[0.07] flex items-center gap-2.5 bg-[#121216]">
+      <div className="p-3.5 border-b border-white/[0.07] flex items-center gap-2.5 bg-[#111113]">
         <div className="w-7 h-7 rounded-lg bg-[#18181e] border border-white/[0.1] p-1 flex items-center justify-center shrink-0">
           <img
             src="/assets/oxide-logo.png"
@@ -59,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           />
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">
+          <div className="text-xs font-bold text-white tracking-tight font-display flex items-center gap-1.5">
             Oxide-Tech
           </div>
           <div className="text-[9px] text-zinc-500 font-mono">Agent Studio</div>
@@ -75,12 +75,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
             onClick={() => onSelectTab(item.id)}
             className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all text-left relative cursor-pointer ${
               currentTab === item.id
-                ? 'bg-amber-500/[0.08] text-amber-400 border border-amber-500/20'
+                ? 'bg-[#10B981]/[0.10] text-[#10B981] border border-[#10B981]/25'
                 : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]'
             }`}
           >
             {currentTab === item.id && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-400 rounded-r-full" />
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-[#10B981] rounded-r-full" />
             )}
             <span className="shrink-0 opacity-70">{item.icon}</span>
             <span className="truncate">{item.label}</span>
@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
       </nav>
 
       {/* Status footer */}
-      <div className="p-3 border-t border-white/[0.07] bg-[#121216]">
+      <div className="p-3 border-t border-white/[0.07] bg-[#111113]">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span className="text-[10px] font-mono text-zinc-400">Local Workstation</span>

@@ -364,7 +364,7 @@ export const ChatTab: React.FC = () => {
               <div className="bg-[#18181e] border border-white/[0.06] rounded-xl rounded-bl-xs p-3 flex items-center gap-2">
                 <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin" />
                 <span className="text-xs font-mono text-zinc-300">
-                  Executing on <span className="text-amber-400">{selectedModel}</span> ({selectedProvider})...
+                  Executing on <span className="text-amber-400">{selectedModel}</span> ({selectedProvider})...<span aria-hidden className="animate-pulse text-[#10B981]">▋</span>
                 </span>
               </div>
             </div>
