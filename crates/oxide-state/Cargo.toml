@@ -1,0 +1,17 @@
+[package]
+name = "oxide-state"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-engines = { path = "../oxide-engines" }
+dashmap = { workspace = true }
+surrealdb = { workspace = true }
+surrealdb-types = { workspace = true }
+tokio = { workspace = true }
+sysinfo = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }

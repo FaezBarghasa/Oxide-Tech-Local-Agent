@@ -1,0 +1,14 @@
+[package]
+name = "oxide-engines"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+tokio = { workspace = true }
+async-trait = "0.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }
