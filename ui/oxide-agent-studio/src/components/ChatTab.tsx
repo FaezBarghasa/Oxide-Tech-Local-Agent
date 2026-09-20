@@ -5,7 +5,6 @@ import {
   MessageSquare,
   Code2,
   Search,
-  Globe,
   Bot,
   Send,
   Wrench,
@@ -17,7 +16,6 @@ import {
   Sparkles,
   Terminal,
   Cpu,
-  Brain,
   BrainCircuit,
   ChevronDown,
   ChevronRight,
@@ -51,10 +49,10 @@ export const ChatTab: React.FC = () => {
       id: 'm-init',
       role: 'assistant',
       content:
-        `Hello! I am your local AI Assistant for the **oxide-agent-studio** workspace.\n\n` +
-        `I am wired to the **SGLang TP=2 runtime** on your dual RTX 3090 rig with active LoRA routing, **Tree-Sitter AST context compaction**, and the **gRPC CAD Bridge**.\n\n` +
-        `Choose a mode below or try one of the quick actions:`,
-      timestamp: '14:23',
+        `Hello! I am your local AI Assistant for **Oxide Agent Studio**.\n\n` +
+        `Directly integrated with **STAIR Code-ToC AST search** via \`oxide-embed\`, local config profiles, hardware probes, and the deterministic verifier engine.\n\n` +
+        `Select a mode below or type a query to begin:`,
+      timestamp: 'Ready',
     },
   ]);
 
@@ -100,6 +98,8 @@ export const ChatTab: React.FC = () => {
           setStairInfo(null);
         }
       }
+
+      // Live backend execution
       const response = await fetch('/api/gemini/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,32 +110,12 @@ export const ChatTab: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
-      const reply = data.reply || 'No response received from agent.';
-
-      // Random tool call demonstration in agent/code modes
-      if (mode === 'agent' || mode === 'code' || mode === 'research') {
-        const tools = [
-          { name: 'tree_sitter_parse', desc: 'AST extraction · Rust/Embassy AST pruned 78%' },
-          { name: 'cargo_cross_build', desc: 'target: thumbv7em-none-eabihf · cargo check PASS' },
-          { name: 'kicad_drc_check', desc: 'gRPC :50051 · 0 electrical rule violations' },
-          { name: 'qdrant_rag_search', desc: 'Vector cosine match · top_k=4 chunks retrieved' },
-        ];
-        const selectedTool = tools[Math.floor(Math.random() * tools.length)];
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `t-${Date.now()}`,
-            role: 'tool',
-            content: `Invoked Tool: ${selectedTool.name}\n${selectedTool.desc}\nStatus: PASS (38ms)`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            toolName: selectedTool.name,
-            toolStatus: 'success',
-            toolDuration: '38ms',
-          },
-        ]);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
+
+      const data = await response.json();
+      const reply = data.reply || 'No response received from agent backend.';
 
       setMessages((prev) => [
         ...prev,
@@ -145,8 +125,8 @@ export const ChatTab: React.FC = () => {
           content: reply,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           meta: {
-            model: data.source || 'Qwen3.8-35B-AWQ',
-            tokens: Math.round(reply.length / 3.8),
+            model: data.source || 'Local Thinker Engine',
+            tokens: Math.round(reply.length / 4),
             mode,
           },
         },
@@ -157,7 +137,7 @@ export const ChatTab: React.FC = () => {
         {
           id: `err-${Date.now()}`,
           role: 'assistant',
-          content: `Local synthesize fallback: ${err.message || 'Network error'}`,
+          content: `Agent runtime response: ${err.message || 'Standalone mode'}.\n\n(Ensure gateway is running on :8080 or use desktop native commands).`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -167,70 +147,70 @@ export const ChatTab: React.FC = () => {
   };
 
   const quickPrompts = [
-    { label: '🦀 Embassy SPI Driver', text: 'Generate an asynchronous SPI DMA driver for Embassy STM32 with zero-copy ring buffer.' },
-    { label: '⚡ KiCad DRC & Netlist', text: 'Synthesize a 3.3V LDO power supply schematic in KiCad S-expression and run DRC rule checks.' },
-    { label: '🧠 Unsloth GRPO vs PPO', text: 'Compare GRPO compiler-verifier rewards vs standard PPO for embedded firmware code generation.' },
-    { label: '🍲 LoRA Model Soup Blend', text: 'Calculate the task arithmetic soup weights for merging embedded_rust (0.45), pcb_design (0.35), and cad_3d (0.20).' },
+    { label: '🦀 Embassy Async SPI Driver', text: 'Generate an asynchronous SPI DMA driver for Embassy STM32 with zero-copy ring buffer.' },
+    { label: '⚡ STAIR Memory Recall', text: 'Search project memory for previous architecture decisions and hardware pin mappings.' },
+    { label: '🩺 Run Subsystem Diagnostics', text: 'Inspect toolchains, probe-rs, and environment health using the Doctor engine.' },
+    { label: '🛡️ Deterministic Verification', text: 'Run the complete 7-phase workspace verification matrix and generate evidence.' },
   ];
 
   return (
     <div className="space-y-5 font-sans">
       {/* Top Mode Bar & Controls */}
-      <div className="bg-[#111217] border border-[#232530] rounded-2xl p-5 shadow-xl relative overflow-hidden bg-[radial-gradient(ellipse_at_top_right,rgba(249,115,22,0.1)_0%,transparent_70%)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#232530]">
+      <div className="bg-[#121216] border border-white/[0.07] rounded-2xl p-5 shadow-xl relative overflow-hidden bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.06)_0%,transparent_70%)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-white/[0.06]">
           <div>
             <div className="text-sm font-bold text-white flex items-center gap-2 tracking-wide uppercase">
-              <Bot className="w-4 h-4 text-orange-400" />
-              <span>Oxide Local Agent Assistant</span>
+              <Bot className="w-4 h-4 text-amber-400" />
+              <span>Oxide Engineering Assistant</span>
             </div>
-            <div className="text-[10px] mono text-gray-400 mt-0.5">
-              Qwen3.8-35B-Instruct-AWQ · SGLang TP=2 · RadixAttention Active
+            <div className="text-[10px] font-mono text-zinc-400 mt-0.5">
+              AST-Aware Context Compaction · Local First · Zero Command Line Needed
             </div>
           </div>
         </div>
 
         {/* Mode Selector Chips & Quick Actions */}
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-3.5 pt-3 border-t border-[#232530]">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-3.5 pt-3 border-t border-white/[0.06]">
           <div className="flex items-center gap-1.5 overflow-x-auto">
-            <span className="text-[10px] text-gray-500 font-mono uppercase mr-1">Mode:</span>
+            <span className="text-[10px] text-zinc-500 font-mono uppercase mr-1">Mode:</span>
             <button
               onClick={() => setMode('chat')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                 mode === 'chat'
-                  ? 'bg-orange-500/15 border border-orange-500/50 text-orange-400 font-semibold'
-                  : 'bg-[#181a24] border border-[#262838] text-gray-400 hover:text-white'
+                  ? 'bg-amber-500/15 border border-amber-500/50 text-amber-400 font-semibold'
+                  : 'bg-[#18181e] border border-white/[0.06] text-zinc-400 hover:text-white'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5 text-orange-400" />
+              <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
               <span>General Assistant</span>
             </button>
             <button
               onClick={() => setMode('code')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                 mode === 'code'
-                  ? 'bg-orange-500/15 border border-orange-500/50 text-orange-400 font-semibold'
-                  : 'bg-[#181a24] border border-[#262838] text-gray-400 hover:text-white'
+                  ? 'bg-amber-500/15 border border-amber-500/50 text-amber-400 font-semibold'
+                  : 'bg-[#18181e] border border-white/[0.06] text-zinc-400 hover:text-white'
               }`}
             >
-              <Code2 className="w-3.5 h-3.5 text-orange-400" />
+              <Code2 className="w-3.5 h-3.5 text-amber-400" />
               <span>Firmware & Rust</span>
             </button>
             <button
               onClick={() => setMode('agent')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
                 mode === 'agent'
-                  ? 'bg-orange-500/15 border border-orange-500/50 text-orange-400 font-semibold'
-                  : 'bg-[#181a24] border border-[#262838] text-gray-400 hover:text-white'
+                  ? 'bg-amber-500/15 border border-amber-500/50 text-amber-400 font-semibold'
+                  : 'bg-[#18181e] border border-white/[0.06] text-zinc-400 hover:text-white'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-orange-400" />
-              <span>CAD & KiCad Tools</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Hardware & EDA Tools</span>
             </button>
           </div>
 
           <button
             onClick={() => setMessages([messages[0]])}
-            className="px-2.5 py-1 rounded-lg bg-[#181a24] hover:bg-[#202230] text-gray-400 hover:text-gray-200 border border-[#262838] text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ml-auto"
+            className="px-2.5 py-1 rounded-lg bg-[#18181e] hover:bg-[#22222a] text-zinc-400 hover:text-zinc-200 border border-white/[0.06] text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ml-auto"
           >
             <Trash2 className="w-3 h-3 text-rose-400" />
             <span>Clear</span>
@@ -239,7 +219,7 @@ export const ChatTab: React.FC = () => {
       </div>
 
       {/* Message Stream */}
-      <div className="bg-[#111217] border border-[#232530] rounded-2xl flex flex-col h-[540px] shadow-xl overflow-hidden">
+      <div className="bg-[#121216] border border-white/[0.07] rounded-2xl flex flex-col h-[540px] shadow-xl overflow-hidden">
         <div className="flex-1 p-5 overflow-y-auto space-y-4">
           {messages.map((msg) => {
             const isUser = msg.role === 'user';
@@ -249,16 +229,16 @@ export const ChatTab: React.FC = () => {
               return (
                 <div
                   key={msg.id}
-                  className="mx-2 md:mx-8 p-3 rounded-xl bg-[#0b0c10] border border-orange-500/40 font-mono text-xs text-orange-200 shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                  className="mx-2 md:mx-8 p-3 rounded-xl bg-[#09090b] border border-amber-500/30 font-mono text-xs text-amber-200"
                 >
-                  <div className="flex items-center justify-between text-[10px] text-orange-400 uppercase font-semibold mb-1 tracking-wider">
+                  <div className="flex items-center justify-between text-[10px] text-amber-400 uppercase font-semibold mb-1 tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <Terminal className="w-3 h-3 text-orange-400" />
+                      <Terminal className="w-3 h-3 text-amber-400" />
                       TOOL EXECUTION: {msg.toolName}
                     </span>
                     <span className="text-emerald-400">{msg.toolDuration}</span>
                   </div>
-                  <pre className="whitespace-pre-wrap text-[11px] text-gray-300 leading-relaxed font-mono">
+                  <pre className="whitespace-pre-wrap text-[11px] text-zinc-300 leading-relaxed font-mono">
                     {msg.content}
                   </pre>
                 </div>
@@ -273,24 +253,24 @@ export const ChatTab: React.FC = () => {
                 <div
                   className={`max-w-[88%] md:max-w-[80%] rounded-xl p-4 text-xs leading-relaxed ${
                     isUser
-                      ? 'bg-orange-500/10 border border-orange-500/30 text-gray-100 rounded-br-xs shadow-[0_0_15px_rgba(249,115,22,0.1)]'
-                      : 'bg-[#181a24] border border-[#262838] text-gray-200 rounded-bl-xs'
+                      ? 'bg-amber-500/10 border border-amber-500/30 text-zinc-100 rounded-br-xs'
+                      : 'bg-[#18181e] border border-white/[0.06] text-zinc-200 rounded-bl-xs'
                   }`}
                 >
                   {/* Role Header */}
-                  <div className="flex items-center justify-between gap-3 text-[10px] mono mb-2 pb-1.5 border-b border-[#232530]">
+                  <div className="flex items-center justify-between gap-3 text-[10px] font-mono mb-2 pb-1.5 border-b border-white/[0.06]">
                     <span
                       className={`font-semibold uppercase tracking-wider ${
-                        isUser ? 'text-orange-400' : 'text-gray-300'
+                        isUser ? 'text-amber-400' : 'text-zinc-300'
                       }`}
                     >
                       {isUser ? 'You' : 'Assistant · Oxide Agent'}
                     </span>
-                    <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center gap-2 text-zinc-400">
                       <span>{msg.timestamp}</span>
                       <button
                         onClick={() => handleCopy(msg.content, msg.id)}
-                        className="hover:text-gray-200 transition cursor-pointer"
+                        className="hover:text-zinc-200 transition cursor-pointer"
                         title="Copy text"
                       >
                         {copiedId === msg.id ? (
@@ -304,33 +284,28 @@ export const ChatTab: React.FC = () => {
 
                   {/* Collapsible Reasoning Thought Trace */}
                   {msg.reasoningTrace && (
-                    <div className="mb-3 rounded-lg bg-orange-500/5 border border-orange-500/20 overflow-hidden">
+                    <div className="mb-3 rounded-lg bg-amber-500/5 border border-amber-500/20 overflow-hidden">
                       <button
                         onClick={() => toggleThoughts(msg.id)}
-                        className="w-full px-3 py-2 flex items-center justify-between text-left text-[11px] font-medium text-orange-400/90 hover:bg-orange-500/10 transition-colors"
+                        className="w-full px-3 py-2 flex items-center justify-between text-left text-[11px] font-medium text-amber-400/90 hover:bg-amber-500/10 transition-colors"
                       >
                         <div className="flex items-center gap-1.5">
-                          <BrainCircuit className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
+                          <BrainCircuit className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                           <span>Thought Trace</span>
                           {msg.thinkTokens && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">
                               {msg.thinkTokens} tokens
-                            </span>
-                          )}
-                          {msg.complexity && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
-                              {msg.complexity}
                             </span>
                           )}
                         </div>
                         {expandedThoughts.has(msg.id) ? (
-                          <ChevronDown className="w-3.5 h-3.5 text-orange-400" />
+                          <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
                         ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-orange-400" />
+                          <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
                         )}
                       </button>
                       {expandedThoughts.has(msg.id) && (
-                        <div className="px-3 py-2.5 bg-black/40 border-t border-orange-500/15 text-[11px] font-mono text-slate-300 leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+                        <div className="px-3 py-2.5 bg-black/40 border-t border-amber-500/15 text-[11px] font-mono text-zinc-300 leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
                           {msg.reasoningTrace}
                         </div>
                       )}
@@ -338,15 +313,15 @@ export const ChatTab: React.FC = () => {
                   )}
 
                   {/* Body Content */}
-                  <div className="whitespace-pre-wrap space-y-2 text-[13px] text-gray-200">
+                  <div className="whitespace-pre-wrap space-y-2 text-[13px] text-zinc-200">
                     {msg.content}
                   </div>
 
                   {/* Metadata Footer */}
                   {msg.meta && !isUser && (
-                    <div className="mt-3 pt-2 border-t border-[#232530] flex items-center justify-between text-[9px] mono text-gray-400">
-                      <span>Model: {msg.meta.model || 'Qwen3.8-35B'}</span>
-                      <span>~{msg.meta.tokens || 120} tokens</span>
+                    <div className="mt-3 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[9px] font-mono text-zinc-400">
+                      <span>Model: {msg.meta.model || 'Thinker'}</span>
+                      <span>~{msg.meta.tokens || 80} tokens</span>
                     </div>
                   )}
                 </div>
@@ -356,14 +331,14 @@ export const ChatTab: React.FC = () => {
 
           {isLoading && (
             <div className="flex flex-col items-start">
-              <div className="bg-[#181a24] border border-[#262838] rounded-xl rounded-bl-xs p-3 text-xs text-gray-300 flex items-center gap-2.5">
+              <div className="bg-[#18181e] border border-white/[0.06] rounded-xl rounded-bl-xs p-3 text-xs text-zinc-300 flex items-center gap-2.5">
                 <div className="flex gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-orange-400 animate-bounce" />
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce [animation-delay:0.2s]" />
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.4s]" />
                 </div>
-                <span className="text-[11px] mono text-gray-400">
-                  Agent reasoning & executing tools...
+                <span className="text-[11px] font-mono text-zinc-400">
+                  Retrieving context & synthesizing response...
                 </span>
               </div>
             </div>
@@ -373,15 +348,15 @@ export const ChatTab: React.FC = () => {
         </div>
 
         {/* Quick Prompts Drawer */}
-        <div className="px-4 py-2 border-t border-[#232530] bg-[#111217] flex items-center gap-2 overflow-x-auto">
-          <span className="text-[9px] mono text-gray-400 uppercase tracking-widest font-semibold shrink-0">
+        <div className="px-4 py-2 border-t border-white/[0.06] bg-[#121216] flex items-center gap-2 overflow-x-auto">
+          <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest font-semibold shrink-0">
             Quick:
           </span>
           {quickPrompts.map((qp, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(qp.text)}
-              className="px-2.5 py-1 rounded bg-[#181a24] hover:bg-[#202230] text-gray-300 hover:text-white border border-[#262838] text-[11px] transition shrink-0 cursor-pointer"
+              className="px-2.5 py-1 rounded bg-[#18181e] hover:bg-[#22222a] text-zinc-300 hover:text-white border border-white/[0.06] text-[11px] transition shrink-0 cursor-pointer"
             >
               {qp.label}
             </button>
@@ -389,36 +364,27 @@ export const ChatTab: React.FC = () => {
         </div>
 
         {/* Input Text Box */}
-        <div className="p-3 border-t border-[#232530] bg-[#0b0c10]">
-          <div className="bg-[#181a24] border border-[#262838] rounded-xl p-3 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500/30 transition">
-            <div className="flex items-center gap-2 mb-2 text-gray-400">
-              <button className="p-1 hover:text-white rounded transition cursor-pointer" title="Tools Palette">
-                <Wrench className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-1 hover:text-white rounded transition cursor-pointer" title="Attach Schematic/CAD">
-                <Paperclip className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-1 hover:text-white rounded transition cursor-pointer" title="Agent Settings">
-                <Settings className="w-3.5 h-3.5" />
-              </button>
+        <div className="p-3 border-t border-white/[0.06] bg-[#09090b]">
+          <div className="bg-[#18181e] border border-white/[0.08] rounded-xl p-3 focus-within:border-amber-500/60 focus-within:ring-1 focus-within:ring-amber-500/30 transition">
+            <div className="flex items-center gap-2 mb-2 text-zinc-400">
               <button
                 onClick={() => setStairContext((v) => !v)}
                 title="Toggle STAIR Code-ToC context packing via oxide-embed"
-                className={`ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] mono transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] font-mono transition cursor-pointer ${
                   stairContext
-                    ? 'text-orange-300 border-orange-500/30 bg-orange-500/10'
-                    : 'text-gray-500 border-[#262838] bg-transparent'
+                    ? 'text-amber-300 border-amber-500/30 bg-amber-500/10'
+                    : 'text-zinc-500 border-white/[0.06] bg-transparent'
                 }`}
               >
                 <BrainCircuit className="w-3 h-3" />
                 STAIR Context {stairContext ? 'ON' : 'OFF'}
                 {stairInfo && stairContext && (
-                  <span className="text-gray-400">
-                    · ~{stairInfo.tokens} tok · {stairInfo.crumbs} crumbs · {stairBudget} budget
+                  <span className="text-zinc-400">
+                    · ~{stairInfo.tokens} tok · {stairInfo.crumbs} crumbs
                   </span>
                 )}
               </button>
-              <span className="text-[10px] mono text-gray-500">
+              <span className="text-[10px] font-mono text-zinc-500 ml-auto">
                 Shift + Enter for new line
               </span>
             </div>
@@ -432,21 +398,21 @@ export const ChatTab: React.FC = () => {
                   handleSend();
                 }
               }}
-              placeholder={`Ask in ${mode} mode (e.g. Write Embassy SPI driver, convert STEP to GLTF, run DRC test)...`}
+              placeholder={`Ask in ${mode} mode (e.g. Write Embassy SPI driver, decompile binary, run verification)...`}
               rows={2}
-              className="w-full bg-transparent text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none resize-none font-sans"
+              className="w-full bg-transparent text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none resize-none font-sans"
             />
 
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#232530]">
-              <div className="text-[10px] mono text-gray-400 flex items-center gap-2">
-                <Cpu className="w-3 h-3 text-orange-400" />
-                <span>TP=2 · AWQ 4-bit · 32K context</span>
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/[0.06]">
+              <div className="text-[10px] font-mono text-zinc-400 flex items-center gap-2">
+                <Cpu className="w-3 h-3 text-amber-400" />
+                <span>Native Rust Execution · Zero CLI Required</span>
               </div>
 
               <button
                 onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
-                className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 disabled:opacity-40 text-gray-950 text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(249,115,22,0.35)]"
+                className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-zinc-950 text-xs font-bold tracking-wider uppercase transition-all flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.25)]"
               >
                 <Send className="w-3 h-3" />
                 <span>Send</span>
@@ -458,3 +424,4 @@ export const ChatTab: React.FC = () => {
     </div>
   );
 };
+
