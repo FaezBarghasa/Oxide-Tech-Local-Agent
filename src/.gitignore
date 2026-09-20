@@ -7,3 +7,4 @@ coverage/
 .env*
 !.env.example
 /ui/oxide-agent-studio/node_modules
+/src/node_modules
