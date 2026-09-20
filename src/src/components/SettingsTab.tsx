@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, Save, RefreshCw, Sliders, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import { Settings, Save, RefreshCw, Sliders, CheckCircle2, AlertCircle, FileText, HardDrive, Cpu, Download } from 'lucide-react';
 import { desktop } from '../lib/desktop';
 
 export const SettingsTab: React.FC = () => {
@@ -223,6 +223,52 @@ nvidia_compute = true`,
             {error}
           </div>
         )}
+      </div>
+
+      {/* Local GGUF & Model Setup Card */}
+      <div className="bg-[#111217] border border-[#232530] rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#232530]">
+          <div>
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
+              <HardDrive className="w-3.5 h-3.5 text-amber-400" />
+              Local Model & GGUF Storage
+            </h3>
+            <p className="text-[11px] mono text-gray-400 mt-0.5">
+              Place .gguf weights in <code className="text-amber-400">~/models/</code> or <code className="text-amber-400">/var/lib/oxide-tech/models/</code>
+            </p>
+          </div>
+          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+            OFFLINE READY
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div className="p-3.5 rounded-xl bg-[#0c0d12] border border-[#232530] space-y-2">
+            <div className="font-bold text-white flex items-center gap-1.5">
+              <Cpu className="w-3.5 h-3.5 text-amber-400" />
+              Option 1: Ollama Model Runner
+            </div>
+            <p className="text-[11px] text-zinc-400">
+              Run any GGUF or standard model locally with zero setup:
+            </p>
+            <div className="p-2 rounded bg-[#161822] border border-[#242738] font-mono text-[10px] text-amber-300 select-all">
+              ollama pull qwen2.5-coder:7b-instruct-q4_K_M
+            </div>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-[#0c0d12] border border-[#232530] space-y-2">
+            <div className="font-bold text-white flex items-center gap-1.5">
+              <Download className="w-3.5 h-3.5 text-amber-400" />
+              Option 2: Direct GGUF File Download
+            </div>
+            <p className="text-[11px] text-zinc-400">
+              Download any .gguf file directly to your models folder:
+            </p>
+            <div className="p-2 rounded bg-[#161822] border border-[#242738] font-mono text-[10px] text-amber-300 select-all">
+              mkdir -p ~/models && curl -L -o ~/models/model.gguf &lt;URL&gt;
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Config Editor */}

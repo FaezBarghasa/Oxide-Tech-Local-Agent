@@ -14,14 +14,16 @@ case "$1" in
                 oxide-agent || true
         fi
 
-        # Ensure state and log directories exist with correct permissions
-        mkdir -p /var/lib/oxide-tech /var/log/oxide-tech /etc/oxide-tech
+        # Ensure state, models, and log directories exist with correct permissions
+        mkdir -p /var/lib/oxide-tech/models /var/log/oxide-tech /etc/oxide-tech
+        chmod 1777 /var/lib/oxide-tech/models || true
         chown -R root:root /etc/oxide-tech
         chmod 755 /etc/oxide-tech
         chmod 644 /etc/oxide-tech/config.toml 2>/dev/null || true
 
         chown -R root:root /var/lib/oxide-tech /var/log/oxide-tech
         chmod 755 /var/lib/oxide-tech /var/log/oxide-tech
+        chmod 1777 /var/lib/oxide-tech/models || true
 
         # Update desktop database and icon cache if tools are present
         if command -v update-desktop-database >/dev/null 2>&1; then

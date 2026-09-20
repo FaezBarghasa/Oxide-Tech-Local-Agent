@@ -75,6 +75,45 @@ pub fn run_diagnostics_scan() -> DoctorResult {
         check_system_tool("Ollama (Local LLM)", "ollama", false),
     ];
 
+    // Check for local GGUF models in ~/models and /var/lib/oxide-tech/models
+    let mut gguf_count = 0;
+    let mut found_model_name = String::new();
+    let search_dirs = [
+        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join("models")),
+        Some(std::path::PathBuf::from("/var/lib/oxide-tech/models")),
+    ];
+
+    for dir in search_dirs.into_iter().flatten() {
+        if let Ok(entries) = std::fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
+                    gguf_count += 1;
+                    if found_model_name.is_empty() {
+                        found_model_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    }
+                }
+            }
+        }
+    }
+
+    checks.push(DiagnosticCheck {
+        name: "Local GGUF Model".to_string(),
+        command: "~/models/*.gguf".to_string(),
+        required: false,
+        passed: gguf_count > 0,
+        version: if gguf_count > 0 {
+            format!("{} GGUF model(s) found ({})", gguf_count, found_model_name)
+        } else {
+            "No GGUF models in ~/models or /var/lib/oxide-tech/models".to_string()
+        },
+        error: if gguf_count > 0 {
+            None
+        } else {
+            Some("Place .gguf model in ~/models/ or install via Ollama".to_string())
+        },
+    });
+
     let gpu_check = match Command::new("nvidia-smi")
         .args(["--query-gpu=name,memory.total", "--format=csv,noheader"])
         .output()

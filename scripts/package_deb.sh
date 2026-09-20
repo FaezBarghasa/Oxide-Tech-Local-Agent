@@ -27,7 +27,7 @@ mkdir -p "${OUTPUT_DIR}"
 
 # 2. Build Frontend UI Studio
 echo "[+] Step 1: Compiling Frontend UI Studio..."
-UI_DIR="${ROOT_DIR}/ui/oxide-agent-studio"
+UI_DIR="${ROOT_DIR}/src"
 if [[ -d "${UI_DIR}" ]]; then
     if command -v pnpm &>/dev/null; then
         echo "[*] Building UI with pnpm in ${UI_DIR}..."
@@ -65,8 +65,9 @@ mkdir -p "${STAGE_DIR}/usr/share/icons/hicolor/scalable/apps"
 mkdir -p "${STAGE_DIR}/etc/oxide-tech"
 mkdir -p "${STAGE_DIR}/lib/systemd/system"
 mkdir -p "${STAGE_DIR}/usr/share/oxide-tech/studio"
-mkdir -p "${STAGE_DIR}/var/lib/oxide-tech"
+mkdir -p "${STAGE_DIR}/var/lib/oxide-tech/models"
 mkdir -p "${STAGE_DIR}/var/log/oxide-tech"
+chmod 1777 "${STAGE_DIR}/var/lib/oxide-tech/models"
 
 # Copy binary & create compatibility symlinks
 cp "${AGENT_BIN}" "${STAGE_DIR}/usr/bin/oxide-tech-local-agent"
