@@ -2072,6 +2072,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7431dd8c9def94aca43b27915dee0d42103d9b13922cfb044febcd975547d68"
 
 [[package]]
+name = "crates-mcp-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "config-loader",
+ "gateway-router",
+ "qdrant-service",
+ "rag-pipeline",
+ "rmcp 3.2.0",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "surrealdb-service",
+ "tokio",
+ "tracing",
+ "tree-sitter-service",
+ "vllm-client",
+]
+
+[[package]]
 name = "crc32fast"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5822,31 +5842,6 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "mcp-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "common",
- "knowledge",
- "memory",
- "mimalloc",
- "regex",
- "reqwest 0.12.28",
- "rmcp 3.2.0",
- "router",
- "schemars 1.2.1",
- "select",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "urlencoding",
- "verifier",
 ]
 
 [[package]]

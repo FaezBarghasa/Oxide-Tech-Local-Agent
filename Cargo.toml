@@ -1,17 +1,17 @@
 [workspace]
 members = [
-    "workspace/gateway",
-    "workspace/thinker",
-    "workspace/memory",
-    "workspace/router",
-    "workspace/verifier",
-    "workspace/knowledge",
-    "workspace/skills",
-    "workspace/mcp-clients",
-    "workspace/common",
-    "workspace/mcp-server",
-    "workspace/blog",
-    "workspace/scheduler",
+    "crates/gateway",
+    "crates/thinker",
+    "crates/memory",
+    "crates/router",
+    "crates/verifier",
+    "crates/knowledge",
+    "crates/skills",
+    "crates/mcp-clients",
+    "crates/common",
+    "crates/mcp-server",
+    "crates/blog",
+    "crates/scheduler",
     "crates/api",
     "crates/config-loader",
     "crates/gateway-router",
@@ -151,11 +151,11 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
-gateway = { path = "workspace/gateway" }
-common = { path = "workspace/common" }
+gateway = { path = "crates/gateway" }
+common = { path = "crates/common" }
 config-loader = { path = "crates/config-loader" }
 re-forge = { path = "crates/re-forge" }
-verifier = { path = "workspace/verifier" }
+verifier = { path = "crates/verifier" }
 model-trainer = { path = "crates/model-trainer" }
 reqwest = { workspace = true }
 
