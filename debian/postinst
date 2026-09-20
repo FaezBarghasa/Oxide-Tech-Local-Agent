@@ -34,9 +34,10 @@ case "$1" in
             gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
         fi
 
-        # Reload systemd configuration if systemd is running
+        # Reload systemd configuration if systemd is running (keep service disabled by default)
         if [ -d /run/systemd/system ]; then
             systemctl --system daemon-reload >/dev/null 2>&1 || true
+            systemctl disable oxide-agent.service >/dev/null 2>&1 || true
         fi
         ;;
     abort-upgrade|abort-remove|abort-deconfigure)

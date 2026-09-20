@@ -55,6 +55,14 @@ fn flag_value(args: &[String], flag: &str) -> Option<String> {
 }
 
 fn run_desktop(config: Option<String>) {
+    if std::env::var("SUDO_USER").is_ok() {
+        eprintln!(
+            "\x1b[1;33m[!] WARNING: oxide-tech-local-agent desktop should NOT be run with 'sudo'.\x1b[0m\n\
+             Running WebKit/GTK desktop apps as root creates root-owned caches in ~/.config/ and ~/.local/,\n\
+             which can disrupt your desktop session. Run 'oxide-tech-local-agent' as your regular user."
+        );
+    }
+
     // Structured logs go to stdout; the WebView renders the UI.
     let _ = tracing_subscriber::fmt()
         .with_target(false)
