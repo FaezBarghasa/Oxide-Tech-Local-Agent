@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 common = { path = "../common" }
-oxide-protocol = { path = "../../crates/oxide-protocol" }
+oxide-protocol = { path = "../oxide-protocol" }
 rmcp = { version = "0.2", features = ["client", "transport-io"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
