@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ReforgeRequest {
+    #[serde(alias = "file_path")]
     pub file_path: String,
     pub arch: Option<String>,
     pub summary: Option<bool>,

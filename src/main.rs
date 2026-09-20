@@ -11,16 +11,23 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
     name = "oxide-agent",
     author = "Oxide-Tech Systems Engineering",
     version = "0.5.0",
-    about = "High-Performance Deterministic Local Agent OS — Thin Headless Runner"
+    about = "High-Performance Deterministic Local Agent OS — Desktop-First Universal Workstation"
 )]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Run the full Oxide-Tech Agent OS gateway daemon
+    /// Launch the complete Oxide Agent Studio Desktop GUI (Default)
+    Desktop {
+        /// Path to configuration file
+        #[arg(short, long, default_value = "config.toml")]
+        config: Option<PathBuf>,
+    },
+
+    /// Run the full Oxide-Tech Agent OS gateway daemon in headless mode
     Daemon {
         /// Path to configuration file
         #[arg(short, long, default_value = "config.toml")]
@@ -154,7 +161,8 @@ enum EmbedCommands {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    match cli.command {
+    match cli.command.unwrap_or(Commands::Desktop { config: None }) {
+        Commands::Desktop { config } => run_desktop_command(config),
         Commands::Daemon {
             config,
             profile,
@@ -175,6 +183,21 @@ fn main() -> Result<()> {
         Commands::Status { gateway_url } => run_status_command(gateway_url),
         Commands::Embed(embed_cmd) => run_embed_command(embed_cmd),
     }
+}
+
+// ── Subcommand: Desktop ───────────────────────────────────────────────────────
+
+fn run_desktop_command(config: Option<PathBuf>) -> Result<()> {
+    let mut cmd = Command::new("cargo");
+    cmd.args(["run", "-p", "oxide-tech-local-agent", "--", "desktop"]);
+    if let Some(cfg) = config {
+        cmd.args(["--config", &cfg.to_string_lossy()]);
+    }
+    let status = cmd.status().context("Failed to launch Oxide Agent Studio Desktop")?;
+    if !status.success() {
+        std::process::exit(status.code().unwrap_or(1));
+    }
+    Ok(())
 }
 
 // ── Subcommand: Daemon ────────────────────────────────────────────────────────

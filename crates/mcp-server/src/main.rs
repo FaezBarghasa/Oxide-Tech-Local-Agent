@@ -5,7 +5,7 @@ use tracing_subscriber::fmt;
 
 use config_loader::AppConfig;
 use rag_pipeline::RagPipeline;
-use mcp_server::McpServer;
+use crates_mcp_server::McpServer;
 use rmcp::ServiceExt;
 
 #[tokio::main]
@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Instantiate our MCP server
-    let server = McpServer::new(workspace_root, rag);
+    let server = McpServer::new(workspace_root, rag, None);
 
     // Stdio vs TCP transport
     let transport_mode = cfg.mcp.transport.to_lowercase();

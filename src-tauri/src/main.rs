@@ -18,6 +18,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 mod config_ipc;
 mod doctor;
 mod gateway_rt;
+mod hardware_ipc;
 mod memory;
 mod reforge_ipc;
 mod verifier_ipc;
@@ -80,6 +81,10 @@ fn run_desktop(config: Option<String>) {
             // Doctor
             doctor::doctor_run_diagnostics,
             doctor::doctor_install_udev_rules,
+            // Hardware & probe-rs
+            hardware_ipc::hardware_list_probes,
+            hardware_ipc::hardware_get_chip_info,
+            hardware_ipc::hardware_flash_firmware,
             // RE-Forge
             reforge_ipc::reforge_analyze_file,
             // Verifier

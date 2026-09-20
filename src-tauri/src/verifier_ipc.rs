@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VerifierRequest {
+    #[serde(alias = "workspace_path")]
     pub workspace: String,
     pub task_id: Option<String>,
     pub export_path: Option<String>,
