@@ -43,7 +43,7 @@ pub struct TensorCorePatternDto {
 pub struct PtxAnalysisDto {
     pub target_arch: String,
     pub kernel_name: String,
-    pub shared_memory_bytes: u64,
+    pub shared_memory_bytes: usize,
     pub uses_async_copy: bool,
     pub inferred_operation: String,
     pub tensor_core_patterns: Vec<TensorCorePatternDto>,

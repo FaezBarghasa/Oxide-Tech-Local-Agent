@@ -106,7 +106,7 @@ pub fn run_verification(req: VerifierRequest) -> anyhow::Result<EvidenceBundleDt
 
     Ok(EvidenceBundleDto {
         task_id,
-        timestamp: bundle.timestamp,
+        timestamp: bundle.timestamp.timestamp(),
         git_diff,
         reports: reports_dto,
         verified_success: bundle.verified_success,

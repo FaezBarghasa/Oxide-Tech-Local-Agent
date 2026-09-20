@@ -277,8 +277,24 @@ pub async fn memory_recall(
 }
 
 #[tauri::command]
+pub async fn memory_explain(
+    cwd: Option<String>,
+    symbol: String,
+    hops: Option<usize>,
+) -> Result<EmbedResult, String> {
+    let dir = resolve_cwd(cwd);
+    let mut args = vec!["explain".to_string(), symbol];
+    if let Some(h) = hops {
+        args.push("--hops".to_string());
+        args.push(h.to_string());
+    }
+    run_embed(&args, &dir).await
+}
+
+#[tauri::command]
 pub async fn memory_conflicts(cwd: Option<String>) -> Result<EmbedResult, String> {
     let dir = resolve_cwd(cwd);
     run_embed(&["conflicts".to_string()], &dir).await
 }
+
 
