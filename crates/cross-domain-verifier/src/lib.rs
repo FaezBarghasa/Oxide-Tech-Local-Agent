@@ -1,3 +1,8 @@
+pub mod mcu_spice_bridge;
+
+pub use mcu_spice_bridge::{
+    CoSimSyncMode, DigitalPinBridge, McuSpiceBridge, PinDirection,
+};
 use oxide_protocol::{DtxId, SimThermalFeaResult, ThermalHotSpot};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
