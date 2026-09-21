@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 oxide-core = { path = "../oxide-core" }
 oxide-engines = { path = "../oxide-engines" }
+oxide-security = { path = "../oxide-security" }
 dashmap = { workspace = true }
 surrealdb = { workspace = true }
 surrealdb-types = { workspace = true }

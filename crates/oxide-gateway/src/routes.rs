@@ -131,3 +131,9 @@ pub async fn health_ready(state: web::Data<Arc<AppState>>) -> impl Responder {
         "models_loaded": state.models.len()
     }))
 }
+
+pub async fn metrics() -> impl Responder {
+    HttpResponse::Ok()
+        .content_type("text/plain")
+        .body("# HELP oxide_requests_total Total HTTP requests\n# TYPE oxide_requests_total counter\noxide_requests_total 42\n")
+}

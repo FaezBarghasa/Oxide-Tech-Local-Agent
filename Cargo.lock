@@ -7184,6 +7184,7 @@ dependencies = [
  "dashmap",
  "oxide-core",
  "oxide-engines",
+ "oxide-security",
  "serde",
  "serde_json",
  "surrealdb",
