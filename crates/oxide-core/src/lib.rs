@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use thiserror::Error;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -10,13 +11,80 @@ pub enum Role {
     Tool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ImageUrlInfo {
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ContentPart {
+    Text { text: String },
+    ImageUrl { image_url: ImageUrlInfo },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum MessageContent {
+    Text(String),
+    Parts(Vec<ContentPart>),
+}
+
+impl fmt::Display for MessageContent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MessageContent::Text(t) => write!(f, "{}", t),
+            MessageContent::Parts(parts) => {
+                for p in parts {
+                    match p {
+                        ContentPart::Text { text } => write!(f, "{}", text)?,
+                        ContentPart::ImageUrl { image_url } => {
+                            write!(f, "[Image: {}]", image_url.url)?
+                        }
+                    }
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+impl From<String> for MessageContent {
+    fn from(s: String) -> Self {
+        MessageContent::Text(s)
+    }
+}
+
+impl From<&str> for MessageContent {
+    fn from(s: &str) -> Self {
+        MessageContent::Text(s.to_string())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
     pub role: Role,
-    pub content: String,
+    pub content: MessageContent,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
+
+impl ChatMessage {
+    pub fn new_text(role: Role, text: impl Into<String>) -> Self {
+        Self {
+            role,
+            content: MessageContent::Text(text.into()),
+            name: None,
+        }
+    }
+
+    pub fn text_content(&self) -> String {
+        self.content.to_string()
+    }
+}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationParams {

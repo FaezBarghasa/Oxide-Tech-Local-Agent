@@ -31,8 +31,9 @@ impl InferenceProvider for MockProvider {
             .iter()
             .rev()
             .find(|m| matches!(m.role, oxide_core::Role::User))
-            .map(|m| m.content.clone())
+            .map(|m| m.text_content())
             .unwrap_or_else(|| "Acknowledged.".to_string());
+
 
         let reply = format!("[Oxide-Tech Engine: {}] Processed input: {}", self.name, last_user_msg);
         let tokens: Vec<&str> = reply.split_whitespace().collect();

@@ -1,4 +1,5 @@
 pub mod ternary;
+pub mod moe_router;
 
 pub struct FusedCrossEntropyOp {
     pub kernel_name: String,
@@ -27,4 +28,6 @@ impl FusedCrossEntropyOp {
 }
 
 pub use ternary::TernaryHadamardOp;
+pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
+
 

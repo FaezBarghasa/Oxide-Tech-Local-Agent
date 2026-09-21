@@ -45,9 +45,10 @@ impl ContextCompactor {
         }
         compacted.push(ChatMessage {
             role: oxide_core::Role::System,
-            content: format!("[SYSTEM MEMORY SUMMARY]: {}", summary),
+            content: format!("[SYSTEM MEMORY SUMMARY]: {}", summary).into(),
             name: None,
         });
+
         // Retain last 2 messages
         let tail_start = messages.len().saturating_sub(2);
         compacted.extend(messages[tail_start..].iter().cloned());
