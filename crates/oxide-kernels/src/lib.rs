@@ -1,4 +1,5 @@
 pub mod autotune;
+pub mod avx512_compress;
 pub mod moe_router;
 pub mod norm;
 pub mod rope;
@@ -33,6 +34,7 @@ impl FusedCrossEntropyOp {
 }
 
 pub use autotune::{GpuAutotuner, KernelConfig, NvidiaArch};
+pub use avx512_compress::{Avx512Compressor, CompressedBlockInt8};
 pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
 pub use norm::FusedRmsNormOp;
 pub use rope::FastRopeOp;
