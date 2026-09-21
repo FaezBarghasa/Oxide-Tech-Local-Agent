@@ -156,4 +156,29 @@ mod tests {
         assert_eq!(plan.expert_dispatches[0].len(), 1);
         assert_eq!(plan.expert_dispatches[0][0].0, 1); // Token 1 routed to Expert 0
     }
+
+    #[test]
+    fn test_ornith_256_expert_top8_routing() {
+        // Ornith-1.5: 256 fine-grained experts with Top-8 active routing
+        let router = FusedMoeRouterOp::new(256, 8);
+
+        let mut logits = vec![0.0f32; 256];
+        // Set 8 active experts with higher logits
+        let target_experts = [12, 45, 78, 102, 155, 199, 210, 250];
+        for (rank, &e_id) in target_experts.iter().enumerate() {
+            logits[e_id] = 10.0 + (rank as f32);
+        }
+
+        let plan = router.route_tokens(&logits, 1).unwrap();
+        assert_eq!(plan.num_tokens, 1);
+        assert_eq!(plan.selected_experts[0].len(), 8);
+
+        for e_id in target_experts {
+            assert!(plan.selected_experts[0].contains(&e_id));
+        }
+
+        let weight_sum: f32 = plan.routing_weights[0].iter().sum();
+        assert!((weight_sum - 1.0).abs() < 1e-4);
+    }
 }
+

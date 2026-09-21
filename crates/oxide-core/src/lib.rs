@@ -145,7 +145,26 @@ impl GenerationParams {
             stream: true,
         }
     }
+
+    /// Optimal sampling parameters for Ornith-1.5 agentic coding and tool-calling precision.
+    pub fn ornith_agent_mode() -> Self {
+        Self {
+            temperature: 0.2,
+            top_p: 0.95,
+            top_k: Some(40),
+            min_p: Some(0.05),
+            presence_penalty: Some(0.0),
+            repetition_penalty: Some(1.05),
+            max_tokens: Some(16384),
+            stop: Some(vec![
+                "<|im_end|>".to_string(),
+                "<|endoftext|>".to_string(),
+            ]),
+            stream: true,
+        }
+    }
 }
+
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

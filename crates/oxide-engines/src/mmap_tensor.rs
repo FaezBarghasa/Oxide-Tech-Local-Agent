@@ -5,6 +5,37 @@ use std::path::Path;
 use std::ptr::NonNull;
 use std::sync::Arc;
 
+/// GGUF tensor quantization formats including mixed-precision Importance Matrix (IMatrix) types.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GgufTensorType {
+    F32,
+    F16,
+    BF16,
+    Q4_0,
+    Q4_1,
+    Q4_K,  // Base 4-bit block
+    Q5_0,
+    Q5_1,
+    Q5_K,  // 5-bit block (used for critical attn_v / ffn_down layers in UD-Q4_K_XL)
+    Q6_K,  // 6-bit block (used for high-importance matrix weights)
+    Q8_0,
+    IQ4_NL,
+    IQ4_XS,
+    IQ3_XXS,
+    IQ3_XS,
+    IQ2_XXS,
+}
+
+/// Metadata describing an individual tensor inside an IMatrix / GGUF model file.
+#[derive(Debug, Clone)]
+pub struct GgufTensorInfo {
+    pub name: String,
+    pub tensor_type: GgufTensorType,
+    pub shape: Vec<usize>,
+    pub offset: usize,
+    pub size_bytes: usize,
+}
+
 /// Kernel memory access pattern advice for memory-mapped model files.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MemoryAdvice {
@@ -17,6 +48,7 @@ pub enum MemoryAdvice {
     /// Request Transparent Huge Pages (THP) allocation to reduce TLB overhead.
     HugePages,
 }
+
 
 /// Zero-copy memory-mapped model container.
 pub struct MmapModel {
