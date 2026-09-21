@@ -1,7 +1,7 @@
-pub mod ternary;
 pub mod moe_router;
-pub mod rope;
 pub mod norm;
+pub mod rope;
+pub mod ternary;
 
 pub struct FusedCrossEntropyOp {
     pub kernel_name: String,
@@ -23,16 +23,15 @@ impl FusedCrossEntropyOp {
     pub fn execute(&self, vocab_size: usize, seq_len: usize) -> Result<(), String> {
         tracing::debug!(
             "Executed custom fused CCE kernel {} (vocab={}, seq={}) avoiding matrix materialization",
-            self.kernel_name, vocab_size, seq_len
+            self.kernel_name,
+            vocab_size,
+            seq_len
         );
         Ok(())
     }
 }
 
-pub use ternary::TernaryHadamardOp;
 pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
-pub use rope::FastRopeOp;
 pub use norm::FusedRmsNormOp;
-
-
-
+pub use rope::FastRopeOp;
+pub use ternary::TernaryHadamardOp;

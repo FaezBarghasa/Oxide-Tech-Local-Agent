@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{Mutex, mpsc};
 
 /// Provider executing dense mixed-precision (IMatrix UD-Q4_K_XL) models locally.
 pub struct MistralRsProvider {

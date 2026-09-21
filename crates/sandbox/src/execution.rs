@@ -34,7 +34,12 @@ pub struct SandboxSpec {
 impl Default for SandboxSpec {
     fn default() -> Self {
         Self {
-            ro_binds: vec![PathBuf::from("/usr"), PathBuf::from("/lib"), PathBuf::from("/lib64"), PathBuf::from("/bin")],
+            ro_binds: vec![
+                PathBuf::from("/usr"),
+                PathBuf::from("/lib"),
+                PathBuf::from("/lib64"),
+                PathBuf::from("/bin"),
+            ],
             rw_binds: Vec::new(),
             net: NetPolicy::None,
             timeout: EXECUTION_TIMEOUT,
@@ -77,7 +82,10 @@ impl SandboxSpec {
             match self.execute_bwrap(cmd, work_dir).await {
                 Ok(res) if res.exit_code == 0 => Ok(res),
                 Ok(res) => {
-                    tracing::warn!("bwrap exited with code {}, falling back to native sandbox", res.exit_code);
+                    tracing::warn!(
+                        "bwrap exited with code {}, falling back to native sandbox",
+                        res.exit_code
+                    );
                     self.execute_native(cmd, work_dir).await
                 }
                 Err(e) => {
@@ -91,15 +99,26 @@ impl SandboxSpec {
     }
 
     async fn execute_bwrap(&self, cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
-        info!("Executing via Bubblewrap sandbox: {:?} in {}", cmd, work_dir);
+        info!(
+            "Executing via Bubblewrap sandbox: {:?} in {}",
+            cmd, work_dir
+        );
         let mut bwrap = Command::new("bwrap");
-        bwrap.arg("--die-with-parent")
+        bwrap
+            .arg("--die-with-parent")
             .arg("--unshare-all")
-            .arg("--proc").arg("/proc")
-            .arg("--dev").arg("/dev")
-            .arg("--tmpfs").arg("/tmp")
-            .arg("--ro-bind").arg("/usr").arg("/usr")
-            .arg("--ro-bind").arg("/bin").arg("/bin");
+            .arg("--proc")
+            .arg("/proc")
+            .arg("--dev")
+            .arg("/dev")
+            .arg("--tmpfs")
+            .arg("/tmp")
+            .arg("--ro-bind")
+            .arg("/usr")
+            .arg("/usr")
+            .arg("--ro-bind")
+            .arg("/bin")
+            .arg("/bin");
 
         if Path::new("/lib").exists() {
             bwrap.arg("--ro-bind").arg("/lib").arg("/lib");
@@ -132,10 +151,13 @@ impl SandboxSpec {
         bwrap.arg("--chdir").arg(work_dir);
         bwrap.args(cmd);
 
-        bwrap.stdout(std::process::Stdio::piped())
+        bwrap
+            .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped());
 
-        let mut child = bwrap.spawn().map_err(|e| format!("Failed to spawn bwrap: {}", e))?;
+        let mut child = bwrap
+            .spawn()
+            .map_err(|e| format!("Failed to spawn bwrap: {}", e))?;
 
         let stdout_handle = child.stdout.take().ok_or("stdout missing")?;
         let stderr_handle = child.stderr.take().ok_or("stderr missing")?;
@@ -164,8 +186,15 @@ impl SandboxSpec {
         })
     }
 
-    async fn execute_native(&self, cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
-        info!("Executing via native setrlimit sandbox: {:?} in {}", cmd, work_dir);
+    async fn execute_native(
+        &self,
+        cmd: &[&str],
+        work_dir: &str,
+    ) -> Result<ExecutionResult, String> {
+        info!(
+            "Executing via native setrlimit sandbox: {:?} in {}",
+            cmd, work_dir
+        );
         let mem_limit = self.memory_limit_bytes;
         let cpu_limit = self.cpu_time_limit_secs;
 
@@ -246,7 +275,10 @@ mod tests {
     #[tokio::test]
     async fn test_sandbox_spec_execution() {
         let spec = SandboxSpec::default();
-        let res = spec.execute(&["echo", "oxide-sandbox-ok"], ".").await.unwrap();
+        let res = spec
+            .execute(&["echo", "oxide-sandbox-ok"], ".")
+            .await
+            .unwrap();
         assert_eq!(res.exit_code, 0);
         assert!(res.stdout.contains("oxide-sandbox-ok"));
     }

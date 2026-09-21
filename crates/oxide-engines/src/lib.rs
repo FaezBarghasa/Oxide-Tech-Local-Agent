@@ -19,18 +19,18 @@ pub trait InferenceProvider: Send + Sync + 'static {
     async fn unload(&self) -> Result<(), OxideError>;
 }
 
-pub mod sidecar;
-pub mod mock;
 pub mod candle_provider;
 pub mod llama_cpp;
-pub mod mmap_tensor;
-pub mod prism_sidecar;
 pub mod mistral_rs;
+pub mod mmap_tensor;
+pub mod mock;
+pub mod prism_sidecar;
+pub mod sidecar;
 
-pub use sidecar::SidecarProvider;
-pub use mock::MockProvider;
 pub use candle_provider::CandleProvider;
 pub use llama_cpp::LlamaCppProvider;
-pub use mmap_tensor::{GgufTensorInfo, GgufTensorType, MemoryAdvice, MmapModel, TensorSlice};
-pub use prism_sidecar::PrismBonsaiEngine;
 pub use mistral_rs::MistralRsProvider;
+pub use mmap_tensor::{GgufTensorInfo, GgufTensorType, MemoryAdvice, MmapModel, TensorSlice};
+pub use mock::MockProvider;
+pub use prism_sidecar::PrismBonsaiEngine;
+pub use sidecar::SidecarProvider;

@@ -50,9 +50,13 @@ impl CandidateFunnel {
         }
 
         // 3. Static security & capability absence scan
-        if content.contains("std::fs") || content.contains("std::net") || content.contains("std::process") {
+        if content.contains("std::fs")
+            || content.contains("std::net")
+            || content.contains("std::process")
+        {
             return Err(Verdict::TamperSuspected(
-                "Forbidden system access detected in mutable surface (capability absence violated)".to_string(),
+                "Forbidden system access detected in mutable surface (capability absence violated)"
+                    .to_string(),
             ));
         }
 

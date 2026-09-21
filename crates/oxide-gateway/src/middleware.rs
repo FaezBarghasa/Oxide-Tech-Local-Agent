@@ -1,8 +1,8 @@
-use actix_web::dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform};
-use actix_web::http::header::AUTHORIZATION;
 use actix_web::Error;
+use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready};
+use actix_web::http::header::AUTHORIZATION;
 use oxide_security::SecurityManager;
-use std::future::{ready, Future, Ready};
+use std::future::{Future, Ready, ready};
 use std::pin::Pin;
 use std::sync::Arc;
 
@@ -60,16 +60,17 @@ where
         let security = self.security.clone();
 
         Box::pin(async move {
-            let token = token.ok_or_else(|| {
-                actix_web::error::ErrorUnauthorized("Missing Bearer API token")
-            })?;
+            let token = token
+                .ok_or_else(|| actix_web::error::ErrorUnauthorized("Missing Bearer API token"))?;
 
             let hash = SecurityManager::hash_key(&token)
                 .map_err(|_| actix_web::error::ErrorUnauthorized("Invalid API key format"))?;
 
             // Check rate limit: 10,000 TPM standard capacity, consume 1
             if !security.check_rate_limit(&hash, 10_000, 1).await {
-                return Err(actix_web::error::ErrorTooManyRequests("Rate limit exceeded for token"));
+                return Err(actix_web::error::ErrorTooManyRequests(
+                    "Rate limit exceeded for token",
+                ));
             }
 
             fut.await

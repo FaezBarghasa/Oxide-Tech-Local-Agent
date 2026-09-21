@@ -58,7 +58,13 @@ extern "C" fn host_create_adamw(
     OptimHandle(0x3000 as *mut ())
 }
 
-extern "C" fn host_set_schedule_cosine(_optim: OptimHandle, _peak: f64, _warmup_frac: f64, _floor: f64) {}
+extern "C" fn host_set_schedule_cosine(
+    _optim: OptimHandle,
+    _peak: f64,
+    _warmup_frac: f64,
+    _floor: f64,
+) {
+}
 
 extern "C" fn host_adamw_step(_optim: OptimHandle, _lr: f64) -> i32 {
     0
@@ -115,7 +121,10 @@ impl Default for TrainingHarness {
 impl TrainingHarness {
     /// Execute training loop on sealed validation split
     pub async fn run_training_loop(&self, loader: &SurfaceLoader) -> Result<f64, LoaderError> {
-        info!("Executing sealed training loop with harness digest: {}", self.digest);
+        info!(
+            "Executing sealed training loop with harness digest: {}",
+            self.digest
+        );
 
         let dims = Dims {
             n_layer: 12,

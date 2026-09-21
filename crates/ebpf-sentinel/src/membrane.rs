@@ -142,4 +142,3 @@ mod tests {
         assert_eq!(violations[0].pid, 1234);
     }
 }
-

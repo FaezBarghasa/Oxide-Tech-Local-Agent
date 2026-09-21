@@ -63,7 +63,7 @@ impl TernaryHadamardOp {
 
     /// Apply FP16 group scaling factor (g128) to unpacked ternary weights.
     pub fn apply_group_scale(&self, weights: &mut [f32], scales: &[f32]) -> Result<(), OxideError> {
-        let groups = (weights.len() + self.group_size - 1) / self.group_size;
+        let groups = weights.len().div_ceil(self.group_size);
         if scales.len() < groups {
             return Err(OxideError::Engine(format!(
                 "Scales buffer too small: {} < {}",
@@ -177,7 +177,8 @@ mod tests {
         let scales = [2.0f32];
         let mut out = [0.0f32; 4];
 
-        op.dequantize_and_rotate(&packed, &scales, &mut out).unwrap();
+        op.dequantize_and_rotate(&packed, &scales, &mut out)
+            .unwrap();
         // [2.0, 2.0, 2.0, 2.0] through Hadamard H4 is [4.0, 0.0, 0.0, 0.0]
         assert!((out[0] - 4.0).abs() < 1e-4);
         assert!(out[1].abs() < 1e-4);

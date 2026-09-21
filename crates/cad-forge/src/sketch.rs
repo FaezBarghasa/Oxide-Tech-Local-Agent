@@ -1,12 +1,25 @@
-use serde::{Deserialize, Serialize};
 use crate::kernel::{Point2D, Sketch};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Constraint2D {
-    Distance { p1_idx: usize, p2_idx: usize, distance_mm: f64 },
-    Horizontal { p1_idx: usize, p2_idx: usize },
-    Vertical { p1_idx: usize, p2_idx: usize },
-    Coincident { p1_idx: usize, p2_idx: usize },
+    Distance {
+        p1_idx: usize,
+        p2_idx: usize,
+        distance_mm: f64,
+    },
+    Horizontal {
+        p1_idx: usize,
+        p2_idx: usize,
+    },
+    Vertical {
+        p1_idx: usize,
+        p2_idx: usize,
+    },
+    Coincident {
+        p1_idx: usize,
+        p2_idx: usize,
+    },
 }
 
 pub struct SketchConstraintSolver {
@@ -31,7 +44,11 @@ impl SketchConstraintSolver {
 
             for c in constraints {
                 match *c {
-                    Constraint2D::Distance { p1_idx, p2_idx, distance_mm } => {
+                    Constraint2D::Distance {
+                        p1_idx,
+                        p2_idx,
+                        distance_mm,
+                    } => {
                         if p1_idx < sketch.points.len() && p2_idx < sketch.points.len() {
                             let dx = sketch.points[p2_idx].x - sketch.points[p1_idx].x;
                             let dy = sketch.points[p2_idx].y - sketch.points[p1_idx].y;
@@ -53,7 +70,8 @@ impl SketchConstraintSolver {
                     Constraint2D::Horizontal { p1_idx, p2_idx } => {
                         if p1_idx < sketch.points.len() && p2_idx < sketch.points.len() {
                             let avg_y = (sketch.points[p1_idx].y + sketch.points[p2_idx].y) / 2.0;
-                            let residual = (sketch.points[p1_idx].y - sketch.points[p2_idx].y).abs();
+                            let residual =
+                                (sketch.points[p1_idx].y - sketch.points[p2_idx].y).abs();
                             if residual > max_residual {
                                 max_residual = residual;
                             }
@@ -64,7 +82,8 @@ impl SketchConstraintSolver {
                     Constraint2D::Vertical { p1_idx, p2_idx } => {
                         if p1_idx < sketch.points.len() && p2_idx < sketch.points.len() {
                             let avg_x = (sketch.points[p1_idx].x + sketch.points[p2_idx].x) / 2.0;
-                            let residual = (sketch.points[p1_idx].x - sketch.points[p2_idx].x).abs();
+                            let residual =
+                                (sketch.points[p1_idx].x - sketch.points[p2_idx].x).abs();
                             if residual > max_residual {
                                 max_residual = residual;
                             }
@@ -101,16 +120,20 @@ mod tests {
         let solver = SketchConstraintSolver::default();
         let mut sketch = Sketch {
             name: "line".to_string(),
-            points: vec![
-                Point2D { x: 0.0, y: 0.0 },
-                Point2D { x: 8.0, y: 0.5 },
-            ],
+            points: vec![Point2D { x: 0.0, y: 0.0 }, Point2D { x: 8.0, y: 0.5 }],
             closed: false,
         };
 
         let constraints = vec![
-            Constraint2D::Horizontal { p1_idx: 0, p2_idx: 1 },
-            Constraint2D::Distance { p1_idx: 0, p2_idx: 1, distance_mm: 10.0 },
+            Constraint2D::Horizontal {
+                p1_idx: 0,
+                p2_idx: 1,
+            },
+            Constraint2D::Distance {
+                p1_idx: 0,
+                p2_idx: 1,
+                distance_mm: 10.0,
+            },
         ];
 
         let converged = solver.solve(&mut sketch, &constraints);

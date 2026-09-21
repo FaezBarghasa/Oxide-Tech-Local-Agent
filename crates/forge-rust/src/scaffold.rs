@@ -41,7 +41,9 @@ edition = "2024"
         if is_binary {
             let mut main_content = emitted_code.to_string();
             if !main_content.contains("fn main(") {
-                main_content.push_str("\n\nfn main() {\n    println!(\"Project scaffolded by forge-rust!\");\n}\n");
+                main_content.push_str(
+                    "\n\nfn main() {\n    println!(\"Project scaffolded by forge-rust!\");\n}\n",
+                );
             }
             files.insert("src/main.rs".to_string(), main_content);
         } else {

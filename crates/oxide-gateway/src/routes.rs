@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, web};
 use futures_util::StreamExt;
 use oxide_core::{ChatMessage, GenerationParams};
 use oxide_state::AppState;
@@ -89,6 +89,7 @@ pub async fn chat_completions(
         max_tokens: req.max_tokens,
         stop: None,
         stream: is_streaming,
+        ..Default::default()
     };
 
     let (tx, mut rx) = mpsc::channel::<String>(256);
@@ -177,7 +178,6 @@ pub async fn chat_completions(
 pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
     let models: Vec<serde_json::Value> = state
         .models
-
         .iter()
         .map(|entry| {
             serde_json::json!({

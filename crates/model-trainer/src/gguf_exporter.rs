@@ -48,7 +48,11 @@ impl GgufExporter {
             &format!("{:?}", quant_type),
         );
         encode_u32(&mut header, "qwen2.context_length", context_length as u32);
-        encode_str(&mut header, "general.producer", "Oxide-Unsloth Native Engine");
+        encode_str(
+            &mut header,
+            "general.producer",
+            "Oxide-Unsloth Native Engine",
+        );
 
         // Payload payload checksum
         let payload = format!("OXIDE_MERGED_GGUF_PAYLOAD_{}", Uuid::now_v7());
@@ -72,7 +76,8 @@ impl GgufExporter {
         system_prompt: Option<&str>,
         temperature: f32,
     ) -> Result<(), TrainerError> {
-        let default_system = "You are Oxide-Tech, a high-performance local AI engineering assistant.";
+        let default_system =
+            "You are Oxide-Tech, a high-performance local AI engineering assistant.";
         let sys = system_prompt.unwrap_or(default_system);
 
         let content = format!(

@@ -1,7 +1,7 @@
+use crate::InferenceProvider;
 use async_trait::async_trait;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use tokio::sync::mpsc;
-use crate::InferenceProvider;
 
 pub struct MockProvider {
     name: String,
@@ -9,9 +9,7 @@ pub struct MockProvider {
 
 impl MockProvider {
     pub fn new(name: impl Into<String>) -> Self {
-        Self {
-            name: name.into(),
-        }
+        Self { name: name.into() }
     }
 }
 
@@ -34,8 +32,10 @@ impl InferenceProvider for MockProvider {
             .map(|m| m.text_content())
             .unwrap_or_else(|| "Acknowledged.".to_string());
 
-
-        let reply = format!("[Oxide-Tech Engine: {}] Processed input: {}", self.name, last_user_msg);
+        let reply = format!(
+            "[Oxide-Tech Engine: {}] Processed input: {}",
+            self.name, last_user_msg
+        );
         let tokens: Vec<&str> = reply.split_whitespace().collect();
 
         for (i, token) in tokens.iter().enumerate() {

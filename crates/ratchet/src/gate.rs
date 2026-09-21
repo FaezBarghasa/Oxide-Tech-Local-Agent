@@ -47,7 +47,8 @@ impl PromotionGate {
         };
 
         // 3. Harness Digest Equality check
-        if self.require_identical_harness_digest && candidate.harness_digest != base.harness_digest {
+        if self.require_identical_harness_digest && candidate.harness_digest != base.harness_digest
+        {
             return Verdict::RejectedGate(format!(
                 "Harness digest mismatch: candidate '{}' vs baseline '{}'",
                 candidate.harness_digest, base.harness_digest

@@ -24,7 +24,10 @@ impl TokenSender {
     }
 
     /// Send a UTF-8 token string converted directly to static/borrowed bytes.
-    pub async fn send_str(&self, text: impl Into<String>) -> Result<(), mpsc::error::SendError<Bytes>> {
+    pub async fn send_str(
+        &self,
+        text: impl Into<String>,
+    ) -> Result<(), mpsc::error::SendError<Bytes>> {
         let b = Bytes::from(text.into());
         self.inner.send(b).await
     }

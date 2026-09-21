@@ -1,5 +1,5 @@
 use crate::OxideError;
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
 /// Execute a foreign function or native operation behind a panic-isolated boundary fence.
 pub fn call_ffi_safe<F, R>(operation_name: &str, f: F) -> Result<R, OxideError>

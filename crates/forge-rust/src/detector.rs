@@ -47,7 +47,11 @@ impl LanguageDetector {
         let p = path.to_lowercase();
         if p.ends_with(".c") || p.ends_with(".h") {
             Some(SourceLanguage::C)
-        } else if p.ends_with(".cpp") || p.ends_with(".cc") || p.ends_with(".cxx") || p.ends_with(".hpp") {
+        } else if p.ends_with(".cpp")
+            || p.ends_with(".cc")
+            || p.ends_with(".cxx")
+            || p.ends_with(".hpp")
+        {
             Some(SourceLanguage::Cpp)
         } else if p.ends_with(".py") || p.ends_with(".pyi") {
             Some(SourceLanguage::Python)
@@ -68,7 +72,8 @@ impl LanguageDetector {
 
     pub fn detect_by_content(source: &str) -> SourceLanguage {
         let trimmed = source.trim();
-        if trimmed.starts_with("#!/usr/bin/env python") || trimmed.starts_with("#!/usr/bin/python") {
+        if trimmed.starts_with("#!/usr/bin/env python") || trimmed.starts_with("#!/usr/bin/python")
+        {
             return SourceLanguage::Python;
         }
         if trimmed.starts_with("#!/usr/bin/env node") {
@@ -76,40 +81,63 @@ impl LanguageDetector {
         }
 
         // Check Go patterns
-        if trimmed.starts_with("package ") || (source.contains("func ") && source.contains("package ")) {
+        if trimmed.starts_with("package ")
+            || (source.contains("func ") && source.contains("package "))
+        {
             return SourceLanguage::Go;
         }
 
         // Check Python patterns
-        if source.contains("def ") && (source.contains(":\n") || source.contains("import ")) && !source.contains("fn ")
-            && !source.contains("function ") && !source.contains("public class ")
+        if source.contains("def ")
+            && (source.contains(":\n") || source.contains("import "))
+            && !source.contains("fn ")
+            && !source.contains("function ")
+            && !source.contains("public class ")
         {
             return SourceLanguage::Python;
         }
 
         // Check TypeScript / JavaScript patterns
-        if source.contains("interface ") || source.contains("export const ") || source.contains("export default ") || source.contains("import {") {
-            if source.contains(": string") || source.contains(": number") || source.contains(": boolean") || source.contains("interface ") {
+        if source.contains("interface ")
+            || source.contains("export const ")
+            || source.contains("export default ")
+            || source.contains("import {")
+        {
+            if source.contains(": string")
+                || source.contains(": number")
+                || source.contains(": boolean")
+                || source.contains("interface ")
+            {
                 return SourceLanguage::TypeScript;
             }
             return SourceLanguage::JavaScript;
         }
 
         // Check Java patterns
-        if source.contains("public class ") || source.contains("public static void main") || source.contains("package com.") {
+        if source.contains("public class ")
+            || source.contains("public static void main")
+            || source.contains("package com.")
+        {
             return SourceLanguage::Java;
         }
 
         // Check C / C++ patterns
         if source.contains("#include <") || source.contains("#include \"") {
-            if source.contains("class ") || source.contains("std::") || source.contains("template<") || source.contains("namespace ") {
+            if source.contains("class ")
+                || source.contains("std::")
+                || source.contains("template<")
+                || source.contains("namespace ")
+            {
                 return SourceLanguage::Cpp;
             }
             return SourceLanguage::C;
         }
 
         // Fallback checks
-        if source.contains("fn main()") || source.contains("pub struct ") || source.contains("impl ") {
+        if source.contains("fn main()")
+            || source.contains("pub struct ")
+            || source.contains("impl ")
+        {
             return SourceLanguage::Rust;
         }
 

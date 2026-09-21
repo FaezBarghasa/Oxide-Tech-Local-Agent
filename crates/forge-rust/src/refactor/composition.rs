@@ -12,7 +12,9 @@ impl RefactorPass for CompositionPass {
             if let UirItem::Function(f) = item {
                 let target_struct = f.struct_target.clone().or_else(|| {
                     if f.is_method {
-                        f.name.find('_').map(|under_idx| f.name[..under_idx].to_string())
+                        f.name
+                            .find('_')
+                            .map(|under_idx| f.name[..under_idx].to_string())
                     } else {
                         None
                     }

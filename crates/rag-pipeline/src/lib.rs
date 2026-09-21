@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
+use fastembed::{EmbeddingModel, TextEmbedding, TextInitOptions};
 use qdrant_client::Payload;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{
@@ -55,7 +55,7 @@ impl RagPipeline {
 
         // Initialize BGE Small EN v1.5 embedder locally
         let embedder = TextEmbedding::try_new(
-            InitOptions::new(EmbeddingModel::BGESmallENV15).with_show_download_progress(true),
+            TextInitOptions::new(EmbeddingModel::BGESmallENV15).with_show_download_progress(true),
         )?;
 
         let surreal = SurrealClient::new().await?;

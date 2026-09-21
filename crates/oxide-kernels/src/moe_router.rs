@@ -67,19 +67,14 @@ impl FusedMoeRouterOp {
 
         let mut selected_experts = Vec::with_capacity(num_tokens);
         let mut routing_weights = Vec::with_capacity(num_tokens);
-        let mut expert_dispatches: Vec<Vec<(usize, f32)>> =
-            vec![Vec::new(); self.num_experts];
+        let mut expert_dispatches: Vec<Vec<(usize, f32)>> = vec![Vec::new(); self.num_experts];
 
         for t in 0..num_tokens {
             let token_offset = t * self.num_experts;
             let logits = &router_logits[token_offset..token_offset + self.num_experts];
 
             // 1. Extract (expert_id, logit) pairs and sort to find Top-K
-            let mut expert_scores: Vec<(usize, f32)> = logits
-                .iter()
-                .copied()
-                .enumerate()
-                .collect();
+            let mut expert_scores: Vec<(usize, f32)> = logits.iter().copied().enumerate().collect();
 
             // Partial sort for Top-K
             expert_scores.sort_unstable_by(|a, b| {
@@ -181,4 +176,3 @@ mod tests {
         assert!((weight_sum - 1.0).abs() < 1e-4);
     }
 }
-

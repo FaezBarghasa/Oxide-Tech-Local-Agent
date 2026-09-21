@@ -1,5 +1,8 @@
 use crate::detector::SourceLanguage;
-use crate::ir::{UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait, UirType};
+use crate::ir::{
+    UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait,
+    UirType,
+};
 use crate::lifter::{LanguageLifter, LifterError};
 use regex::Regex;
 
@@ -14,11 +17,18 @@ impl LanguageLifter for TypeScriptLifter {
         let mut module = UirModule::new(module_name);
 
         // 1. Extract Interfaces: interface Foo { bar: string; baz?: number; }
-        let interface_re = Regex::new(r"(?s)interface\s+(\w+)\s*\{([^}]*)\}")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::TypeScript, details: e.to_string() })?;
+        let interface_re = Regex::new(r"(?s)interface\s+(\w+)\s*\{([^}]*)\}").map_err(|e| {
+            LifterError::ParseError {
+                language: SourceLanguage::TypeScript,
+                details: e.to_string(),
+            }
+        })?;
 
         for cap in interface_re.captures_iter(source) {
-            let iface_name = cap.get(1).map(|m| m.as_str()).unwrap_or("AnonymousInterface");
+            let iface_name = cap
+                .get(1)
+                .map(|m| m.as_str())
+                .unwrap_or("AnonymousInterface");
             let body = cap.get(2).map(|m| m.as_str()).unwrap_or("");
 
             let mut fields = Vec::new();
@@ -88,7 +98,12 @@ impl LanguageLifter for TypeScriptLifter {
                     is_pub: true,
                     fields,
                     methods: Vec::new(),
-                    derives: vec!["Debug".into(), "Clone".into(), "Serialize".into(), "Deserialize".into()],
+                    derives: vec![
+                        "Debug".into(),
+                        "Clone".into(),
+                        "Serialize".into(),
+                        "Deserialize".into(),
+                    ],
                 }));
                 module.required_dependencies.push("serde".into());
             }
@@ -104,7 +119,8 @@ impl LanguageLifter for TypeScriptLifter {
             let ret_str = cap.get(3).map(|m| m.as_str().trim());
             let body_str = cap.get(4).map(|m| m.as_str()).unwrap_or("");
 
-            let is_async = source.contains(&format!("async function {}", fn_name)) || ret_str.is_some_and(|r| r.starts_with("Promise<"));
+            let is_async = source.contains(&format!("async function {}", fn_name))
+                || ret_str.is_some_and(|r| r.starts_with("Promise<"));
             if is_async {
                 module.required_dependencies.push("tokio".into());
             }
@@ -141,7 +157,10 @@ impl LanguageLifter for TypeScriptLifter {
                 self_kind: None,
                 params,
                 return_type,
-                body: vec![UirStmt::Raw(format!("// Lifted TS function: {}", body_str.trim().lines().next().unwrap_or("")))],
+                body: vec![UirStmt::Raw(format!(
+                    "// Lifted TS function: {}",
+                    body_str.trim().lines().next().unwrap_or("")
+                ))],
             }));
         }
 

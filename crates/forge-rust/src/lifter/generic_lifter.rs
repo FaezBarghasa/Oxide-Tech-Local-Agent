@@ -15,7 +15,10 @@ impl LanguageLifter for GenericLifter {
 
         // Extract generic function patterns: fn/function/def/sub/proc name(args)
         let fn_re = Regex::new(r"(?m)(?:function|def|func|fn|proc|sub)\s+(\w+)\s*\(([^)]*)\)")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::Generic, details: e.to_string() })?;
+            .map_err(|e| LifterError::ParseError {
+                language: SourceLanguage::Generic,
+                details: e.to_string(),
+            })?;
 
         for cap in fn_re.captures_iter(source) {
             let fn_name = cap.get(1).map(|m| m.as_str()).unwrap_or("unknown");
@@ -50,7 +53,10 @@ impl LanguageLifter for GenericLifter {
 
         if module.items.is_empty() {
             // Raw block preservation if no functions could be detected
-            module.items.push(UirItem::RawBlock(format!("// Preserved generic source\n/*\n{}\n*/", source.trim())));
+            module.items.push(UirItem::RawBlock(format!(
+                "// Preserved generic source\n/*\n{}\n*/",
+                source.trim()
+            )));
         }
 
         Ok(module)

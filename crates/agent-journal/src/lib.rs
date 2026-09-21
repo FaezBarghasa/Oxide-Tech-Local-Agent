@@ -12,7 +12,7 @@ pub use segment::*;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::{engine::any::Any, Surreal};
+use surrealdb::{Surreal, engine::any::Any};
 use surrealdb_types::{RecordId, SurrealValue};
 use thiserror::Error;
 use uuid::Uuid;
@@ -277,10 +277,10 @@ impl ReplayedDagState {
                     state.task_states.insert(task_id.clone(), "passed".into());
                     state.task_results.insert(task_id.clone(), result.clone());
                     // Clear any HITL block if this task just completed
-                    if let Some((hitl_task, _)) = &state.pending_hitl {
-                        if hitl_task == task_id {
-                            state.pending_hitl = None;
-                        }
+                    if let Some((hitl_task, _)) = &state.pending_hitl
+                        && hitl_task == task_id
+                    {
+                        state.pending_hitl = None;
                     }
                 }
                 JournalEvent::TaskFailed { task_id, .. } => {

@@ -1,21 +1,18 @@
 use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 use tracing_subscriber::fmt;
 
 use config_loader::AppConfig;
-use rag_pipeline::RagPipeline;
 use crates_mcp_server::McpServer;
+use rag_pipeline::RagPipeline;
 use rmcp::ServiceExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize structured logging for the MCP server.
     // Standard output is used by the stdio transport, so we MUST log only to stderr.
-    fmt()
-        .with_writer(std::io::stderr)
-        .with_target(true)
-        .init();
+    fmt().with_writer(std::io::stderr).with_target(true).init();
 
     info!("Oxide-Tech MCP Server starting...");
 
@@ -35,7 +32,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some(Arc::new(rp))
         }
         Err(e) => {
-            warn!("RAG pipeline not available from MCP Server ({e}). Qdrant search will be disabled.");
+            warn!(
+                "RAG pipeline not available from MCP Server ({e}). Qdrant search will be disabled."
+            );
             None
         }
     };

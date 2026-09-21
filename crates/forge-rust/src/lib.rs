@@ -11,7 +11,10 @@ use thiserror::Error;
 
 pub use detector::{LanguageDetector, SourceLanguage};
 pub use emitter::RustEmitter;
-pub use ir::{UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait, UirType};
+pub use ir::{
+    UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait,
+    UirType,
+};
 pub use lifter::{LanguageLifter, LifterDispatcher, LifterError};
 pub use refactor::{RefactorPass, RefactorPipeline};
 pub use scaffold::ProjectScaffolder;
@@ -60,11 +63,14 @@ pub struct ForgeRust;
 
 impl ForgeRust {
     /// Refactors foreign source code into idiomatic Rust.
-    pub fn refactor(source: &str, config: RefactorConfig) -> Result<RefactorResult, ForgeRustError> {
+    pub fn refactor(
+        source: &str,
+        config: RefactorConfig,
+    ) -> Result<RefactorResult, ForgeRustError> {
         // 1. Detect language
-        let lang = config.language_hint.unwrap_or_else(|| {
-            LanguageDetector::detect(source, None)
-        });
+        let lang = config
+            .language_hint
+            .unwrap_or_else(|| LanguageDetector::detect(source, None));
 
         // 2. Lift to UIR
         let mut uir = LifterDispatcher::lift(source, &config.module_name, lang)?;

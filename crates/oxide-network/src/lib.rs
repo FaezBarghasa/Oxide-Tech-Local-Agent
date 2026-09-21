@@ -16,19 +16,17 @@ impl LanDiscovery {
         let instance_name = "oxide_tech_os";
         let host_name = "oxide.local.";
         let ip = "127.0.0.1";
-        let properties: HashMap<String, String> = [("version".to_string(), "0.5.0".to_string())].into();
+        let properties: HashMap<String, String> =
+            [("version".to_string(), "0.5.0".to_string())].into();
 
-        let service_info = ServiceInfo::new(
-            service_type,
-            instance_name,
-            host_name,
-            ip,
-            port,
-            properties,
-        )?;
+        let service_info =
+            ServiceInfo::new(service_type, instance_name, host_name, ip, port, properties)?;
 
         self.mdns.register(service_info)?;
-        tracing::info!("mDNS broadcast active for _oxide-agent._tcp.local on port {}", port);
+        tracing::info!(
+            "mDNS broadcast active for _oxide-agent._tcp.local on port {}",
+            port
+        );
         Ok(())
     }
 }

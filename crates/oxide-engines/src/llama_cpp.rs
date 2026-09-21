@@ -1,10 +1,10 @@
+use crate::InferenceProvider;
 use async_trait::async_trait;
 use futures_util::StreamExt;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use reqwest::Client;
 use serde_json::json;
 use tokio::sync::mpsc;
-use crate::InferenceProvider;
 
 /// Provider that connects to a running llama-server or llama.cpp HTTP instance.
 #[derive(Debug)]
@@ -76,12 +76,11 @@ impl InferenceProvider for LlamaCppProvider {
                             if data == "[DONE]" || data.is_empty() {
                                 break;
                             }
-                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data) {
-                                if let Some(content) = v["choices"][0]["delta"]["content"].as_str() {
-                                    if token_tx.send(content.to_string()).await.is_err() {
-                                        return Ok(());
-                                    }
-                                }
+                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
+                                && let Some(content) = v["choices"][0]["delta"]["content"].as_str()
+                                && token_tx.send(content.to_string()).await.is_err()
+                            {
+                                return Ok(());
                             }
                         }
                     }
@@ -96,7 +95,10 @@ impl InferenceProvider for LlamaCppProvider {
     }
 
     async fn unload(&self) -> Result<(), OxideError> {
-        tracing::info!("LlamaCppProvider {}: unload (no-op, model remains resident).", self.name);
+        tracing::info!(
+            "LlamaCppProvider {}: unload (no-op, model remains resident).",
+            self.name
+        );
         Ok(())
     }
 }

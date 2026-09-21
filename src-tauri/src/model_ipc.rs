@@ -62,9 +62,13 @@ fn format_bytes(bytes: u64) -> String {
 fn scan_local_gguf_models() -> Vec<ModelInfo> {
     let mut models = Vec::new();
     let search_dirs = [
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join("models")),
         Some(PathBuf::from("/var/lib/oxide-tech/models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join(".cache").join("models")),
         Some(PathBuf::from("/tmp/models")),
     ];
 
@@ -253,13 +257,14 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
         }
     }
 
-    let (active_model, active_provider) = if let Some(first_running) = all_models.iter().find(|m| m.is_running) {
-        (first_running.name.clone(), first_running.provider.clone())
-    } else if let Some(first) = all_models.first() {
-        (first.name.clone(), first.provider.clone())
-    } else {
-        ("qwen2.5-coder:7b".to_string(), "ollama".to_string())
-    };
+    let (active_model, active_provider) =
+        if let Some(first_running) = all_models.iter().find(|m| m.is_running) {
+            (first_running.name.clone(), first_running.provider.clone())
+        } else if let Some(first) = all_models.first() {
+            (first.name.clone(), first.provider.clone())
+        } else {
+            ("qwen2.5-coder:7b".to_string(), "ollama".to_string())
+        };
 
     Ok(ModelListResponse {
         active_model,
@@ -459,15 +464,21 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                 provider,
                 tokens_used: None,
                 latency_ms: start.elapsed().as_millis() as u64,
-                error: Some(format!("Cannot connect to SGLang endpoint at {}: {}", base_url, e)),
+                error: Some(format!(
+                    "Cannot connect to SGLang endpoint at {}: {}",
+                    base_url, e
+                )),
             }),
         }
     } else {
         // Cloud / Generic OpenAI API fallback
         let (api_key, api_url, clean_model) = if model_name.contains("gemini") {
             (
-                std::env::var("GEMINI_API_KEY").or_else(|_| std::env::var("GOOGLE_API_KEY")).ok(),
-                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions".to_string(),
+                std::env::var("GEMINI_API_KEY")
+                    .or_else(|_| std::env::var("GOOGLE_API_KEY"))
+                    .ok(),
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+                    .to_string(),
                 "gemini-2.5-flash",
             )
         } else if model_name.contains("groq") {

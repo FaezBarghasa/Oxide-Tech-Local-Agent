@@ -7,11 +7,13 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{error, info, warn};
 
+type CompensationMap = Arc<RwLock<HashMap<DtxId, Vec<(ResourceRef, ArtifactRef)>>>>;
+
 #[derive(Clone, Default)]
 pub struct DtxCoordinator {
     transactions: Arc<RwLock<HashMap<DtxId, DtxRecord>>>,
     resources: Arc<RwLock<HashMap<ResourceRef, Arc<dyn ResourceTx>>>>,
-    compensation_snapshots: Arc<RwLock<HashMap<DtxId, Vec<(ResourceRef, ArtifactRef)>>>>,
+    compensation_snapshots: CompensationMap,
 }
 
 impl std::fmt::Debug for DtxCoordinator {
@@ -238,7 +240,10 @@ mod tests {
         fn is_irreversible(&self, _env: &DtxEnvelope) -> bool {
             self.is_irreversible
         }
-        async fn snapshot_for_compensation(&self, _env: &DtxEnvelope) -> Result<ArtifactRef, String> {
+        async fn snapshot_for_compensation(
+            &self,
+            _env: &DtxEnvelope,
+        ) -> Result<ArtifactRef, String> {
             Ok(ArtifactRef {
                 artifact_id: uuid::Uuid::now_v7(),
                 uri: "snapshot://mem/v1".to_string(),
@@ -261,33 +266,42 @@ mod tests {
             resource_uri: "kicad://schematic/main.kicad_sch".to_string(),
         };
 
-        coordinator.register_resource(
-            r1.clone(),
-            Arc::new(MockTransactionalResource {
-                should_fail: false,
-                is_irreversible: true,
-            }),
-        ).await;
+        coordinator
+            .register_resource(
+                r1.clone(),
+                Arc::new(MockTransactionalResource {
+                    should_fail: false,
+                    is_irreversible: true,
+                }),
+            )
+            .await;
 
-        coordinator.register_resource(
-            r2.clone(),
-            Arc::new(MockTransactionalResource {
-                should_fail: false,
-                is_irreversible: false,
-            }),
-        ).await;
+        coordinator
+            .register_resource(
+                r2.clone(),
+                Arc::new(MockTransactionalResource {
+                    should_fail: false,
+                    is_irreversible: false,
+                }),
+            )
+            .await;
 
-        let dtx = coordinator.begin_dtx(
-            "Hardware & PCB sync",
-            "test_runner",
-            vec![DomainTarget::FirmwareIde, DomainTarget::OxideEda],
-        ).await;
+        let dtx = coordinator
+            .begin_dtx(
+                "Hardware & PCB sync",
+                "test_runner",
+                vec![DomainTarget::FirmwareIde, DomainTarget::OxideEda],
+            )
+            .await;
 
         // Test Saga Success
         let res = coordinator
             .execute_saga(dtx, session.clone(), vec![r1.clone(), r2.clone()])
             .await;
         assert!(res.is_ok());
-        assert_eq!(coordinator.get_status(dtx).await, Some(DtxStatus::Committed));
+        assert_eq!(
+            coordinator.get_status(dtx).await,
+            Some(DtxStatus::Committed)
+        );
     }
 }

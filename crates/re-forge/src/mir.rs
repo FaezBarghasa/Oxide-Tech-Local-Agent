@@ -3,15 +3,46 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MirOp {
-    Load { dest: String, addr: String },
-    Store { addr: String, val: String },
-    Add { dest: String, a: String, b: String },
-    Sub { dest: String, a: String, b: String },
-    Mul { dest: String, a: String, b: String },
-    MmaTensorCore { dest: String, a: String, b: String, c: String },
-    Branch { target_block: usize },
-    CondBranch { cond: String, true_block: usize, false_block: usize },
-    Return { val: Option<String> },
+    Load {
+        dest: String,
+        addr: String,
+    },
+    Store {
+        addr: String,
+        val: String,
+    },
+    Add {
+        dest: String,
+        a: String,
+        b: String,
+    },
+    Sub {
+        dest: String,
+        a: String,
+        b: String,
+    },
+    Mul {
+        dest: String,
+        a: String,
+        b: String,
+    },
+    MmaTensorCore {
+        dest: String,
+        a: String,
+        b: String,
+        c: String,
+    },
+    Branch {
+        target_block: usize,
+    },
+    CondBranch {
+        cond: String,
+        true_block: usize,
+        false_block: usize,
+    },
+    Return {
+        val: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,7 +78,11 @@ impl MirFunction {
                                 g.add_edge(src_idx, dst_idx, ());
                             }
                         }
-                        MirOp::CondBranch { true_block, false_block, .. } => {
+                        MirOp::CondBranch {
+                            true_block,
+                            false_block,
+                            ..
+                        } => {
                             if let Some(&t_idx) = node_map.get(true_block) {
                                 g.add_edge(src_idx, t_idx, ());
                             }
@@ -79,8 +114,15 @@ mod tests {
                     block_id: 0,
                     label: "entry".to_string(),
                     operations: vec![
-                        MirOp::Load { dest: "v0".to_string(), addr: "r0".to_string() },
-                        MirOp::CondBranch { cond: "v0".to_string(), true_block: 1, false_block: 2 },
+                        MirOp::Load {
+                            dest: "v0".to_string(),
+                            addr: "r0".to_string(),
+                        },
+                        MirOp::CondBranch {
+                            cond: "v0".to_string(),
+                            true_block: 1,
+                            false_block: 2,
+                        },
                     ],
                 },
                 MirBlock {

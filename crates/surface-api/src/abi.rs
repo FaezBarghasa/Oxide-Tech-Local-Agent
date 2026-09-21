@@ -78,7 +78,8 @@ pub struct HookActionResult {
 #[repr(C)]
 pub struct HostOps {
     pub create_model: extern "C" fn(*const Dims) -> ModelHandle,
-    pub linear: extern "C" fn(TensorHandle, u32, u32, *const u8, usize, ModelHandle) -> TensorHandle,
+    pub linear:
+        extern "C" fn(TensorHandle, u32, u32, *const u8, usize, ModelHandle) -> TensorHandle,
     pub rmsnorm: extern "C" fn(TensorHandle, f64) -> TensorHandle,
     pub attention: extern "C" fn(TensorHandle, u32, bool, f64, bool) -> TensorHandle,
     pub mlp_swiglu: extern "C" fn(TensorHandle, u32, bool) -> TensorHandle,

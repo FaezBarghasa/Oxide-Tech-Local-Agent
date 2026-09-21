@@ -1,4 +1,7 @@
-use crate::ir::{UirConst, UirEnum, UirFunction, UirItem, UirModule, UirSelfKind, UirStmt, UirStruct, UirTrait, UirType};
+use crate::ir::{
+    UirConst, UirEnum, UirFunction, UirItem, UirModule, UirSelfKind, UirStmt, UirStruct, UirTrait,
+    UirType,
+};
 
 /// Emitter that converts refactored `UirModule` into valid, idiomatic Rust source code.
 pub struct RustEmitter;
@@ -23,9 +26,14 @@ impl RustEmitter {
         if module.required_dependencies.contains(&"anyhow".to_string()) {
             imports.push("use anyhow::Result;");
         }
-        if module.required_dependencies.contains(&"std::collections::HashMap".to_string())
+        if module
+            .required_dependencies
+            .contains(&"std::collections::HashMap".to_string())
             || module.items.iter().any(|it| match it {
-                UirItem::Struct(s) => s.fields.iter().any(|f| matches!(f.ty, UirType::HashMap { .. })),
+                UirItem::Struct(s) => s
+                    .fields
+                    .iter()
+                    .any(|f| matches!(f.ty, UirType::HashMap { .. })),
                 _ => false,
             })
         {
@@ -71,7 +79,12 @@ fn emit_struct(out: &mut String, s: &UirStruct) {
             out.push_str(&format!("    /// {}\n", doc));
         }
         let fvis = if field.is_pub { "pub " } else { "" };
-        out.push_str(&format!("    {}{}: {},\n", fvis, field.name, emit_type(&field.ty)));
+        out.push_str(&format!(
+            "    {}{}: {},\n",
+            fvis,
+            field.name,
+            emit_type(&field.ty)
+        ));
     }
     out.push_str("}\n\n");
 
@@ -137,14 +150,26 @@ fn emit_trait(out: &mut String, t: &UirTrait) {
             params.push(format!("{}: {}", p.name, emit_type(&p.ty)));
         }
 
-        out.push_str(&format!("    {}fn {}({}){};\n", async_kw, method.name, params.join(", "), ret));
+        out.push_str(&format!(
+            "    {}fn {}({}){};\n",
+            async_kw,
+            method.name,
+            params.join(", "),
+            ret
+        ));
     }
     out.push_str("}\n\n");
 }
 
 fn emit_const(out: &mut String, c: &UirConst) {
     let vis = if c.is_pub { "pub " } else { "" };
-    out.push_str(&format!("{}const {}: {} = {};\n\n", vis, c.name, emit_type(&c.ty), c.value));
+    out.push_str(&format!(
+        "{}const {}: {} = {};\n\n",
+        vis,
+        c.name,
+        emit_type(&c.ty),
+        c.value
+    ));
 }
 
 fn emit_function(out: &mut String, f: &UirFunction, indent: usize) {
@@ -173,7 +198,16 @@ fn emit_function(out: &mut String, f: &UirFunction, indent: usize) {
         Some(ty) => format!(" -> {}", emit_type(ty)),
     };
 
-    out.push_str(&format!("{}{}{}{}fn {}({}){} {{\n", pad, vis, async_kw, unsafe_kw, f.name, params.join(", "), ret));
+    out.push_str(&format!(
+        "{}{}{}{}fn {}({}){} {{\n",
+        pad,
+        vis,
+        async_kw,
+        unsafe_kw,
+        f.name,
+        params.join(", "),
+        ret
+    ));
 
     if f.body.is_empty() {
         if let Some(ret_ty) = &f.return_type {
@@ -242,15 +276,31 @@ pub fn emit_type(ty: &UirType) -> String {
         UirType::Option(inner) => format!("Option<{}>", emit_type(inner)),
         UirType::Result { ok, err } => format!("Result<{}, {}>", emit_type(ok), emit_type(err)),
         UirType::Boxed(inner) => format!("Box<{}>", emit_type(inner)),
-        UirType::ArcMutex(inner) => format!("std::sync::Arc<tokio::sync::Mutex<{}>>", emit_type(inner)),
-        UirType::Reference { mutable: true, inner } => format!("&mut {}", emit_type(inner)),
-        UirType::Reference { mutable: false, inner } => format!("&{}", emit_type(inner)),
-        UirType::HashMap { key, value } => format!("HashMap<{}, {}>", emit_type(key), emit_type(value)),
+        UirType::ArcMutex(inner) => {
+            format!("std::sync::Arc<tokio::sync::Mutex<{}>>", emit_type(inner))
+        }
+        UirType::Reference {
+            mutable: true,
+            inner,
+        } => format!("&mut {}", emit_type(inner)),
+        UirType::Reference {
+            mutable: false,
+            inner,
+        } => format!("&{}", emit_type(inner)),
+        UirType::HashMap { key, value } => {
+            format!("HashMap<{}, {}>", emit_type(key), emit_type(value))
+        }
         UirType::Tuple(types) => {
             let inner = types.iter().map(emit_type).collect::<Vec<_>>().join(", ");
             format!("({})", inner)
         }
-        UirType::RawPointer { mutable: true, inner } => format!("*mut {}", emit_type(inner)),
-        UirType::RawPointer { mutable: false, inner } => format!("*const {}", emit_type(inner)),
+        UirType::RawPointer {
+            mutable: true,
+            inner,
+        } => format!("*mut {}", emit_type(inner)),
+        UirType::RawPointer {
+            mutable: false,
+            inner,
+        } => format!("*const {}", emit_type(inner)),
     }
 }

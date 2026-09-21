@@ -29,19 +29,19 @@ impl OrnithPromptFormatter {
             out.push_str("You are Ornith-1.5, a high-performance autonomous agent specialized in systems engineering, low-level Rust development, and precise tool execution.\n");
         }
 
-        if let Some(tool_list) = tools {
-            if !tool_list.is_empty() {
-                out.push_str("\n# Tools\n");
-                out.push_str("You may call one or more functions to assist with the user query.\n");
-                out.push_str("You are provided with function signatures within <tools></tools> XML tags:\n<tools>\n");
-                for tool in tool_list {
-                    out.push_str(&serde_json::to_string(tool).unwrap_or_default());
-                    out.push('\n');
-                }
-                out.push_str("</tools>\n\n");
-                out.push_str("For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n");
-                out.push_str("<tool_call>\n{\"name\": \"<function-name>\", \"arguments\": <args-json-object>}\n</tool_call>\n");
+        if let Some(tool_list) = tools
+            && !tool_list.is_empty()
+        {
+            out.push_str("\n# Tools\n");
+            out.push_str("You may call one or more functions to assist with the user query.\n");
+            out.push_str("You are provided with function signatures within <tools></tools> XML tags:\n<tools>\n");
+            for tool in tool_list {
+                out.push_str(&serde_json::to_string(tool).unwrap_or_default());
+                out.push('\n');
             }
+            out.push_str("</tools>\n\n");
+            out.push_str("For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n");
+            out.push_str("<tool_call>\n{\"name\": \"<function-name>\", \"arguments\": <args-json-object>}\n</tool_call>\n");
         }
         out.push_str("<|im_end|>\n");
 
@@ -53,7 +53,10 @@ impl OrnithPromptFormatter {
                 oxide_core::Role::Assistant => "assistant",
                 oxide_core::Role::Tool => "tool",
             };
-            out.push_str(&format!("<|im_start|>{}\n{}<|im_end|>\n", role, msg.content));
+            out.push_str(&format!(
+                "<|im_start|>{}\n{}<|im_end|>\n",
+                role, msg.content
+            ));
         }
 
         // 3. Priming prompt for generation
@@ -70,14 +73,14 @@ impl OrnithPromptFormatter {
             let rest = &cursor[start_idx + "<tool_call>".len()..];
             if let Some(end_idx) = rest.find("</tool_call>") {
                 let json_str = rest[..end_idx].trim();
-                if let Ok(val) = serde_json::from_str::<Value>(json_str) {
-                    if let Some(name) = val.get("name").and_then(|v| v.as_str()) {
-                        let args = val.get("arguments").cloned().unwrap_or(Value::Null);
-                        calls.push(ExtractedToolCall {
-                            name: name.to_string(),
-                            arguments: args,
-                        });
-                    }
+                if let Ok(val) = serde_json::from_str::<Value>(json_str)
+                    && let Some(name) = val.get("name").and_then(|v| v.as_str())
+                {
+                    let args = val.get("arguments").cloned().unwrap_or(Value::Null);
+                    calls.push(ExtractedToolCall {
+                        name: name.to_string(),
+                        arguments: args,
+                    });
                 }
                 cursor = &rest[end_idx + "</tool_call>".len()..];
             } else {
@@ -127,9 +130,6 @@ Done!
         let tool_calls = OrnithPromptFormatter::extract_tool_calls(completion);
         assert_eq!(tool_calls.len(), 1);
         assert_eq!(tool_calls[0].name, "cargo_check");
-        assert_eq!(
-            tool_calls[0].arguments["crate_name"],
-            json!("oxide-core")
-        );
+        assert_eq!(tool_calls[0].arguments["crate_name"], json!("oxide-core"));
     }
 }

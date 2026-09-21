@@ -107,10 +107,18 @@ impl GeometryKernel for PolyBackend {
         let mut max_y = f64::NEG_INFINITY;
 
         for p in &sketch.points {
-            if p.x < min_x { min_x = p.x; }
-            if p.x > max_x { max_x = p.x; }
-            if p.y < min_y { min_y = p.y; }
-            if p.y > max_y { max_y = p.y; }
+            if p.x < min_x {
+                min_x = p.x;
+            }
+            if p.x > max_x {
+                max_x = p.x;
+            }
+            if p.y < min_y {
+                min_y = p.y;
+            }
+            if p.y > max_y {
+                max_y = p.y;
+            }
         }
 
         Ok(Body {
@@ -123,7 +131,12 @@ impl GeometryKernel for PolyBackend {
         })
     }
 
-    fn revolve(&self, sketch: &Sketch, _axis: Axis, angle_deg: f64) -> Result<Body, CadKernelError> {
+    fn revolve(
+        &self,
+        sketch: &Sketch,
+        _axis: Axis,
+        angle_deg: f64,
+    ) -> Result<Body, CadKernelError> {
         let extr = self.extrude(sketch, 1.0)?;
         let rad = angle_deg.to_radians();
         Ok(Body {
@@ -176,12 +189,18 @@ impl GeometryKernel for PolyBackend {
                 [min[0], max[1], max[2]],
             ],
             triangles: vec![
-                [0, 1, 2], [0, 2, 3], // Bottom
-                [4, 5, 6], [4, 6, 7], // Top
-                [0, 1, 5], [0, 5, 4], // Front
-                [2, 3, 7], [2, 7, 6], // Back
-                [0, 3, 7], [0, 7, 4], // Left
-                [1, 2, 6], [1, 6, 5], // Right
+                [0, 1, 2],
+                [0, 2, 3], // Bottom
+                [4, 5, 6],
+                [4, 6, 7], // Top
+                [0, 1, 5],
+                [0, 5, 4], // Front
+                [2, 3, 7],
+                [2, 7, 6], // Back
+                [0, 3, 7],
+                [0, 7, 4], // Left
+                [1, 2, 6],
+                [1, 6, 5], // Right
             ],
         })
     }
@@ -245,7 +264,9 @@ mod tests {
         assert_eq!(body_a.volume_mm3, 500.0);
 
         let body_b = backend.extrude(&sketch, 2.0).unwrap();
-        let union_body = backend.boolean(BooleanOpKind::Union, &body_a, &body_b).unwrap();
+        let union_body = backend
+            .boolean(BooleanOpKind::Union, &body_a, &body_b)
+            .unwrap();
         assert_eq!(union_body.volume_mm3, 700.0);
     }
 }

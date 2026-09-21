@@ -131,13 +131,25 @@ pub enum UirType {
     Slice(Box<UirType>),
     Array(Box<UirType>, usize),
     Option(Box<UirType>),
-    Result { ok: Box<UirType>, err: Box<UirType> },
+    Result {
+        ok: Box<UirType>,
+        err: Box<UirType>,
+    },
     Boxed(Box<UirType>),
     ArcMutex(Box<UirType>),
-    Reference { mutable: bool, inner: Box<UirType> },
-    HashMap { key: Box<UirType>, value: Box<UirType> },
+    Reference {
+        mutable: bool,
+        inner: Box<UirType>,
+    },
+    HashMap {
+        key: Box<UirType>,
+        value: Box<UirType>,
+    },
     Tuple(Vec<UirType>),
-    RawPointer { mutable: bool, inner: Box<UirType> },
+    RawPointer {
+        mutable: bool,
+        inner: Box<UirType>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

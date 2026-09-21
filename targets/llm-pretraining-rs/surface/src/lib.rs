@@ -49,7 +49,7 @@ pub fn build_optimizer_intent<'h>(m: &Model<'h>, h: &'h HostOps) -> Optim<'h> {
 // ── C. STEP HOOK (Budgeted <= 60 lines) ───────────────────────────────────────
 
 pub fn step_hook_intent(ctx: &mut StepContext<'_>, _h: &Host<'_>) -> HookAction {
-    if ctx.step % 50 == 0 {
+    if ctx.step.is_multiple_of(50) {
         ctx.log_grad_norms();
     }
 
@@ -72,12 +72,18 @@ extern "C" fn ffi_build_model(dims: *const Dims, host: *const HostOps) -> ModelH
 
 extern "C" fn ffi_build_optimizer(model: ModelHandle, host: *const HostOps) -> OptimHandle {
     let h = unsafe { &*host };
-    let m = Model { handle: model, host: h };
+    let m = Model {
+        handle: model,
+        host: h,
+    };
     let optim = build_optimizer_intent(&m, h);
     optim.handle
 }
 
-extern "C" fn ffi_step_hook(raw_ctx: *const StepCtx, host: *const HostOps) -> surface_api::abi::HookActionResult {
+extern "C" fn ffi_step_hook(
+    raw_ctx: *const StepCtx,
+    host: *const HostOps,
+) -> surface_api::abi::HookActionResult {
     let raw = unsafe { &*raw_ctx };
     let h_ops = unsafe { &*host };
     let mut ctx = StepContext::from_raw(raw, h_ops);

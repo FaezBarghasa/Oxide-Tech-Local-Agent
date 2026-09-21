@@ -9,17 +9,16 @@ use std::sync::Arc;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
 pub enum GgufTensorType {
-
     F32,
     F16,
     BF16,
     Q4_0,
     Q4_1,
-    Q4_K,  // Base 4-bit block
+    Q4_K, // Base 4-bit block
     Q5_0,
     Q5_1,
-    Q5_K,  // 5-bit block (used for critical attn_v / ffn_down layers in UD-Q4_K_XL)
-    Q6_K,  // 6-bit block (used for high-importance matrix weights)
+    Q5_K, // 5-bit block (used for critical attn_v / ffn_down layers in UD-Q4_K_XL)
+    Q6_K, // 6-bit block (used for high-importance matrix weights)
     Q8_0,
     IQ4_NL,
     IQ4_XS,
@@ -51,7 +50,6 @@ pub enum MemoryAdvice {
     HugePages,
 }
 
-
 /// Zero-copy memory-mapped model container.
 pub struct MmapModel {
     mmap: Arc<Mmap>,
@@ -63,7 +61,7 @@ impl MmapModel {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, OxideError> {
         let file = File::open(path.as_ref())
             .map_err(|e| OxideError::Engine(format!("Failed to open model file: {}", e)))?;
-        
+
         let metadata = file
             .metadata()
             .map_err(|e| OxideError::Engine(format!("Failed to read file metadata: {}", e)))?;
@@ -107,9 +105,7 @@ impl MmapModel {
                     libc::posix_madvise(addr, len, libc::POSIX_MADV_SEQUENTIAL)
                 }
                 MemoryAdvice::Random => libc::posix_madvise(addr, len, libc::POSIX_MADV_RANDOM),
-                MemoryAdvice::WillNeed => {
-                    libc::posix_madvise(addr, len, libc::POSIX_MADV_WILLNEED)
-                }
+                MemoryAdvice::WillNeed => libc::posix_madvise(addr, len, libc::POSIX_MADV_WILLNEED),
                 MemoryAdvice::HugePages => {
                     // MADV_HUGEPAGE is a Linux-specific madvise flag
                     libc::madvise(addr, len, libc::MADV_HUGEPAGE)
@@ -143,7 +139,7 @@ impl MmapModel {
         let ptr = unsafe { self.mmap.as_ptr().add(offset) };
 
         // Verify alignment invariant
-        if alignment > 1 && (ptr as usize) % alignment != 0 {
+        if alignment > 1 && !(ptr as usize).is_multiple_of(alignment) {
             return Err(OxideError::Engine(format!(
                 "Tensor pointer {:p} does not satisfy alignment requirement of {} bytes",
                 ptr, alignment
@@ -151,7 +147,9 @@ impl MmapModel {
         }
 
         let non_null = NonNull::new(ptr as *mut u8).ok_or_else(|| {
-            OxideError::Engine("Null pointer encountered during tensor slice extraction".to_string())
+            OxideError::Engine(
+                "Null pointer encountered during tensor slice extraction".to_string(),
+            )
         })?;
 
         Ok(TensorSlice {

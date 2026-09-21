@@ -1,4 +1,8 @@
-pub use crate::abi::{Dims, DTypeTag, HostOps, ModelHandle, OptimHandle, StepCtx, SurfaceVtable, TensorHandle, SURFACE_ABI_VERSION};
+pub use crate::abi::{
+    DTypeTag, Dims, HostOps, ModelHandle, OptimHandle, SURFACE_ABI_VERSION, StepCtx, SurfaceVtable,
+    TensorHandle,
+};
 pub use crate::safe::{
-    Act, AttentionCfg, HookAction, Host, MlpCfg, Model, Optim, Schedule, StepContext, ValueEmbedsCfg,
+    Act, AttentionCfg, HookAction, Host, MlpCfg, Model, Optim, Schedule, StepContext,
+    ValueEmbedsCfg,
 };

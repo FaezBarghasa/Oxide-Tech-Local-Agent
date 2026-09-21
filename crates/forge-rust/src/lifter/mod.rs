@@ -33,23 +33,19 @@ pub trait LanguageLifter: Send + Sync {
 pub struct LifterDispatcher;
 
 impl LifterDispatcher {
-    pub fn lift(source: &str, module_name: &str, lang: SourceLanguage) -> Result<UirModule, LifterError> {
+    pub fn lift(
+        source: &str,
+        module_name: &str,
+        lang: SourceLanguage,
+    ) -> Result<UirModule, LifterError> {
         match lang {
-            SourceLanguage::C | SourceLanguage::Cpp => {
-                c_lifter::CLifter.lift(source, module_name)
-            }
-            SourceLanguage::Python => {
-                python_lifter::PythonLifter.lift(source, module_name)
-            }
+            SourceLanguage::C | SourceLanguage::Cpp => c_lifter::CLifter.lift(source, module_name),
+            SourceLanguage::Python => python_lifter::PythonLifter.lift(source, module_name),
             SourceLanguage::TypeScript | SourceLanguage::JavaScript => {
                 typescript_lifter::TypeScriptLifter.lift(source, module_name)
             }
-            SourceLanguage::Go => {
-                go_lifter::GoLifter.lift(source, module_name)
-            }
-            _ => {
-                generic_lifter::GenericLifter.lift(source, module_name)
-            }
+            SourceLanguage::Go => go_lifter::GoLifter.lift(source, module_name),
+            _ => generic_lifter::GenericLifter.lift(source, module_name),
         }
     }
 }

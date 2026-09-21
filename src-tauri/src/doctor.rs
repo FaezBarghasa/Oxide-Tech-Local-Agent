@@ -79,7 +79,9 @@ pub fn run_diagnostics_scan() -> DoctorResult {
     let mut gguf_count = 0;
     let mut found_model_name = String::new();
     let search_dirs = [
-        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| std::path::PathBuf::from(h).join("models")),
         Some(std::path::PathBuf::from("/var/lib/oxide-tech/models")),
     ];
 
@@ -90,7 +92,11 @@ pub fn run_diagnostics_scan() -> DoctorResult {
                 if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
                     gguf_count += 1;
                     if found_model_name.is_empty() {
-                        found_model_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                        found_model_name = path
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string();
                     }
                 }
             }

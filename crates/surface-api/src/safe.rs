@@ -105,7 +105,11 @@ impl<'h> Optim<'h> {
         F: FnOnce(u64, u64) -> Schedule,
     {
         match f(0, 1000) {
-            Schedule::WarmupCosine { peak, warmup_frac, floor } => {
+            Schedule::WarmupCosine {
+                peak,
+                warmup_frac,
+                floor,
+            } => {
                 (self.host.set_schedule_cosine)(self.handle, peak, warmup_frac, floor);
             }
             Schedule::Constant(lr) => {

@@ -49,9 +49,7 @@ fn usage() -> String {
 
 /// Extract `--flag value` from a raw arg slice.
 fn flag_value(args: &[String], flag: &str) -> Option<String> {
-    args.windows(2)
-        .find(|w| w[0] == flag)
-        .map(|w| w[1].clone())
+    args.windows(2).find(|w| w[0] == flag).map(|w| w[1].clone())
 }
 
 fn run_desktop(config: Option<String>) {
@@ -121,9 +119,15 @@ fn run_doctor_cli(json_output: bool) {
     if json_output {
         println!("{}", serde_json::to_string_pretty(&res).unwrap_or_default());
     } else {
-        println!("\x1b[1;34m====================================================================\x1b[0m");
-        println!("\x1b[1;36m   Oxide-Tech Local Agent OS — System & Environment Diagnostics     \x1b[0m");
-        println!("\x1b[1;34m====================================================================\x1b[0m\n");
+        println!(
+            "\x1b[1;34m====================================================================\x1b[0m"
+        );
+        println!(
+            "\x1b[1;36m   Oxide-Tech Local Agent OS — System & Environment Diagnostics     \x1b[0m"
+        );
+        println!(
+            "\x1b[1;34m====================================================================\x1b[0m\n"
+        );
 
         for c in &res.checks {
             if c.passed {
@@ -143,16 +147,22 @@ fn run_doctor_cli(json_output: bool) {
             }
         }
 
-        println!("\n\x1b[1;34m--------------------------------------------------------------------\x1b[0m");
+        println!(
+            "\n\x1b[1;34m--------------------------------------------------------------------\x1b[0m"
+        );
         println!(
             "Summary: \x1b[1;32m{} passed\x1b[0m, \x1b[1;33m{} warnings\x1b[0m, \x1b[1;31m{} failed\x1b[0m",
             res.passed, res.warnings, res.failed
         );
 
         if res.failed == 0 {
-            println!("\x1b[1;32m[✓] System is fully verified and ready to run Oxide-Tech Agent OS.\x1b[0m");
+            println!(
+                "\x1b[1;32m[✓] System is fully verified and ready to run Oxide-Tech Agent OS.\x1b[0m"
+            );
         } else {
-            println!("\x1b[1;31m[✗] Critical requirements are missing. Please inspect failures above.\x1b[0m");
+            println!(
+                "\x1b[1;31m[✗] Critical requirements are missing. Please inspect failures above.\x1b[0m"
+            );
         }
     }
 }
@@ -166,7 +176,10 @@ fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: b
     };
     let res = reforge_ipc::analyze_file(req)?;
 
-    println!("\x1b[1;36m[+] RE-Forge Analysis: {}\x1b[0m", file_path.display());
+    println!(
+        "\x1b[1;36m[+] RE-Forge Analysis: {}\x1b[0m",
+        file_path.display()
+    );
     println!("  Domain        : {}", res.domain);
     println!("  File Size     : {} bytes", res.file_size);
     println!("  Binary Format : {}", res.format);
@@ -184,20 +197,31 @@ fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: b
     }
     if let Some(rtos) = res.rtos {
         if let Some(name) = rtos.detected_rtos {
-            println!("  [+] Inferred Runtime : {} (Confidence: {:.0}%)", name, rtos.confidence * 100.0);
+            println!(
+                "  [+] Inferred Runtime : {} (Confidence: {:.0}%)",
+                name,
+                rtos.confidence * 100.0
+            );
             for sig in rtos.signatures_found {
                 println!("      - {}", sig);
             }
         }
     }
     if !res.entropy_chunks.is_empty() {
-        println!("  [+] Shannon Entropy  : {:.2} / 8.0 (Avg across {} blocks)", res.avg_entropy, res.entropy_chunks.len());
+        println!(
+            "  [+] Shannon Entropy  : {:.2} / 8.0 (Avg across {} blocks)",
+            res.avg_entropy,
+            res.entropy_chunks.len()
+        );
     }
     if let Some(ptx) = res.ptx_analysis {
         println!("  Target Architecture : {}", ptx.target_arch);
         println!("  Entry Kernel        : {}", ptx.kernel_name);
         println!("  Shared Memory       : {} bytes", ptx.shared_memory_bytes);
-        println!("  Async Copy (cp.async): {}", if ptx.uses_async_copy { "Yes" } else { "No" });
+        println!(
+            "  Async Copy (cp.async): {}",
+            if ptx.uses_async_copy { "Yes" } else { "No" }
+        );
         println!("  Inferred Operation  : {}", ptx.inferred_operation);
         println!("  Tensor Core Patterns: {}", ptx.tensor_core_patterns.len());
     }
@@ -206,14 +230,20 @@ fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: b
         println!("  Total Instructions Decoded: {}", res.total_instructions);
     }
     if let Some(code) = res.decompiled_code {
-        println!("\n\x1b[1;33m[+] Neural Safe-Rust Decompiler Output:\x1b[0m\n{}", code);
+        println!(
+            "\n\x1b[1;33m[+] Neural Safe-Rust Decompiler Output:\x1b[0m\n{}",
+            code
+        );
     }
 
     Ok(())
 }
 
 fn run_verify_cli(workspace: PathBuf, export_path: Option<PathBuf>) -> Result<()> {
-    println!("\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m", workspace.display());
+    println!(
+        "\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m",
+        workspace.display()
+    );
 
     let req = verifier_ipc::VerifierRequest {
         workspace: workspace.display().to_string(),
@@ -225,9 +255,15 @@ fn run_verify_cli(workspace: PathBuf, export_path: Option<PathBuf>) -> Result<()
 
     for r in &bundle.reports {
         if r.passed {
-            println!("  \x1b[1;32m[✓] {}: PASSED ({}ms)\x1b[0m", r.stage, r.duration_ms);
+            println!(
+                "  \x1b[1;32m[✓] {}: PASSED ({}ms)\x1b[0m",
+                r.stage, r.duration_ms
+            );
         } else {
-            println!("  \x1b[1;31m[✗] {}: FAILED ({}ms)\x1b[0m", r.stage, r.duration_ms);
+            println!(
+                "  \x1b[1;31m[✗] {}: FAILED ({}ms)\x1b[0m",
+                r.stage, r.duration_ms
+            );
         }
     }
 
@@ -300,7 +336,9 @@ fn main() {
         }
         "re-forge" => {
             if rest.is_empty() {
-                eprintln!("Usage: oxide-tech-local-agent re-forge <FILE> [--arch <arch>] [--summary] [--decompile]");
+                eprintln!(
+                    "Usage: oxide-tech-local-agent re-forge <FILE> [--arch <arch>] [--summary] [--decompile]"
+                );
                 std::process::exit(1);
             }
             let file = PathBuf::from(&rest[0]);
@@ -323,7 +361,8 @@ fn main() {
             }
         }
         "status" => {
-            let url = flag_value(&raw, "--gateway-url").unwrap_or_else(|| DEFAULT_GATEWAY_URL.into());
+            let url =
+                flag_value(&raw, "--gateway-url").unwrap_or_else(|| DEFAULT_GATEWAY_URL.into());
             run_status(&url);
         }
         "memory" | "embed" => run_memory_passthrough(rest),

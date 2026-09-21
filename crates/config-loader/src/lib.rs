@@ -45,7 +45,10 @@ impl std::str::FromStr for OperatingProfile {
 
 impl OperatingProfile {
     pub fn allows_online_grpo(&self) -> bool {
-        matches!(self, OperatingProfile::Pro | OperatingProfile::Enterprise | OperatingProfile::AirGapped)
+        matches!(
+            self,
+            OperatingProfile::Pro | OperatingProfile::Enterprise | OperatingProfile::AirGapped
+        )
     }
 
     pub fn allows_multi_user(&self) -> bool {

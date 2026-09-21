@@ -123,9 +123,13 @@ pub async fn memory_env(cwd: Option<String>) -> Result<MemoryEnv, String> {
         .output()
         .await
         .map_err(|e| format!("Failed to execute '{}': {e}", bin.display()))?;
-    let mut version = String::from_utf8_lossy(&version_out.stdout).trim().to_string();
+    let mut version = String::from_utf8_lossy(&version_out.stdout)
+        .trim()
+        .to_string();
     if version.is_empty() {
-        version = String::from_utf8_lossy(&version_out.stderr).trim().to_string();
+        version = String::from_utf8_lossy(&version_out.stderr)
+            .trim()
+            .to_string();
     }
     Ok(MemoryEnv {
         bin: bin.display().to_string(),
@@ -296,5 +300,3 @@ pub async fn memory_conflicts(cwd: Option<String>) -> Result<EmbedResult, String
     let dir = resolve_cwd(cwd);
     run_embed(&["conflicts".to_string()], &dir).await
 }
-
-

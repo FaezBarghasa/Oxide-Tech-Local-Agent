@@ -1,7 +1,7 @@
+use crate::InferenceProvider;
 use async_trait::async_trait;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use tokio::sync::mpsc;
-use crate::InferenceProvider;
 
 pub struct CandleProvider {
     model_id: String,
@@ -34,9 +34,17 @@ impl InferenceProvider for CandleProvider {
 
         // Offload compute to blocking thread pool to keep async runtime non-blocking
         tokio::task::spawn_blocking(move || {
-            tracing::info!("Executing Candle inference on device [{}] for model [{}]", device, model_id);
+            tracing::info!(
+                "Executing Candle inference on device [{}] for model [{}]",
+                device,
+                model_id
+            );
             // Simulated token generation loop
-            let text = format!("[Candle/{}] Response generated for {} messages.", device, prompt.len());
+            let text = format!(
+                "[Candle/{}] Response generated for {} messages.",
+                device,
+                prompt.len()
+            );
             for word in text.split_whitespace() {
                 let chunk = format!(" {}", word);
                 if token_tx.blocking_send(chunk).is_err() {
@@ -52,7 +60,11 @@ impl InferenceProvider for CandleProvider {
     }
 
     async fn unload(&self) -> Result<(), OxideError> {
-        tracing::info!("CandleProvider [{}] unloaded from device [{}].", self.model_id, self.device_type);
+        tracing::info!(
+            "CandleProvider [{}] unloaded from device [{}].",
+            self.model_id,
+            self.device_type
+        );
         Ok(())
     }
 }

@@ -101,15 +101,14 @@ pub fn analyze_file(req: ReforgeRequest) -> anyhow::Result<ReforgeResult> {
         let buffer = std::fs::read(&file_path).context("Failed to read firmware image")?;
         let file_size = buffer.len();
 
-        let arm_vector_table = re_forge::ArmVectorTable::parse(&buffer, 0x0800_0000).map(|ivt| {
-            ArmVectorTableDto {
+        let arm_vector_table =
+            re_forge::ArmVectorTable::parse(&buffer, 0x0800_0000).map(|ivt| ArmVectorTableDto {
                 initial_sp: format!("0x{:08X}", ivt.initial_sp),
                 reset_handler: format!("0x{:08X}", ivt.reset_handler),
                 hardfault_handler: format!("0x{:08X}", ivt.hardfault_handler),
                 systick_handler: format!("0x{:08X}", ivt.systick_handler),
                 external_irqs_count: ivt.external_irqs.len(),
-            }
-        });
+            });
 
         let rtos_raw = re_forge::RtosDetector::detect(&buffer);
         let rtos = Some(RtosDetectionDto {
@@ -137,9 +136,7 @@ pub fn analyze_file(req: ReforgeRequest) -> anyhow::Result<ReforgeResult> {
             domain: "Embedded Firmware / Microcontroller".to_string(),
             file_size,
             format: "Raw Binary / Hex".to_string(),
-            entry_point: arm_vector_table
-                .as_ref()
-                .map(|a| a.reset_handler.clone()),
+            entry_point: arm_vector_table.as_ref().map(|a| a.reset_handler.clone()),
             arm_vector_table,
             rtos,
             avg_entropy,

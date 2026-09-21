@@ -1,5 +1,5 @@
 use actix_web::middleware as actix_middleware;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use oxide_core::RuntimeTopology;
 use oxide_state::AppState;
 use std::sync::Arc;
@@ -26,7 +26,7 @@ pub fn build_tuned_runtime(
             let core_id = match std::thread::current().name() {
                 Some(name) => name
                     .split('-')
-                    .last()
+                    .next_back()
                     .and_then(|s| s.parse::<usize>().ok())
                     .unwrap_or(0),
                 None => 0,
@@ -38,12 +38,7 @@ pub fn build_tuned_runtime(
     builder.build()
 }
 
-pub async fn run_gateway(
-    state: Arc<AppState>,
-    host: &str,
-    port: u16,
-) -> std::io::Result<()> {
-
+pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io::Result<()> {
     let state_data = web::Data::new(state.clone());
     let bind_addr = format!("{}:{}", host, port);
     let workers = std::thread::available_parallelism()
@@ -74,7 +69,10 @@ pub async fn run_gateway(
             .service(
                 web::scope("/v1")
                     .wrap(auth)
-                    .route("/chat/completions", web::post().to(routes::chat_completions))
+                    .route(
+                        "/chat/completions",
+                        web::post().to(routes::chat_completions),
+                    )
                     .route("/models", web::get().to(routes::list_models)),
             )
     })

@@ -3,10 +3,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum VerificationError {
     #[error("Rust syntax error: {message}\nEmitted code:\n{code}")]
-    SyntaxError {
-        message: String,
-        code: String,
-    },
+    SyntaxError { message: String, code: String },
 }
 
 /// Verifier that validates emitted Rust code against `syn` parser.

@@ -1,5 +1,8 @@
 use crate::detector::SourceLanguage;
-use crate::ir::{UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait, UirType};
+use crate::ir::{
+    UirField, UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirTrait,
+    UirType,
+};
 use crate::lifter::{LanguageLifter, LifterError};
 use regex::Regex;
 
@@ -15,8 +18,13 @@ impl LanguageLifter for GoLifter {
 
         // 1. Extract Go Structs & Interfaces
         // type StructName struct { Field Type }
-        let type_re = Regex::new(r"(?s)type\s+(\w+)\s+(struct|interface)\s*\{([^}]*)\}")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::Go, details: e.to_string() })?;
+        let type_re =
+            Regex::new(r"(?s)type\s+(\w+)\s+(struct|interface)\s*\{([^}]*)\}").map_err(|e| {
+                LifterError::ParseError {
+                    language: SourceLanguage::Go,
+                    details: e.to_string(),
+                }
+            })?;
 
         for cap in type_re.captures_iter(source) {
             let name = cap.get(1).map(|m| m.as_str()).unwrap_or("Anonymous");
@@ -49,7 +57,12 @@ impl LanguageLifter for GoLifter {
                     is_pub: name.chars().next().is_some_and(|c| c.is_uppercase()),
                     fields,
                     methods: Vec::new(),
-                    derives: vec!["Debug".into(), "Clone".into(), "Serialize".into(), "Deserialize".into()],
+                    derives: vec![
+                        "Debug".into(),
+                        "Clone".into(),
+                        "Serialize".into(),
+                        "Deserialize".into(),
+                    ],
                 }));
                 module.required_dependencies.push("serde".into());
             } else {
@@ -100,8 +113,12 @@ impl LanguageLifter for GoLifter {
         }
 
         // 2. Extract Go Functions: func (recv *Receiver) FuncName(arg1 Type) (RetType, error) { ... }
-        let fn_re = Regex::new(r"(?s)func\s+(?:\(([^)]+)\)\s+)?(\w+)\s*\(([^)]*)\)\s*([^{]*)\{([^}]*)\}")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::Go, details: e.to_string() })?;
+        let fn_re =
+            Regex::new(r"(?s)func\s+(?:\(([^)]+)\)\s+)?(\w+)\s*\(([^)]*)\)\s*([^{]*)\{([^}]*)\}")
+                .map_err(|e| LifterError::ParseError {
+                language: SourceLanguage::Go,
+                details: e.to_string(),
+            })?;
 
         for cap in fn_re.captures_iter(source) {
             let recv_str = cap.get(1).map(|m| m.as_str());

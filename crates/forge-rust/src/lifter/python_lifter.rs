@@ -1,5 +1,7 @@
 use crate::detector::SourceLanguage;
-use crate::ir::{UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirType};
+use crate::ir::{
+    UirFunction, UirItem, UirModule, UirParam, UirSelfKind, UirStmt, UirStruct, UirType,
+};
 use crate::lifter::{LanguageLifter, LifterError};
 use regex::Regex;
 
@@ -14,8 +16,12 @@ impl LanguageLifter for PythonLifter {
         let mut module = UirModule::new(module_name);
 
         // 1. Extract Python Classes
-        let class_re = Regex::new(r"(?m)^class\s+(\w+)(?:\(([^)]*)\))?:")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::Python, details: e.to_string() })?;
+        let class_re = Regex::new(r"(?m)^class\s+(\w+)(?:\(([^)]*)\))?:").map_err(|e| {
+            LifterError::ParseError {
+                language: SourceLanguage::Python,
+                details: e.to_string(),
+            }
+        })?;
 
         for cap in class_re.captures_iter(source) {
             let class_name = cap.get(1).map(|m| m.as_str()).unwrap_or("AnonymousClass");
@@ -25,14 +31,22 @@ impl LanguageLifter for PythonLifter {
                 is_pub: true,
                 fields: Vec::new(),
                 methods: Vec::new(),
-                derives: vec!["Debug".into(), "Clone".into(), "Serialize".into(), "Deserialize".into()],
+                derives: vec![
+                    "Debug".into(),
+                    "Clone".into(),
+                    "Serialize".into(),
+                    "Deserialize".into(),
+                ],
             }));
             module.required_dependencies.push("serde".into());
         }
 
         // 2. Extract Functions: def func_name(arg1: int, arg2: str) -> bool:
         let fn_re = Regex::new(r"(?m)^(?:async\s+)?def\s+(\w+)\s*\(([^)]*)\)(?:\s*->\s*([^:]+))?:")
-            .map_err(|e| LifterError::ParseError { language: SourceLanguage::Python, details: e.to_string() })?;
+            .map_err(|e| LifterError::ParseError {
+                language: SourceLanguage::Python,
+                details: e.to_string(),
+            })?;
 
         for cap in fn_re.captures_iter(source) {
             let fn_name = cap.get(1).map(|m| m.as_str()).unwrap_or("unknown");

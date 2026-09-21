@@ -1,8 +1,8 @@
+use crate::InferenceProvider;
 use async_trait::async_trait;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use serde_json::json;
 use tokio::sync::mpsc;
-use crate::InferenceProvider;
 
 pub struct SidecarProvider {
     name: String,
@@ -32,8 +32,11 @@ impl InferenceProvider for SidecarProvider {
         params: GenerationParams,
         token_tx: mpsc::Sender<String>,
     ) -> Result<(), OxideError> {
-        let endpoint = format!("{}/v1/chat/completions", self.base_url.trim_end_matches('/'));
-        
+        let endpoint = format!(
+            "{}/v1/chat/completions",
+            self.base_url.trim_end_matches('/')
+        );
+
         let body = json!({
             "model": self.name,
             "messages": prompt,
@@ -43,16 +46,22 @@ impl InferenceProvider for SidecarProvider {
             "stream": true,
         });
 
-        let response = self.client
+        let response = self
+            .client
             .post(&endpoint)
             .json(&body)
             .send()
             .await
-            .map_err(|e| OxideError::Engine(format!("Failed to connect to sidecar {}: {}", self.name, e)))?;
+            .map_err(|e| {
+                OxideError::Engine(format!("Failed to connect to sidecar {}: {}", self.name, e))
+            })?;
 
         if !response.status().is_success() {
             let err_txt = response.text().await.unwrap_or_default();
-            return Err(OxideError::Engine(format!("Sidecar returned error: {}", err_txt)));
+            return Err(OxideError::Engine(format!(
+                "Sidecar returned error: {}",
+                err_txt
+            )));
         }
 
         let mut stream = response.bytes_stream();
@@ -69,18 +78,20 @@ impl InferenceProvider for SidecarProvider {
                             if data == "[DONE]" {
                                 break;
                             }
-                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data) {
-                                if let Some(content) = v["choices"][0]["delta"]["content"].as_str() {
-                                    if token_tx.send(content.to_string()).await.is_err() {
-                                        return Ok(());
-                                    }
-                                }
+                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
+                                && let Some(content) = v["choices"][0]["delta"]["content"].as_str()
+                                && token_tx.send(content.to_string()).await.is_err()
+                            {
+                                return Ok(());
                             }
                         }
                     }
                 }
                 Err(e) => {
-                    return Err(OxideError::Engine(format!("Stream read error from sidecar: {}", e)));
+                    return Err(OxideError::Engine(format!(
+                        "Stream read error from sidecar: {}",
+                        e
+                    )));
                 }
             }
         }

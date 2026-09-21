@@ -28,7 +28,8 @@ impl Default for OxideMcpServer {
                 },
                 McpToolDefinition {
                     name: "oxide_remember".to_string(),
-                    description: "Store persistent architectural decision into SurrealDB memory".to_string(),
+                    description: "Store persistent architectural decision into SurrealDB memory"
+                        .to_string(),
                     input_schema: serde_json::json!({
                         "type": "object",
                         "properties": {

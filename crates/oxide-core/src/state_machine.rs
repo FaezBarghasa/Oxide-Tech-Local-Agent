@@ -1,8 +1,8 @@
 use crate::OxideError;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::sync::watch;
 
 /// Comprehensive state enum for the agent loop lifecycle.
@@ -169,20 +169,24 @@ mod tests {
         let mut sm = AgentStateMachine::new();
         assert_eq!(*sm.current(), AgentState::Idle);
 
-        assert!(sm
-            .transition_to(AgentState::Thinking { context_len: 2048 })
-            .is_ok());
-        assert!(sm
-            .transition_to(AgentState::Streaming { tokens_emitted: 1 })
-            .is_ok());
-        assert!(sm
-            .transition_to(AgentState::Streaming { tokens_emitted: 2 })
-            .is_ok());
-        assert!(sm
-            .transition_to(AgentState::Halted {
+        assert!(
+            sm.transition_to(AgentState::Thinking { context_len: 2048 })
+                .is_ok()
+        );
+        assert!(
+            sm.transition_to(AgentState::Streaming { tokens_emitted: 1 })
+                .is_ok()
+        );
+        assert!(
+            sm.transition_to(AgentState::Streaming { tokens_emitted: 2 })
+                .is_ok()
+        );
+        assert!(
+            sm.transition_to(AgentState::Halted {
                 reason: "stop".into()
             })
-            .is_ok());
+            .is_ok()
+        );
         assert!(sm.transition_to(AgentState::Idle).is_ok());
         assert_eq!(sm.total_transitions(), 5);
     }

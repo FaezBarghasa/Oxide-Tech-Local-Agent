@@ -72,7 +72,10 @@ impl KiCadDrcRunner {
             .unwrap_or(false);
 
         if !kicad_exists {
-            warn!("kicad-cli not found on host; returning simulated DRC report for {:?}", deck);
+            warn!(
+                "kicad-cli not found on host; returning simulated DRC report for {:?}",
+                deck
+            );
             return Ok(DrcReport {
                 passed: true,
                 violation_count: 0,
@@ -107,12 +110,33 @@ impl KiCadDrcRunner {
             if let Some(reports) = parsed.get("violations").and_then(|v| v.as_array()) {
                 for item in reports {
                     violations.push(DrcViolation {
-                        rule: item.get("type").and_then(|v| v.as_str()).unwrap_or("unknown").to_string(),
-                        severity: item.get("severity").and_then(|v| v.as_str()).unwrap_or("error").to_string(),
-                        description: item.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                        pos_x_mm: item.get("pos").and_then(|p| p.get("x")).and_then(|v| v.as_f64()),
-                        pos_y_mm: item.get("pos").and_then(|p| p.get("y")).and_then(|v| v.as_f64()),
-                        layer: item.get("layer").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                        rule: item
+                            .get("type")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        severity: item
+                            .get("severity")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("error")
+                            .to_string(),
+                        description: item
+                            .get("description")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string(),
+                        pos_x_mm: item
+                            .get("pos")
+                            .and_then(|p| p.get("x"))
+                            .and_then(|v| v.as_f64()),
+                        pos_y_mm: item
+                            .get("pos")
+                            .and_then(|p| p.get("y"))
+                            .and_then(|v| v.as_f64()),
+                        layer: item
+                            .get("layer")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string()),
                     });
                 }
             }
@@ -145,7 +169,10 @@ mod tests {
     async fn test_drc_runner_fallback() {
         let runner = KiCadDrcRunner::default();
         let report = runner
-            .run_pcb_drc(Path::new("tests/fixtures/dummy.kicad_pcb"), ManufacturerDeck::JlcPcb)
+            .run_pcb_drc(
+                Path::new("tests/fixtures/dummy.kicad_pcb"),
+                ManufacturerDeck::JlcPcb,
+            )
             .await
             .unwrap();
         assert!(report.passed);

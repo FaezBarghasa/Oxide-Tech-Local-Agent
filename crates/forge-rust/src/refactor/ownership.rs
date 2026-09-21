@@ -39,12 +39,20 @@ fn refactor_function_ownership(f: &mut UirFunction) {
         // If param type is a large struct or string, prefer &str or &T
         param.ty = match &param.ty {
             UirType::String => UirType::StrRef,
-            UirType::RawPointer { mutable: true, inner } => {
-                UirType::Reference { mutable: true, inner: inner.clone() }
-            }
-            UirType::RawPointer { mutable: false, inner } => {
-                UirType::Reference { mutable: false, inner: inner.clone() }
-            }
+            UirType::RawPointer {
+                mutable: true,
+                inner,
+            } => UirType::Reference {
+                mutable: true,
+                inner: inner.clone(),
+            },
+            UirType::RawPointer {
+                mutable: false,
+                inner,
+            } => UirType::Reference {
+                mutable: false,
+                inner: inner.clone(),
+            },
             other => lift_ownership_type(other),
         };
     }
@@ -52,18 +60,30 @@ fn refactor_function_ownership(f: &mut UirFunction) {
 
 fn lift_ownership_type(ty: &UirType) -> UirType {
     match ty {
-        UirType::RawPointer { mutable: false, inner } => {
+        UirType::RawPointer {
+            mutable: false,
+            inner,
+        } => {
             if matches!(inner.as_ref(), UirType::I8 | UirType::U8) {
                 UirType::StrRef
             } else {
-                UirType::Reference { mutable: false, inner: inner.clone() }
+                UirType::Reference {
+                    mutable: false,
+                    inner: inner.clone(),
+                }
             }
         }
-        UirType::RawPointer { mutable: true, inner } => {
+        UirType::RawPointer {
+            mutable: true,
+            inner,
+        } => {
             if matches!(inner.as_ref(), UirType::I8 | UirType::U8) {
                 UirType::String
             } else {
-                UirType::Reference { mutable: true, inner: inner.clone() }
+                UirType::Reference {
+                    mutable: true,
+                    inner: inner.clone(),
+                }
             }
         }
         UirType::Vec(inner) => UirType::Vec(Box::new(lift_ownership_type(inner))),

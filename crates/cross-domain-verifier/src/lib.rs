@@ -97,13 +97,15 @@ impl CrossDomainVerifier {
             let temp_delta: f64 = current_temp - 25.0;
             let temp_delta_pos = if temp_delta > 0.0 { temp_delta } else { 0.0 };
             let resistance_scaling = 1.0 + alpha_thermal_copper * temp_delta_pos;
-            let effective_power = (mcu_base_watts * (0.2 + 0.8 * firmware_duty_cycle)) * resistance_scaling;
+            let effective_power =
+                (mcu_base_watts * (0.2 + 0.8 * firmware_duty_cycle)) * resistance_scaling;
 
             // 2. Thermal: calculate new equilibrium temperature
             let calculated_temp = 25.0 + (effective_power * 45.0 * dissipation_factor);
 
             // 3. Relaxation step: T_(k+1) = (1 - omega)*T_k + omega*T_calc
-            let next_temp = (1.0 - self.relaxation_omega) * current_temp + self.relaxation_omega * calculated_temp;
+            let next_temp = (1.0 - self.relaxation_omega) * current_temp
+                + self.relaxation_omega * calculated_temp;
             residual = (next_temp - current_temp).abs();
             current_temp = next_temp;
             current_power = effective_power;

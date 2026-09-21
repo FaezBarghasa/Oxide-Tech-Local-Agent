@@ -16,7 +16,7 @@ pub struct FastRopeOp {
 impl FastRopeOp {
     /// Construct a new RoPE operator with precomputed trigonometric tables.
     pub fn new(head_dim: usize, max_seq_len: usize, theta_base: f32) -> Result<Self, OxideError> {
-        if head_dim % 2 != 0 {
+        if !head_dim.is_multiple_of(2) {
             return Err(OxideError::Engine(format!(
                 "head_dim must be even for RoPE, got {}",
                 head_dim

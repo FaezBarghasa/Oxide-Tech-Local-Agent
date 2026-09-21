@@ -3,8 +3,8 @@ use oxide_core::HardwareMetrics;
 use oxide_engines::InferenceProvider;
 use oxide_security::SecurityManager;
 use std::sync::Arc;
-use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
+use surrealdb::engine::any::Any;
 use sysinfo::System;
 use tokio::sync::broadcast;
 
@@ -22,7 +22,7 @@ impl AppState {
 
         let (hardware_tx, _) = broadcast::channel(64);
         let security = SecurityManager::new(db.clone());
-        
+
         let state = Arc::new(Self {
             models: DashMap::new(),
             hardware_tx: hardware_tx.clone(),

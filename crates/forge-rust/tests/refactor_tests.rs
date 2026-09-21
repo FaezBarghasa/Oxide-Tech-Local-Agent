@@ -7,11 +7,17 @@ fn test_language_detection() {
         SourceLanguage::C
     );
     assert_eq!(
-        LanguageDetector::detect("def calculate_sum(a: int, b: int) -> int:\n    return a + b", None),
+        LanguageDetector::detect(
+            "def calculate_sum(a: int, b: int) -> int:\n    return a + b",
+            None
+        ),
         SourceLanguage::Python
     );
     assert_eq!(
-        LanguageDetector::detect("interface UserProfile {\n    id: string;\n    age?: number;\n}", None),
+        LanguageDetector::detect(
+            "interface UserProfile {\n    id: string;\n    age?: number;\n}",
+            None
+        ),
         SourceLanguage::TypeScript
     );
     assert_eq!(
@@ -68,7 +74,12 @@ async def connect_stream(endpoint: str) -> bool:
     let result = ForgeRust::refactor(py_code, config).expect("Refactoring Python should succeed");
     assert!(result.rust_code.contains("struct TelemetryStream"));
     assert!(result.rust_code.contains("async fn connect_stream"));
-    assert!(result.uir.required_dependencies.contains(&"tokio".to_string()));
+    assert!(
+        result
+            .uir
+            .required_dependencies
+            .contains(&"tokio".to_string())
+    );
 }
 
 #[test]
@@ -87,7 +98,8 @@ interface DeviceController {
         is_binary: false,
     };
 
-    let result = ForgeRust::refactor(ts_code, config).expect("Refactoring TypeScript should succeed");
+    let result =
+        ForgeRust::refactor(ts_code, config).expect("Refactoring TypeScript should succeed");
     assert!(result.rust_code.contains("trait DeviceController"));
     assert!(result.rust_code.contains("async fn connect"));
     assert!(result.rust_code.contains("fn disconnect"));

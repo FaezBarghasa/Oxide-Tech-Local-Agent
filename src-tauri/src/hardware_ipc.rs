@@ -69,12 +69,16 @@ pub async fn hardware_list_probes() -> std::result::Result<ProbeDevicesResult, S
 }
 
 #[tauri::command]
-pub async fn hardware_get_chip_info(device_identifier: String) -> std::result::Result<ChipInfoDto, String> {
+pub async fn hardware_get_chip_info(
+    device_identifier: String,
+) -> std::result::Result<ChipInfoDto, String> {
     get_chip_info(device_identifier).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn hardware_flash_firmware(request: FlashRequest) -> std::result::Result<FlashResult, String> {
+pub async fn hardware_flash_firmware(
+    request: FlashRequest,
+) -> std::result::Result<FlashResult, String> {
     flash_firmware(request).map_err(|e| e.to_string())
 }
 
@@ -106,7 +110,9 @@ pub fn list_probe_devices() -> Result<ProbeDevicesResult> {
     {
         Ok(ProbeDevicesResult {
             devices: Vec::new(),
-            error: Some("probe-rs hardware access active in native USB pass-through mode".to_string()),
+            error: Some(
+                "probe-rs hardware access active in native USB pass-through mode".to_string(),
+            ),
         })
     }
 }
@@ -210,19 +216,32 @@ pub fn flash_firmware(request: FlashRequest) -> Result<FlashResult> {
 
         Ok(FlashResult {
             success: true,
-            message: format!("Successfully verified and flashed {} bytes to target device", firmware_data.len()),
+            message: format!(
+                "Successfully verified and flashed {} bytes to target device",
+                firmware_data.len()
+            ),
             bytes_written: Some(firmware_data.len()),
             duration_ms: Some(t0.elapsed().as_millis() as u64),
         })
     }
     #[cfg(not(feature = "probe-rs"))]
     {
-        let data = std::fs::read(&request.firmware_path)
-            .map_err(|e| anyhow::anyhow!("Failed to read firmware at '{}': {}", request.firmware_path, e))?;
+        let data = std::fs::read(&request.firmware_path).map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to read firmware at '{}': {}",
+                request.firmware_path,
+                e
+            )
+        })?;
 
         Ok(FlashResult {
             success: true,
-            message: format!("Simulated flash verified: {} bytes written to {} (chip: {:?})", data.len(), request.device_identifier, request.chip_name),
+            message: format!(
+                "Simulated flash verified: {} bytes written to {} (chip: {:?})",
+                data.len(),
+                request.device_identifier,
+                request.chip_name
+            ),
             bytes_written: Some(data.len()),
             duration_ms: Some(120),
         })

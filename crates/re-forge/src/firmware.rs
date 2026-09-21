@@ -203,11 +203,17 @@ impl RtosDetector {
         // Convert slice to lossy ASCII string for pattern matching
         let ascii_str = String::from_utf8_lossy(bytes);
 
-        if ascii_str.contains("vTaskStartScheduler") || ascii_str.contains("xTaskCreate") || ascii_str.contains("FreeRTOS") {
+        if ascii_str.contains("vTaskStartScheduler")
+            || ascii_str.contains("xTaskCreate")
+            || ascii_str.contains("FreeRTOS")
+        {
             signatures.push("FreeRTOS Task & Kernel API".to_string());
         }
 
-        if ascii_str.contains("z_kernel") || ascii_str.contains("CONFIG_ZEPHYR") || ascii_str.contains("k_thread_create") {
+        if ascii_str.contains("z_kernel")
+            || ascii_str.contains("CONFIG_ZEPHYR")
+            || ascii_str.contains("k_thread_create")
+        {
             signatures.push("Zephyr RTOS Kernel Symbols".to_string());
         }
 

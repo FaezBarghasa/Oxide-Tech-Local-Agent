@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
+use oxide_protocol::DtxId;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use uuid::Uuid;
-use oxide_protocol::DtxId;
 
 #[derive(Debug, Error)]
 pub enum SegmentJournalError {
@@ -76,7 +76,9 @@ impl SegmentJournal {
         kind: EventKind,
         payload: Vec<u8>,
     ) -> Result<SegmentEvent, SegmentJournalError> {
-        let seq = self.current_seq.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        let seq = self
+            .current_seq
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
         let prev_hash = *self.last_hash.read().unwrap();
 
         let event = SegmentEvent {
@@ -126,7 +128,8 @@ impl SegmentJournal {
             let bytes = std::fs::read(&path)?;
             let mut cursor = 0;
             while cursor + 4 <= bytes.len() {
-                let len = u32::from_le_bytes(bytes[cursor..cursor + 4].try_into().unwrap()) as usize;
+                let len =
+                    u32::from_le_bytes(bytes[cursor..cursor + 4].try_into().unwrap()) as usize;
                 cursor += 4;
                 if cursor + len > bytes.len() {
                     break;
@@ -139,10 +142,10 @@ impl SegmentJournal {
                 }
                 expected_prev_hash = event.compute_hash();
 
-                if let Some(max_seq) = upto_seq {
-                    if event.seq > max_seq {
-                        return Ok(events);
-                    }
+                if let Some(max_seq) = upto_seq
+                    && event.seq > max_seq
+                {
+                    return Ok(events);
                 }
                 events.push(event);
             }

@@ -6,7 +6,7 @@ use std::sync::Mutex;
 use tracing::{info, warn};
 use uuid::Uuid;
 
-use fastembed::{EmbeddingModel, InitOptions, TextEmbedding};
+use fastembed::{EmbeddingModel, TextEmbedding, TextInitOptions};
 use qdrant_client::Payload;
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{PointStruct, SearchPoints, UpsertPointsBuilder};
@@ -41,7 +41,7 @@ impl KnowledgeClient {
 
         // Initialize BGE Small EN v1.5 embedder locally
         let embedder = TextEmbedding::try_new(
-            InitOptions::new(EmbeddingModel::BGESmallENV15).with_show_download_progress(true),
+            TextInitOptions::new(EmbeddingModel::BGESmallENV15).with_show_download_progress(true),
         )
         .map_err(|e| EiosError::Internal(format!("Failed to initialize FastEmbed: {}", e)))?;
 

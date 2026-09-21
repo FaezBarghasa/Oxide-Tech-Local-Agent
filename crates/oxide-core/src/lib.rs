@@ -85,7 +85,6 @@ impl ChatMessage {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationParams {
     #[serde(default = "default_temperature")]
@@ -156,10 +155,7 @@ impl GenerationParams {
             presence_penalty: Some(0.0),
             repetition_penalty: Some(1.05),
             max_tokens: Some(16384),
-            stop: Some(vec![
-                "<|im_end|>".to_string(),
-                "<|endoftext|>".to_string(),
-            ]),
+            stop: Some(vec!["<|im_end|>".to_string(), "<|endoftext|>".to_string()]),
             stream: true,
         }
     }
@@ -174,17 +170,11 @@ impl GenerationParams {
             presence_penalty: Some(0.0),
             repetition_penalty: Some(1.05),
             max_tokens: Some(8192),
-            stop: Some(vec![
-                "<|im_end|>".to_string(),
-                "<|endoftext|>".to_string(),
-            ]),
+            stop: Some(vec!["<|im_end|>".to_string(), "<|endoftext|>".to_string()]),
             stream: true,
         }
     }
 }
-
-
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationChunk {
@@ -241,13 +231,13 @@ pub enum OxideError {
 }
 
 pub mod channel;
+pub mod dynamic_loader;
+pub mod ffi_boundary;
 pub mod state_machine;
 pub mod topology;
-pub mod ffi_boundary;
-pub mod dynamic_loader;
 
 pub use channel::{TokenReceiver, TokenSender, create_token_channel};
+pub use dynamic_loader::{DynamicSkillLoader, SkillFn};
+pub use ffi_boundary::call_ffi_safe;
 pub use state_machine::{AgentState, AgentStateMachine, StateTransition};
 pub use topology::RuntimeTopology;
-pub use ffi_boundary::call_ffi_safe;
-pub use dynamic_loader::{DynamicSkillLoader, SkillFn};

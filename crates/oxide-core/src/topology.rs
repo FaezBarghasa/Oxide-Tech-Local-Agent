@@ -48,11 +48,7 @@ impl RuntimeTopology {
             libc::CPU_ZERO(&mut cpuset);
             libc::CPU_SET(core_id, &mut cpuset);
             let pid = libc::gettid();
-            let res = libc::sched_setaffinity(
-                pid,
-                std::mem::size_of::<libc::cpu_set_t>(),
-                &cpuset,
-            );
+            let res = libc::sched_setaffinity(pid, std::mem::size_of::<libc::cpu_set_t>(), &cpuset);
             res == 0
         }
     }

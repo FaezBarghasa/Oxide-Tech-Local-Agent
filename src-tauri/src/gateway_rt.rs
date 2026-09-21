@@ -14,7 +14,9 @@ pub fn load_config(config_path: Option<&str>) -> AppConfig {
         match AppConfig::from_file(path) {
             Ok(cfg) => return cfg,
             Err(e) => {
-                eprintln!("Warning: config load failed for '{path}' ({e:?}), using built-in defaults.");
+                eprintln!(
+                    "Warning: config load failed for '{path}' ({e:?}), using built-in defaults."
+                );
             }
         }
     }
@@ -49,7 +51,10 @@ pub fn spawn_background(config_path: Option<String>) {
             if let Ok(rt) = rt_probe {
                 if let Ok(status) = rt.block_on(probe_gateway(crate::DEFAULT_GATEWAY_URL, 1)) {
                     if status == 200 {
-                        tracing::info!("Oxide Gateway already active on {} (HTTP 200).", crate::DEFAULT_GATEWAY_URL);
+                        tracing::info!(
+                            "Oxide Gateway already active on {} (HTTP 200).",
+                            crate::DEFAULT_GATEWAY_URL
+                        );
                         return;
                     }
                 }

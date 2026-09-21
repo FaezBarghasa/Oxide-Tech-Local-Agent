@@ -150,11 +150,7 @@ impl TrajectoryExporter {
         })
     }
 
-    pub fn format_preference_pair(
-        prompt: &str,
-        chosen: &str,
-        rejected: &str,
-    ) -> serde_json::Value {
+    pub fn format_preference_pair(prompt: &str, chosen: &str, rejected: &str) -> serde_json::Value {
         serde_json::json!({
             "prompt": prompt,
             "chosen": chosen,
@@ -192,7 +188,9 @@ impl Trainer for SubprocessTrainer {
 
         tokio::fs::create_dir_all(&req.output_dir).await?;
         let adapter_id = Uuid::now_v7();
-        let weights_file = req.output_dir.join(format!("adapter_{}.safetensors", adapter_id));
+        let weights_file = req
+            .output_dir
+            .join(format!("adapter_{}.safetensors", adapter_id));
 
         // Generate adapter manifest / dummy weights for initial training artifact validation
         let fake_weights = format!("OXIDE_LORA_WEIGHTS_{}_{}", req.base_model, adapter_id);
@@ -230,7 +228,9 @@ impl Trainer for CandleTrainer {
         info!("Executing pure-Rust Candle SFT for {}", req.base_model);
         tokio::fs::create_dir_all(&req.output_dir).await?;
         let adapter_id = Uuid::now_v7();
-        let weights_file = req.output_dir.join(format!("candle_adapter_{}.safetensors", adapter_id));
+        let weights_file = req
+            .output_dir
+            .join(format!("candle_adapter_{}.safetensors", adapter_id));
 
         let content = b"CANDLE_EMBEDDED_LORA_V1";
         tokio::fs::write(&weights_file, content).await?;
@@ -262,7 +262,9 @@ impl Trainer for GrpoTrainer {
         info!("Executing GRPO Rollout Trainer for {}", req.base_model);
         tokio::fs::create_dir_all(&req.output_dir).await?;
         let adapter_id = Uuid::now_v7();
-        let weights_file = req.output_dir.join(format!("grpo_adapter_{}.safetensors", adapter_id));
+        let weights_file = req
+            .output_dir
+            .join(format!("grpo_adapter_{}.safetensors", adapter_id));
 
         let content = b"GRPO_POLICY_REWARD_LORA_V1";
         tokio::fs::write(&weights_file, content).await?;
@@ -313,7 +315,7 @@ impl QLoraTrainer {
         header.extend_from_slice(b"GGUF"); // Magic
         header.extend_from_slice(&3u32.to_le_bytes()); // Version 3
         header.extend_from_slice(&0u64.to_le_bytes()); // Tensor count (adapter header)
-        
+
         // Metadata KV count = 5
         header.extend_from_slice(&5u64.to_le_bytes());
 
@@ -470,7 +472,10 @@ impl AdapterRegistry {
 
             if !replay_equivalence {
                 reg.stage = AdapterStage::RolledBack;
-                warn!("Adapter {} failed replay equivalence check, rolling back", adapter_id);
+                warn!(
+                    "Adapter {} failed replay equivalence check, rolling back",
+                    adapter_id
+                );
                 return Err(TrainerError::BenchmarkRegression(
                     "Replay equivalence violated".to_string(),
                 ));
@@ -482,24 +487,29 @@ impl AdapterRegistry {
                 Ok(reg.stage)
             } else {
                 reg.stage = AdapterStage::RolledBack;
-                warn!("Adapter {} regressed benchmarks by {:.2}%, rolled back", adapter_id, benchmark_delta);
+                warn!(
+                    "Adapter {} regressed benchmarks by {:.2}%, rolled back",
+                    adapter_id, benchmark_delta
+                );
                 Err(TrainerError::BenchmarkRegression(format!(
                     "Benchmark regressed: {:.2}%",
                     benchmark_delta
                 )))
             }
         } else {
-            Err(TrainerError::DatasetError(format!("Adapter {} not found", adapter_id)))
+            Err(TrainerError::DatasetError(format!(
+                "Adapter {} not found",
+                adapter_id
+            )))
         }
     }
 }
 
-pub mod vram_guard;
 pub mod gguf_exporter;
+pub mod vram_guard;
 
-pub use vram_guard::{VramAction, VramGuard};
 pub use gguf_exporter::GgufExporter;
-
+pub use vram_guard::{VramAction, VramGuard};
 
 #[cfg(test)]
 mod tests {

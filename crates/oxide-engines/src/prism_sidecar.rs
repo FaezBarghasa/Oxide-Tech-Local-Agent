@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::Arc;
 use tokio::process::{Child, Command};
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{Mutex, mpsc};
 
 /// Provider that spawns and supervises a dedicated PrismML llama.cpp sidecar for Ternary-Bonsai.
 pub struct PrismBonsaiEngine {
@@ -144,7 +144,9 @@ impl InferenceProvider for PrismBonsaiEngine {
             .json(&body)
             .send()
             .await
-            .map_err(|e| OxideError::Engine(format!("Prism Bonsai sidecar request failed: {}", e)))?;
+            .map_err(|e| {
+                OxideError::Engine(format!("Prism Bonsai sidecar request failed: {}", e))
+            })?;
 
         if !response.status().is_success() {
             let err_txt = response.text().await.unwrap_or_default();
@@ -167,12 +169,11 @@ impl InferenceProvider for PrismBonsaiEngine {
                             if data == "[DONE]" || data.is_empty() {
                                 break;
                             }
-                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data) {
-                                if let Some(content) = v["choices"][0]["delta"]["content"].as_str() {
-                                    if token_tx.send(content.to_string()).await.is_err() {
-                                        return Ok(());
-                                    }
-                                }
+                            if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
+                                && let Some(content) = v["choices"][0]["delta"]["content"].as_str()
+                                && token_tx.send(content.to_string()).await.is_err()
+                            {
+                                return Ok(());
                             }
                         }
                     }

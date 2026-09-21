@@ -1,5 +1,5 @@
-use crate::ffi_boundary::call_ffi_safe;
 use crate::OxideError;
+use crate::ffi_boundary::call_ffi_safe;
 use libloading::{Library, Symbol};
 use std::collections::HashMap;
 use std::path::Path;
@@ -60,9 +60,9 @@ impl DynamicSkillLoader {
     ) -> Result<i32, OxideError> {
         let lib = {
             let lock = self.loaded_libraries.read().await;
-            lock.get(lib_name).cloned().ok_or_else(|| {
-                OxideError::FFI(format!("Library '{}' is not loaded", lib_name))
-            })?
+            lock.get(lib_name)
+                .cloned()
+                .ok_or_else(|| OxideError::FFI(format!("Library '{}' is not loaded", lib_name)))?
         };
 
         let sym_name_bytes = symbol_name.as_bytes();
@@ -105,7 +105,9 @@ mod tests {
 
         // Attempting to call non-existent library returns typed FFI error
         let mut out = [0u8; 16];
-        let res = loader.call_symbol("nonexistent", "run", b"test", &mut out).await;
+        let res = loader
+            .call_symbol("nonexistent", "run", b"test", &mut out)
+            .await;
         assert!(res.is_err());
     }
 }

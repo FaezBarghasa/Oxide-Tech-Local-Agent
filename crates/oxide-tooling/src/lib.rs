@@ -12,7 +12,10 @@ impl DatasetFormatter {
                 oxide_core::Role::Assistant => "assistant",
                 oxide_core::Role::Tool => "tool",
             };
-            out.push_str(&format!("<|im_start|>{}\n{}<|im_end|>\n", role, msg.content));
+            out.push_str(&format!(
+                "<|im_start|>{}\n{}<|im_end|>\n",
+                role, msg.content
+            ));
         }
         out.push_str("<|im_start|>assistant\n");
         out
@@ -38,10 +41,10 @@ impl ContextCompactor {
         }
         // Keep system prompt if present, inject summary, preserve latest turns
         let mut compacted = Vec::new();
-        if let Some(first) = messages.first() {
-            if matches!(first.role, oxide_core::Role::System) {
-                compacted.push(first.clone());
-            }
+        if let Some(first) = messages.first()
+            && matches!(first.role, oxide_core::Role::System)
+        {
+            compacted.push(first.clone());
         }
         compacted.push(ChatMessage {
             role: oxide_core::Role::System,
@@ -58,5 +61,3 @@ impl ContextCompactor {
 
 pub mod ornith_formatter;
 pub use ornith_formatter::{ExtractedToolCall, OrnithPromptFormatter};
-
-
