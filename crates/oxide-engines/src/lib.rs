@@ -22,7 +22,9 @@ pub trait InferenceProvider: Send + Sync + 'static {
 pub mod sidecar;
 pub mod mock;
 pub mod candle_provider;
+pub mod llama_cpp;
 
 pub use sidecar::SidecarProvider;
 pub use mock::MockProvider;
 pub use candle_provider::CandleProvider;
+pub use llama_cpp::LlamaCppProvider;
