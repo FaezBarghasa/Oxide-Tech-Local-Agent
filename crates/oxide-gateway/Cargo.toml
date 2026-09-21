@@ -1,0 +1,19 @@
+[package]
+name = "oxide-gateway"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+oxide-state = { path = "../oxide-state" }
+oxide-engines = { path = "../oxide-engines" }
+oxide-security = { path = "../oxide-security" }
+actix-web = { workspace = true }
+actix-web-lab = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }

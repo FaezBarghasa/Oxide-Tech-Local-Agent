@@ -1,0 +1,10 @@
+[package]
+name = "oxide-kernels"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+oxide-core = { path = "../oxide-core" }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
