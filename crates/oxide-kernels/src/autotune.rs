@@ -124,10 +124,10 @@ impl GpuAutotuner {
             is_fp8,
         };
 
-        if let Ok(guard) = self.cache.read() {
-            if let Some(config) = guard.get(&key) {
-                return *config;
-            }
+        if let Ok(guard) = self.cache.read()
+            && let Some(config) = guard.get(&key)
+        {
+            return *config;
         }
 
         let config = self.derive_heuristic_config(m, n, k, is_fp8);

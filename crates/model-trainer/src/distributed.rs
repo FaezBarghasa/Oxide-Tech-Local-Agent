@@ -5,6 +5,7 @@ use tokio::sync::RwLock;
 
 /// Zero Redundancy Optimizer Stage
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
 pub enum ZeroStage {
     /// ZeRO-1: Optimizer State Partitioning (4x memory reduction)
     ZeRO1_Optimizer,
@@ -119,7 +120,7 @@ impl DistributedEngine {
     }
 
     /// Ring Reduce-Scatter gradients across cluster ranks
-    pub async fn reduce_scatter_gradients(&self, name: &str, global_grads: &[f32]) -> Vec<f32> {
+    pub async fn reduce_scatter_gradients(&self, _name: &str, global_grads: &[f32]) -> Vec<f32> {
         let world_size = self.process_group.world_size;
         let rank = self.process_group.rank;
         let chunk_size = global_grads.len().div_ceil(world_size);

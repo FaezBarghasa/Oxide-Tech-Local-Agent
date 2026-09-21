@@ -505,10 +505,16 @@ impl AdapterRegistry {
     }
 }
 
+pub mod distributed;
 pub mod gguf_exporter;
+pub mod hf_hub;
+pub mod rl_engine;
 pub mod vram_guard;
 
+pub use distributed::{DistributedEngine, PartitionedTensor, ProcessGroup, ZeroStage};
 pub use gguf_exporter::GgufExporter;
+pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
+pub use rl_engine::{DpoLoss, GrpoEngine, OrpoLoss, PreferenceSample};
 pub use vram_guard::{VramAction, VramGuard};
 
 #[cfg(test)]

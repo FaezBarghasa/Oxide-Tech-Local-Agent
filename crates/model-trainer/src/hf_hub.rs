@@ -89,10 +89,10 @@ impl AutoModelForCausalLM {
             if let Ok(entries) = std::fs::read_dir(model_dir) {
                 for entry in entries.flatten() {
                     let path = entry.path();
-                    if path.extension().and_then(|s| s.to_str()) == Some("safetensors") {
-                        if let Some(name) = path.file_name().and_then(|s| s.to_str()) {
-                            map.insert(name.to_string(), path);
-                        }
+                    if path.extension().and_then(|s| s.to_str()) == Some("safetensors")
+                        && let Some(name) = path.file_name().and_then(|s| s.to_str())
+                    {
+                        map.insert(name.to_string(), path);
                     }
                 }
             }

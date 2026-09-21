@@ -75,12 +75,7 @@ impl OrpoLoss {
     }
 
     /// Compute ORPO loss fusing Cross Entropy with Odds-Ratio penalty
-    pub fn forward(
-        &self,
-        sft_nll_loss: f32,
-        pi_chosen_logp: f32,
-        pi_rejected_logp: f32,
-    ) -> f32 {
+    pub fn forward(&self, sft_nll_loss: f32, pi_chosen_logp: f32, pi_rejected_logp: f32) -> f32 {
         // Odds = p / (1 - p) -> log(Odds) ~ logp - log(1 - exp(logp))
         // Simplified stable log odds ratio
         let log_odds_chosen = pi_chosen_logp - (1.0 - pi_chosen_logp.exp().min(0.9999)).ln();
