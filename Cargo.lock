@@ -7071,6 +7071,7 @@ dependencies = [
  "chrono",
  "futures-util",
  "libc",
+ "libloading 0.9.0",
  "serde",
  "serde_json",
  "thiserror 2.0.18",

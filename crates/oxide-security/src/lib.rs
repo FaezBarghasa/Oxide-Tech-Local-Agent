@@ -58,6 +58,11 @@ impl SecurityManager {
         })
     }
 
+    pub fn db(&self) -> &Surreal<Any> {
+        &self.db
+    }
+
+
     pub fn hash_key(raw_key: &str) -> Result<String, String> {
         let hash = blake3::hash(raw_key.as_bytes());
         Ok(hash.to_hex().to_string())

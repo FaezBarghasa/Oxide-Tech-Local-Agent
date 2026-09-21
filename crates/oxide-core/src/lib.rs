@@ -107,7 +107,11 @@ pub enum OxideError {
 pub mod channel;
 pub mod state_machine;
 pub mod topology;
+pub mod ffi_boundary;
+pub mod dynamic_loader;
 
 pub use channel::{TokenReceiver, TokenSender, create_token_channel};
 pub use state_machine::{AgentState, AgentStateMachine, StateTransition};
 pub use topology::RuntimeTopology;
+pub use ffi_boundary::call_ffi_safe;
+pub use dynamic_loader::{DynamicSkillLoader, SkillFn};
