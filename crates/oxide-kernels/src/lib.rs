@@ -1,3 +1,4 @@
+pub mod autotune;
 pub mod moe_router;
 pub mod norm;
 pub mod rope;
@@ -31,6 +32,7 @@ impl FusedCrossEntropyOp {
     }
 }
 
+pub use autotune::{GpuAutotuner, KernelConfig, NvidiaArch};
 pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
 pub use norm::FusedRmsNormOp;
 pub use rope::FastRopeOp;
