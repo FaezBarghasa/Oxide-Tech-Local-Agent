@@ -1,8 +1,17 @@
 // Probe-rs MCP server
+pub mod atomic_flash;
+pub mod hardfault_parser;
 pub mod hitl;
+
+pub use atomic_flash::{
+    AtomicFlashError, AtomicFlashManager, DeploymentState, PartitionLayout, PartitionSlot,
+    RollbackReason,
+};
+pub use hardfault_parser::{DecodedCfsr, DecodedHfsr, HardFaultParser, HardFaultReport};
 
 use crate::hitl::HitlGate;
 use rmcp::{
+    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -10,7 +19,7 @@ use rmcp::{
         PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
+    tool, tool_router,
 };
 use sandbox::execute_in_sandbox;
 use schemars::JsonSchema;

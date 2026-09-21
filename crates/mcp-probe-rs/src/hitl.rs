@@ -55,11 +55,10 @@ impl HitlGate {
                         let mut line = String::new();
                         if let Ok(Ok(_)) =
                             timeout(Duration::from_secs(30), reader.read_line(&mut line)).await
+                            && line.trim().eq_ignore_ascii_case("CONFIRM")
                         {
-                            if line.trim().eq_ignore_ascii_case("CONFIRM") {
-                                info!("HITL CONFIRM token received via UNIX socket");
-                                let _ = tx_inner.send(());
-                            }
+                            info!("HITL CONFIRM token received via UNIX socket");
+                            let _ = tx_inner.send(());
                         }
                     });
                 }

@@ -1,5 +1,5 @@
-use mcp_probe_rs::hitl::HitlGate;
 use mcp_probe_rs::ProbeRsServer;
+use mcp_probe_rs::hitl::HitlGate;
 use rmcp::ServiceExt;
 use std::env;
 use std::path::PathBuf;
