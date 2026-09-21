@@ -1,24 +1,23 @@
 import React from 'react';
 import { TabId } from '../types';
+import { useUI } from '../store/uiStore';
 import {
   MessageSquare,
   LayoutDashboard,
-  Network,
-  Brain,
-  Zap,
-  Layers,
-  Cpu,
   Boxes,
+  Zap,
+  Code2,
+  Cpu,
   Database,
   Flame,
+  Brain,
   Search,
   Wrench,
-  Server,
-  Code2,
-  CheckCircle2,
   Stethoscope,
-  Binary,
   Settings,
+  ChevronLeft,
+  ChevronRight,
+  Server,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,74 +25,155 @@ interface SidebarProps {
   onSelectTab: (tab: TabId) => void;
 }
 
-const navItems: { id: TabId; label: string; icon: React.ReactNode; desc: string }[] = [
-  { id: 'chat', label: 'Assistant', icon: <MessageSquare className="w-3.5 h-3.5" />, desc: 'AI engineering agent' },
-  { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-3.5 h-3.5" />, desc: 'Workspace & telemetry' },
-  { id: 'graph', label: 'Graph', icon: <Network className="w-3.5 h-3.5" />, desc: 'Relational topology' },
-  { id: 'memory', label: 'Memory', icon: <Brain className="w-3.5 h-3.5" />, desc: 'STAIR & Memanto' },
-  { id: 'infra', label: 'Infra', icon: <Server className="w-3.5 h-3.5" />, desc: 'System resources' },
-  { id: 'grpc', label: 'gRPC', icon: <Layers className="w-3.5 h-3.5" />, desc: 'KiCad & DRC bridge' },
-  { id: 'rag', label: 'RAG', icon: <Search className="w-3.5 h-3.5" />, desc: 'AST token compactor' },
-  { id: 'mcp', label: 'MCP', icon: <Wrench className="w-3.5 h-3.5" />, desc: 'Tool sandbox' },
-  { id: 'catalog', label: 'Catalog', icon: <Boxes className="w-3.5 h-3.5" />, desc: 'Model & VRAM' },
-  { id: 'sglang', label: 'SGLang', icon: <Zap className="w-3.5 h-3.5" />, desc: 'Inference engine' },
-  { id: 'training', label: 'Tune', icon: <Cpu className="w-3.5 h-3.5" />, desc: 'Fine-tuning' },
-  { id: 'soup', label: 'Model Soup', icon: <Flame className="w-3.5 h-3.5" />, desc: 'Weight blending' },
-  { id: 'endpoints', label: 'API', icon: <Code2 className="w-3.5 h-3.5" />, desc: 'Endpoints' },
-  { id: 'verify', label: 'Verify', icon: <CheckCircle2 className="w-3.5 h-3.5" />, desc: 'Deterministic suite' },
-  { id: 'doctor', label: 'Doctor', icon: <Stethoscope className="w-3.5 h-3.5" />, desc: 'Diagnostics' },
-  { id: 'reforge', label: 'RE-Forge', icon: <Binary className="w-3.5 h-3.5" />, desc: 'Binary analysis' },
-  { id: 'settings', label: 'Settings', icon: <Settings className="w-3.5 h-3.5" />, desc: 'Configuration' },
+interface NavSection {
+  title: string;
+  items: {
+    id: TabId;
+    label: string;
+    icon: React.ReactNode;
+    desc: string;
+  }[];
+}
+
+const navSections: NavSection[] = [
+  {
+    title: 'Overview',
+    items: [
+      { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, desc: 'System & telemetry' },
+      { id: 'chat', label: 'Playground', icon: <MessageSquare className="w-4 h-4" />, desc: 'Chat & testing' },
+    ],
+  },
+  {
+    title: 'Compute',
+    items: [
+      { id: 'catalog', label: 'Model Hub', icon: <Boxes className="w-4 h-4" />, desc: 'Universal loader' },
+      { id: 'sglang', label: 'Engines', icon: <Zap className="w-4 h-4" />, desc: 'Candle / vLLM / SGLang' },
+    ],
+  },
+  {
+    title: 'Network',
+    items: [
+      { id: 'endpoints', label: 'Gateway', icon: <Code2 className="w-4 h-4" />, desc: 'OpenAI API & Keys' },
+      { id: 'mcp', label: 'Agents', icon: <Wrench className="w-4 h-4" />, desc: 'MCP tool sandboxes' },
+    ],
+  },
+  {
+    title: 'Tooling',
+    items: [
+      { id: 'dataset', label: 'Datasets', icon: <Database className="w-4 h-4" />, desc: 'Formatting & recipes' },
+      { id: 'soup', label: 'Export', icon: <Flame className="w-4 h-4" />, desc: 'GGUF & weight soups' },
+      { id: 'memory', label: 'Memory', icon: <Brain className="w-4 h-4" />, desc: 'STAIR & compaction' },
+    ],
+  },
+  {
+    title: 'System',
+    items: [
+      { id: 'doctor', label: 'Diagnostics', icon: <Stethoscope className="w-4 h-4" />, desc: 'Hardware doctor' },
+      { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" />, desc: 'Preferences' },
+    ],
+  },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
+  const { sidebarCollapsed, toggleSidebar } = useUI();
+
   return (
-    <aside className="w-60 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.07] flex flex-col h-screen sticky top-0 shrink-0 z-30 font-sans">
-      {/* Logo */}
-      <div className="p-3.5 border-b border-white/[0.07] flex items-center gap-2.5 bg-[#111113]">
-        <div className="w-7 h-7 rounded-lg bg-[#18181e] border border-white/[0.1] p-1 flex items-center justify-center shrink-0">
-          <img
-            src="/assets/oxide-logo.png"
-            alt="Oxide-Tech"
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs font-bold text-white tracking-tight font-display flex items-center gap-1.5">
-            Oxide-Tech
+    <aside
+      className={`${
+        sidebarCollapsed ? 'w-16' : 'w-64'
+      } bg-[#0A0A0A] border-r border-[#27272A] flex flex-col h-screen sticky top-0 shrink-0 z-30 font-sans transition-all duration-200 select-none`}
+    >
+      {/* Brand Header */}
+      <div className="p-3.5 border-b border-[#27272A] flex items-center justify-between bg-[#111113]">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-[#18181b] border border-[#27272A] p-1 flex items-center justify-center shrink-0">
+            <img
+              src="/assets/oxide-logo.png"
+              alt="Oxide-Tech"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                // Fallback icon if image not found
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <Cpu className="w-4 h-4 text-[#10B981]" />
           </div>
-          <div className="text-[9px] text-zinc-500 font-mono">Agent Studio</div>
+          {!sidebarCollapsed && (
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-[#FAFAFA] tracking-tight flex items-center gap-1.5">
+                Oxide-Tech
+                <span className="text-[9px] px-1.5 py-0.2 rounded-full font-mono bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30">
+                  OS
+                </span>
+              </div>
+              <div className="text-[9px] text-[#A1A1AA] font-mono truncate">Local AI Studio</div>
+            </div>
+          )}
         </div>
+        <button
+          onClick={toggleSidebar}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-[#18181b] transition cursor-pointer"
+        >
+          {sidebarCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
-        <div className="text-[9px] font-mono uppercase font-bold text-zinc-500 tracking-[0.2em] px-2 mb-2">Navigation</div>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onSelectTab(item.id)}
-            className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all text-left relative cursor-pointer ${
-              currentTab === item.id
-                ? 'bg-[#10B981]/[0.10] text-[#10B981] border border-[#10B981]/25'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]'
-            }`}
-          >
-            {currentTab === item.id && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-[#10B981] rounded-r-full" />
+      {/* Navigation Sections */}
+      <nav className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin">
+        {navSections.map((sec) => (
+          <div key={sec.title} className="space-y-1">
+            {!sidebarCollapsed && (
+              <div className="text-[9px] font-mono uppercase font-bold text-zinc-500 tracking-[0.18em] px-2.5 mb-1">
+                {sec.title}
+              </div>
             )}
-            <span className="shrink-0 opacity-70">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
-            <span className="ml-auto text-[9px] text-zinc-600 font-mono truncate">{item.desc}</span>
-          </button>
+            {sec.items.map((item) => {
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onSelectTab(item.id)}
+                  title={sidebarCollapsed ? `${item.label} — ${item.desc}` : undefined}
+                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left relative cursor-pointer group ${
+                    isActive
+                      ? 'bg-[#10B981]/[0.12] text-[#FAFAFA] border border-[#10B981]/30 shadow-sm'
+                      : 'text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#18181b] border border-transparent'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-[#10B981] rounded-r-full" />
+                  )}
+                  <span
+                    className={`shrink-0 transition-colors ${
+                      isActive ? 'text-[#10B981]' : 'text-zinc-400 group-hover:text-zinc-200'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="truncate">{item.label}</span>
+                      <span className="ml-auto text-[9px] text-zinc-500 font-mono truncate">{item.desc}</span>
+                    </>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         ))}
       </nav>
 
-      {/* Status footer */}
-      <div className="p-3 border-t border-white/[0.07] bg-[#111113]">
+      {/* Bottom Status / Local Workstation info */}
+      <div className="p-3 border-t border-[#27272A] bg-[#111113]">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span className="text-[10px] font-mono text-zinc-400">Local Workstation</span>
+          <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shrink-0" />
+          {!sidebarCollapsed && (
+            <div className="min-w-0">
+              <div className="text-[10px] font-mono text-zinc-300 font-medium">Cosmic Workstation</div>
+              <div className="text-[9px] font-mono text-zinc-500">Offline-First · Pop!_OS</div>
+            </div>
+          )}
         </div>
       </div>
     </aside>

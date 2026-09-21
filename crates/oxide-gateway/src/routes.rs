@@ -1,5 +1,4 @@
 use actix_web::{web, HttpResponse, Responder};
-use actix_web_lab::sse;
 use futures_util::StreamExt;
 use oxide_core::{ChatMessage, GenerationParams};
 use oxide_state::AppState;
@@ -97,10 +96,13 @@ pub async fn chat_completions(
             }],
         };
         let data = serde_json::to_string(&chunk).unwrap_or_default();
-        Ok::<_, actix_web::Error>(sse::Event::Data(sse::Data::new(data)))
+        let formatted = format!("data: {}\n\n", data);
+        Ok::<_, actix_web::Error>(actix_web::web::Bytes::from(formatted))
     });
 
-    sse::Sse::from_stream(stream).keep_alive(std::time::Duration::from_secs(15)).into_response()
+    HttpResponse::Ok()
+        .content_type("text/event-stream")
+        .streaming(stream)
 }
 
 pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {

@@ -1,4 +1,3 @@
-use argon2::{password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier, SaltString}, Argon2};
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -60,22 +59,13 @@ impl SecurityManager {
     }
 
     pub fn hash_key(raw_key: &str) -> Result<String, String> {
-        let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
-        argon2
-            .hash_password(raw_key.as_bytes(), &salt)
-            .map(|h| h.to_string())
-            .map_err(|e| e.to_string())
+        let hash = blake3::hash(raw_key.as_bytes());
+        Ok(hash.to_hex().to_string())
     }
 
     pub fn verify_key(raw_key: &str, hash: &str) -> bool {
-        if let Ok(parsed_hash) = argon2::PasswordHash::new(hash) {
-            Argon2::default()
-                .verify_password(raw_key.as_bytes(), &parsed_hash)
-                .is_ok()
-        } else {
-            false
-        }
+        let computed = blake3::hash(raw_key.as_bytes()).to_hex().to_string();
+        computed == hash
     }
 
     pub async fn check_rate_limit(&self, key_id: &str, max_tpm: u32, tokens: u32) -> bool {

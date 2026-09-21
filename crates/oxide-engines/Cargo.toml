@@ -1,9 +1,17 @@
 [package]
 name = "oxide-engines"
 version = "0.1.0"
-edition = "2021"
-
-[lib]
-path = "src/lib.rs"
+edition = "2024"
 
 [dependencies]
+oxide-core = { path = "../oxide-core" }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures-util = { workspace = true }
+bytes = "1"
+async-trait = "0.1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+anyhow = { workspace = true }

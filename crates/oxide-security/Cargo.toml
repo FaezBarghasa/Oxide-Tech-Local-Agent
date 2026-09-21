@@ -1,9 +1,16 @@
 [package]
 name = "oxide-security"
 version = "0.1.0"
-edition = "2021"
-
-[lib]
-path = "src/lib.rs"
+edition = "2024"
 
 [dependencies]
+oxide-core = { path = "../oxide-core" }
+surrealdb = { workspace = true }
+surrealdb-types = { workspace = true }
+blake3 = { workspace = true }
+dashmap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }

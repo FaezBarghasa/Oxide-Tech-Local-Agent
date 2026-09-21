@@ -1,13 +1,12 @@
 use async_trait::async_trait;
+use futures_util::StreamExt;
+use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use reqwest::Client;
 use serde_json::json;
 use tokio::sync::mpsc;
-
-use crate::{InferenceProvider, OxideError};
+use crate::InferenceProvider;
 
 /// Provider that connects to a running llama-server or llama.cpp HTTP instance.
-/// llama-server (https://github.com/ggml-org/llama.cpp)
-/// is the most common way to run llama.cpp as a local HTTP service.
 #[derive(Debug)]
 pub struct LlamaCppProvider {
     name: String,
@@ -23,48 +22,21 @@ impl LlamaCppProvider {
             client: Client::new(),
         }
     }
-
-    /// Build the payload for llama-server's OpenAI-compatible endpoint
-    fn build_payload(&self, req: &crate::ChatMessageVec, params: &GenerationParams) -> serde_json::Value {
-        // llama-server expects OpenAI-format chat messages
-        let messages = serde_json::Value::Array(
-            req.iter()
-                .map(|m| {
-                    let mut obj = serde_json::json!({
-                        "role": m.role.to_string(),
-                        "content": m.content,
-                    });
-                    // Include tool calls if present (llama-server supports grammar-constrained output via this)
-                    obj
-                })
-                .collect(),
-        );
-
-        serde_json::json!({
-            "model": &self.name,
-            "messages": messages,
-            "stream": true,
-            "temperature": params.temperature,
-            "top_p": params.top_p,
-            "max_tokens": params.max_tokens,
-            "stop": params.stop.as_ref().map(|s| s.as_slice()),
-        })
-    }
 }
 
 #[async_trait]
 impl InferenceProvider for LlamaCppProvider {
     fn engine_name(&self) -> &str {
-        "llama.cpp"
+        &self.name
     }
 
     async fn generate(
         &self,
-        prompt: Vec<crate::ChatMessage>,
+        prompt: Vec<ChatMessage>,
         params: GenerationParams,
         token_tx: mpsc::Sender<String>,
     ) -> Result<(), OxideError> {
-        let endpoint = format!("{}/v1/chat/completions", self.base_url.trim_end_matches('/'));
+        let endpoint = format!("{}/v1/chat/completions", self.base_url);
 
         let body = json!({
             "model": &self.name,
@@ -91,9 +63,7 @@ impl InferenceProvider for LlamaCppProvider {
             )));
         }
 
-        // Process streaming SSE response
-        let stream = response.bytes_stream();
-        use tokio_stream::StreamExt;
+        let mut stream = response.bytes_stream();
 
         while let Some(item) = stream.next().await {
             match item {
@@ -103,7 +73,7 @@ impl InferenceProvider for LlamaCppProvider {
                         let line = line.trim();
                         if line.starts_with("data: ") {
                             let data = line.trim_start_matches("data: ").trim();
-                            if data == "[DONE]" || data == "" {
+                            if data == "[DONE]" || data.is_empty() {
                                 break;
                             }
                             if let Ok(v) = serde_json::from_str::<serde_json::Value>(data) {
@@ -122,26 +92,12 @@ impl InferenceProvider for LlamaCppProvider {
             }
         }
 
-        // Send completion marker
-        let _ = token_tx.send("[DONE]".to_string()).await;
-
         Ok(())
     }
 
     async fn unload(&self) -> Result<(), OxideError> {
-        // llama-server typically keeps models loaded in VRAM.
-        // No-op unload - the model stays resident.
-        tracing::info!("LlamaCppProvider {}: unload (no-op, model remains on server).", self.name);
+        tracing::info!("LlamaCppProvider {}: unload (no-op, model remains resident).", self.name);
         Ok(())
-    }
-
-    fn capabilities(&self) -> crate::Capabilities {
-        crate::Capabilities {
-            supports_streaming: true,
-            supports_logprobs: false,
-            supports_stop_tokens: true,
-            max_context_length: 32768,
-        }
     }
 }
 

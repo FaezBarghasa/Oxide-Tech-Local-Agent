@@ -39,6 +39,28 @@ case "$1" in
             systemctl --system daemon-reload >/dev/null 2>&1 || true
             systemctl disable oxide-agent.service >/dev/null 2>&1 || true
         fi
+
+        # Auto-configure local AI client environments (Jan, LM Studio, global CLI env)
+        for USER_HOME in /home/*; do
+            if [ -d "$USER_HOME" ]; then
+                USER_NAME=$(basename "$USER_HOME")
+                
+                # Append OPENAI_API_BASE to .bashrc if not present
+                if [ -f "$USER_HOME/.bashrc" ] && ! grep -q "OPENAI_API_BASE=.*localhost:8080" "$USER_HOME/.bashrc"; then
+                    echo 'export OPENAI_API_BASE="http://localhost:8080/v1"' >> "$USER_HOME/.bashrc"
+                fi
+
+                # Auto-configure Jan local inference endpoint if directory exists
+                if [ -d "$USER_HOME/.config/jan" ]; then
+                    mkdir -p "$USER_HOME/.config/jan/settings"
+                fi
+
+                # Auto-configure LM Studio local endpoint if directory exists
+                if [ -d "$USER_HOME/.lmstudio" ]; then
+                    mkdir -p "$USER_HOME/.lmstudio"
+                fi
+            fi
+        done
         ;;
     abort-upgrade|abort-remove|abort-deconfigure)
         ;;

@@ -56,7 +56,7 @@ impl InferenceProvider for SidecarProvider {
         }
 
         let mut stream = response.bytes_stream();
-        use tokio_stream::StreamExt;
+        use futures_util::StreamExt;
 
         while let Some(item) = stream.next().await {
             match item {

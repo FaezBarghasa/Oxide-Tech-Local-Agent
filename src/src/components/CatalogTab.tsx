@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ModelInfo } from '../types';
+import { useUI } from '../store/uiStore';
 import {
   Boxes,
   Cpu,
@@ -136,6 +137,7 @@ const BENCHMARK_METRICS: BenchmarkData[] = [
 ];
 
 export const CatalogTab: React.FC = () => {
+  const { setDeployModel } = useUI();
   const [paramsB, setParamsB] = useState(32);
   const [bitWidth, setBitWidth] = useState(4);
   const [contextLen, setContextLen] = useState(16384);
@@ -336,15 +338,23 @@ export const CatalogTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 flex-wrap pt-2.5 border-t border-[#232530]">
-                {m.tags.map((t, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[9px] mono px-2 py-0.5 rounded bg-[#111217] border border-[#232530] text-gray-300"
-                  >
-                    {t}
-                  </span>
-                ))}
+              <div className="flex items-center justify-between gap-1.5 flex-wrap pt-2.5 border-t border-[#232530]">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {m.tags.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[9px] mono px-2 py-0.5 rounded bg-[#111217] border border-[#232530] text-gray-300"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setDeployModel(m.name)}
+                  className="px-2.5 py-1 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 hover:bg-[#10B981]/25 text-[10px] font-mono font-bold uppercase tracking-wider transition cursor-pointer"
+                >
+                  Deploy →
+                </button>
               </div>
             </div>
           ))}

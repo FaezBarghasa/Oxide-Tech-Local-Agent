@@ -1,7 +1,14 @@
 [package]
 name = "oxide-protocol"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+blake3 = { workspace = true }
+async-trait = "0.1"
 
