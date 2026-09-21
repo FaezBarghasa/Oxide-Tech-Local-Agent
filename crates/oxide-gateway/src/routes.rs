@@ -94,6 +94,11 @@ pub async fn chat_completions(
     let (tx, mut rx) = mpsc::channel::<String>(256);
     let messages = req.messages.clone();
 
+    let mut state_machine = oxide_core::AgentStateMachine::new();
+    let _ = state_machine.transition_to(oxide_core::AgentState::Thinking {
+        context_len: messages.len(),
+    });
+
     // Spawn inference on async runtime
     actix_web::rt::spawn(async move {
         if let Err(e) = provider.generate(messages, params, tx).await {
@@ -132,9 +137,18 @@ pub async fn chat_completions(
             .streaming(stream)
     } else {
         let mut full_text = String::new();
+        let mut token_count = 0;
         while let Some(tok) = rx.recv().await {
+            token_count += 1;
             full_text.push_str(&tok);
         }
+
+        let _ = state_machine.transition_to(oxide_core::AgentState::Streaming {
+            tokens_emitted: token_count,
+        });
+        let _ = state_machine.transition_to(oxide_core::AgentState::Halted {
+            reason: "stop".to_string(),
+        });
 
         let resp = NonStreamingResponse {
             id: request_id,
@@ -151,8 +165,8 @@ pub async fn chat_completions(
             }],
             usage: serde_json::json!({
                 "prompt_tokens": 0,
-                "completion_tokens": 0,
-                "total_tokens": 0
+                "completion_tokens": token_count,
+                "total_tokens": token_count
             }),
         };
 
@@ -163,6 +177,7 @@ pub async fn chat_completions(
 pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
     let models: Vec<serde_json::Value> = state
         .models
+
         .iter()
         .map(|entry| {
             serde_json::json!({

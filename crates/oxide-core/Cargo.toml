@@ -10,3 +10,9 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
 tracing = { workspace = true }
+tokio = { workspace = true }
+futures-util = { workspace = true }
+bytes = "1"
+libc = "0.2"
+
+

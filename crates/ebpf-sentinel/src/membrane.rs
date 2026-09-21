@@ -69,4 +69,77 @@ impl ConstitutionalMembrane {
         let lock = self.violations.read().await;
         lock.clone()
     }
+
+    /// Apply POSIX resource limits (memory and open file descriptors) to the calling process.
+    #[cfg(target_os = "linux")]
+    pub fn apply_sandboxed_rlimits(
+        max_address_space_bytes: u64,
+        max_open_fds: u64,
+    ) -> Result<(), String> {
+        unsafe {
+            // Set memory address space limit
+            if max_address_space_bytes > 0 {
+                let rlim_as = libc::rlimit {
+                    rlim_cur: max_address_space_bytes as libc::rlim_t,
+                    rlim_max: max_address_space_bytes as libc::rlim_t,
+                };
+                if libc::setrlimit(libc::RLIMIT_AS, &rlim_as) != 0 {
+                    return Err(format!(
+                        "Failed to set RLIMIT_AS: errno {}",
+                        *libc::__errno_location()
+                    ));
+                }
+            }
+
+            // Set file descriptor limit
+            if max_open_fds > 0 {
+                let rlim_nofile = libc::rlimit {
+                    rlim_cur: max_open_fds as libc::rlim_t,
+                    rlim_max: max_open_fds as libc::rlim_t,
+                };
+                if libc::setrlimit(libc::RLIMIT_NOFILE, &rlim_nofile) != 0 {
+                    return Err(format!(
+                        "Failed to set RLIMIT_NOFILE: errno {}",
+                        *libc::__errno_location()
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    pub fn apply_sandboxed_rlimits(
+        _max_address_space_bytes: u64,
+        _max_open_fds: u64,
+    ) -> Result<(), String> {
+        Ok(())
+    }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_membrane_whitelist_validation() {
+        let membrane = ConstitutionalMembrane::new();
+
+        // Allowed path
+        let allowed = membrane
+            .validate_action(1234, &SyscallCategory::FileWrite, "/tmp/oxide_test.txt")
+            .await;
+        assert!(allowed.is_ok());
+
+        // Disallowed path
+        let disallowed = membrane
+            .validate_action(1234, &SyscallCategory::FileWrite, "/etc/shadow")
+            .await;
+        assert!(disallowed.is_err());
+
+        let violations = membrane.get_violations().await;
+        assert_eq!(violations.len(), 1);
+        assert_eq!(violations[0].pid, 1234);
+    }
+}
+

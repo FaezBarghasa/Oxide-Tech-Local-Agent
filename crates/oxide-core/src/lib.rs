@@ -94,6 +94,20 @@ pub enum OxideError {
     Network(String),
     #[error("Kernel error: {0}")]
     Kernel(String),
+    #[error("Runtime error: {0}")]
+    Runtime(String),
+    #[error("Security violation: {0}")]
+    SecurityViolation(String),
+    #[error("FFI boundary error: {0}")]
+    FFI(String),
     #[error("Internal error: {0}")]
     Internal(String),
 }
+
+pub mod channel;
+pub mod state_machine;
+pub mod topology;
+
+pub use channel::{TokenReceiver, TokenSender, create_token_channel};
+pub use state_machine::{AgentState, AgentStateMachine, StateTransition};
+pub use topology::RuntimeTopology;

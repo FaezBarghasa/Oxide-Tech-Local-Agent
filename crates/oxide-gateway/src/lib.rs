@@ -1,16 +1,49 @@
 use actix_web::middleware as actix_middleware;
 use actix_web::{web, App, HttpServer};
+use oxide_core::RuntimeTopology;
 use oxide_state::AppState;
 use std::sync::Arc;
 
 pub mod middleware;
 pub mod routes;
 
+/// Construct a tuned multi-threaded Tokio runtime with CPU topology awareness and core pinning.
+pub fn build_tuned_runtime(
+    topology: Option<RuntimeTopology>,
+) -> std::io::Result<tokio::runtime::Runtime> {
+    let topo = topology.unwrap_or_default();
+    let enable_pinning = topo.enable_core_pinning;
+
+    let mut builder = tokio::runtime::Builder::new_multi_thread();
+    builder
+        .worker_threads(topo.worker_threads)
+        .thread_stack_size(topo.stack_size_bytes)
+        .thread_name(&topo.thread_prefix)
+        .enable_all();
+
+    if enable_pinning {
+        builder.on_thread_start(move || {
+            let core_id = match std::thread::current().name() {
+                Some(name) => name
+                    .split('-')
+                    .last()
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(0),
+                None => 0,
+            };
+            let _ = RuntimeTopology::pin_current_thread_to_core(core_id);
+        });
+    }
+
+    builder.build()
+}
+
 pub async fn run_gateway(
     state: Arc<AppState>,
     host: &str,
     port: u16,
 ) -> std::io::Result<()> {
+
     let state_data = web::Data::new(state.clone());
     let bind_addr = format!("{}:{}", host, port);
     let workers = std::thread::available_parallelism()
