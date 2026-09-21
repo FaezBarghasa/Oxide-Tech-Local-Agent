@@ -24,9 +24,11 @@ pub mod mock;
 pub mod candle_provider;
 pub mod llama_cpp;
 pub mod mmap_tensor;
+pub mod prism_sidecar;
 
 pub use sidecar::SidecarProvider;
 pub use mock::MockProvider;
 pub use candle_provider::CandleProvider;
 pub use llama_cpp::LlamaCppProvider;
 pub use mmap_tensor::{MmapModel, MemoryAdvice, TensorSlice};
+pub use prism_sidecar::PrismBonsaiEngine;

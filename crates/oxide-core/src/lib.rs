@@ -24,6 +24,14 @@ pub struct GenerationParams {
     pub temperature: f32,
     #[serde(default = "default_top_p")]
     pub top_p: f32,
+    #[serde(default)]
+    pub top_k: Option<u32>,
+    #[serde(default)]
+    pub min_p: Option<f32>,
+    #[serde(default)]
+    pub presence_penalty: Option<f32>,
+    #[serde(default)]
+    pub repetition_penalty: Option<f32>,
     pub max_tokens: Option<usize>,
     pub stop: Option<Vec<String>>,
     #[serde(default)]
@@ -43,12 +51,34 @@ impl Default for GenerationParams {
         Self {
             temperature: default_temperature(),
             top_p: default_top_p(),
+            top_k: None,
+            min_p: None,
+            presence_penalty: None,
+            repetition_penalty: None,
             max_tokens: Some(4096),
             stop: None,
             stream: false,
         }
     }
 }
+
+impl GenerationParams {
+    /// Optimal sampling parameters for Ternary-Bonsai reasoning mode.
+    pub fn bonsai_thinking_mode() -> Self {
+        Self {
+            temperature: 1.0,
+            top_p: 0.95,
+            top_k: Some(20),
+            min_p: Some(0.0),
+            presence_penalty: Some(0.0),
+            repetition_penalty: Some(1.0),
+            max_tokens: Some(32768),
+            stop: None,
+            stream: true,
+        }
+    }
+}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerationChunk {

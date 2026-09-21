@@ -1,3 +1,5 @@
+pub mod ternary;
+
 pub struct FusedCrossEntropyOp {
     pub kernel_name: String,
 }
@@ -23,3 +25,6 @@ impl FusedCrossEntropyOp {
         Ok(())
     }
 }
+
+pub use ternary::TernaryHadamardOp;
+
