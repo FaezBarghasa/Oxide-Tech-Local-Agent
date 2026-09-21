@@ -494,6 +494,13 @@ impl AdapterRegistry {
     }
 }
 
+pub mod vram_guard;
+pub mod gguf_exporter;
+
+pub use vram_guard::{VramAction, VramGuard};
+pub use gguf_exporter::GgufExporter;
+
+
 #[cfg(test)]
 mod tests {
     use super::*;

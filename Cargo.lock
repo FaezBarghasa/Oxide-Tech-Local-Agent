@@ -6096,6 +6096,8 @@ dependencies = [
  "oxide-protocol",
  "serde",
  "serde_json",
+ "sysinfo 0.39.6",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
