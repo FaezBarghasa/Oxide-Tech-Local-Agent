@@ -99,6 +99,17 @@ graph TD
 - **The Oxide Protocol**: Standardized JSON-RPC 2.0 schemas for EDA and 3D CAD tools with time-ordered **UUIDv7 Distributed Transaction IDs (`DtxId`)** and automatic atomic rollbacks (`rollback_dtx`).
 - **Self-Evolution Engine**: `DeltaHarvester` and JIT MCP synthesizer running inside unshared `bwrap` namespaces.
 
+### Layer 7: Agent Runtime Safety & Process Supervision (`crates/oxide-security` & `crates/oxide-state`)
+- **Circuit Breaker Resource Gater (`resource_gater.rs`)**: Continuous polling of storage and VRAM headroom ($< 2\text{GB}$ freeze / $> 2.5\text{GB}$ resume hysteresis). Rejects incoming HTTP/QUIC requests before OS disk/VRAM exhaustion occurs.
+- **Idempotent Session Lifecycle Machine (`session_supervisor.rs`)**: Enforces atomic fsync `SessionReceipt` persistence, request deduplication, and a single crash recovery attempt guarantee.
+- **Secure Stderr Capture & Sanitization (`stderr_sanitizer.rs`)**: 16 KiB bounded ring buffer tail capture with regex scrubbing of API keys/tokens into `0600` root-isolated diagnostic files.
+- **Process Group Containment (`process_containment.rs`)**: Enforces POSIX process group tree (`setpgid`) wrapping with 4-second SIGTERM grace intervals and SIGKILL tree destruction to eliminate zombie processes.
+
+### Layer 8: Accelerated Compute & Tiered Memory Architecture (`crates/oxide-kernels` & `crates/model-trainer`)
+- **GPU Architecture Autotuning (`autotune.rs`)**: Hardware SM detection across Nvidia Ampere (SM80/86), Ada (SM89), Hopper (SM90), and Blackwell (SM100/120) with optimal tile sizing and warp allocations.
+- **DDR5 Host RAM Spillover Tier (`ddr5_offload.rs`)**: Tiered hierarchy (`GpuVram` $\to$ `HostDdr5` $\to$ `NvmeDisk`) automatically evicting tensors to pinned host RAM when VRAM headroom drops below $800\text{ MB}$.
+- **AVX-512 Tensor Compression (`avx512_compress.rs`)**: 4x memory bandwidth reduction converting FP32 tensors to INT8 with dynamic scaling factors via AVX-512F/BW SIMD vectorization.
+
 ---
 
 ## 3. Desktop-First Integration (`src-tauri` & `ui/oxide-agent-studio`)

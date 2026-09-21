@@ -1,7 +1,7 @@
 use dashmap::DashMap;
 use oxide_core::HardwareMetrics;
 use oxide_engines::InferenceProvider;
-use oxide_security::SecurityManager;
+use oxide_security::{ResourceGater, SecurityManager, SessionSupervisor};
 use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::any::Any;
@@ -13,6 +13,8 @@ pub struct AppState {
     pub hardware_tx: broadcast::Sender<HardwareMetrics>,
     pub db: Surreal<Any>,
     pub security: Arc<SecurityManager>,
+    pub resource_gater: Arc<ResourceGater>,
+    pub supervisor: Arc<SessionSupervisor>,
 }
 
 impl AppState {
@@ -22,12 +24,16 @@ impl AppState {
 
         let (hardware_tx, _) = broadcast::channel(64);
         let security = SecurityManager::new(db.clone());
+        let resource_gater = Arc::new(ResourceGater::default());
+        let supervisor = Arc::new(SessionSupervisor::new("/tmp/oxide-harness-diagnostics"));
 
         let state = Arc::new(Self {
             models: DashMap::new(),
             hardware_tx: hardware_tx.clone(),
             db,
             security,
+            resource_gater,
+            supervisor,
         });
 
         // Spawn background hardware telemetry task (500ms intervals)

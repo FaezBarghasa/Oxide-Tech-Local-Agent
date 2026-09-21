@@ -93,7 +93,11 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`ratchet`** | `crates/ratchet/` | Dynamic native FFI hot-reloading and ABI validation runtime. |
 | **`surface-api`** | `crates/surface-api/` | Direct GPU compute and surface memory transfer abstractions. |
 | **`edge-swarm`** | `crates/edge-swarm/` | Decentralized edge agent gossip protocol and mesh coordination. |
-| **`model-trainer`** | `crates/model-trainer/` | Local LoRA fine-tuning and GRPO reinforcement learning loops. |
+| **`oxide-security`** | `crates/oxide-security/` | Cloudroom-style process supervision, `< 2GB` circuit-breaker resource gater, idempotent session receipts, 16 KiB stderr ring sanitizer, bounded outbox, and process tree containment (`setpgid`). |
+| **`oxide-kernels`** | `crates/oxide-kernels/` | GPU architecture autotuning (Ampere, Ada, Hopper, Blackwell), tile sizing, and AVX-512F/BW SIMD tensor compression (4x FP32 $\to$ INT8). |
+| **`oxide-state`** | `crates/oxide-state/` | Centralized agent state holding SurrealDB connection, `ResourceGater`, `SessionSupervisor`, and model registries. |
+| **`oxide-gateway`** | `crates/oxide-gateway/` | High-performance Actix-web OpenAI-compatible HTTP server with token bucket rate-limiting and circuit-breaker preflight gating. |
+| **`model-trainer`** | `crates/model-trainer/` | HuggingFace `AutoModelForCausalLM` Safetensors sharding, Online RL (DPO, ORPO, GRPO), Multi-Node ZeRO-3 parameter sharding, and DDR5 RAM tier offloading. |
 | **`optio`** | `crates/optio/` | ReAct DAG orchestration engine, Personalized PageRank (PPR) AST slicing, oscillation guard, and task budgets. |
 | **`sandbox`** | `crates/sandbox/` | Bubblewrap (`bwrap`) Linux namespace sandbox with resource caps and unshared PID/mount namespaces. |
 | **`vllm-client`** | `crates/vllm-client/` | Pluggable `InferenceProvider` (Ollama, SGLang, vLLM, Candle) with LoRA adapter hot-swapping. |

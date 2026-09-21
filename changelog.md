@@ -4,6 +4,31 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v0.9.0-unsloth-cloudroom] - 2026-09-21
+
+This milestone delivers **Unsloth-Grade GPU Kernel Autotuning, Distributed RL Scaling, and Cloudroom Agent Runtime Safety & Process Supervision** across the Oxide-Tech backend.
+
+### Major Upgrades & Enhancements
+
+#### 1. Unsloth-Parity GPU Kernels & Model Architecture (`crates/oxide-kernels` & `crates/model-trainer`)
+- **GPU Architecture Autotuning (`autotune.rs`)**: Dynamic SM detection across Nvidia Ampere (SM80/86), Ada (SM89), Hopper (SM90), and Blackwell (SM100/120) with memoized tile sizing ($M, N, K$, warp allocation, stages).
+- **HuggingFace AutoModel Hub Loader (`hf_hub.rs`)**: Automatic architecture parsing and sharded `model.safetensors.index.json` weight loader for causal language models.
+- **Online RL Fine-Tuning Engine (`rl_engine.rs`)**: Implementations of Direct Preference Optimization (DPO), Odds Ratio Preference Optimization (ORPO), and Group Relative Policy Optimization (GRPO with group advantage normalization, PPO clipping, and KL penalty).
+- **Multi-Node ZeRO-3 Parameter & Gradient Sharding (`distributed.rs`)**: Layer-wise `all_gather_parameter` and `reduce_scatter_gradients` across multi-node GPU clusters.
+
+#### 2. DDR5 Host RAM Spillover & AVX-512 SIMD Compression (`crates/model-trainer` & `crates/oxide-kernels`)
+- **Hierarchical Memory Tier Manager (`ddr5_offload.rs`)**: Automatic DMA eviction from GPU VRAM to pinned DDR5 host RAM when VRAM headroom drops below $800\text{ MB}$, with zero-copy prefetching back to GPU.
+- **AVX-512 Tensor Compression (`avx512_compress.rs`)**: 4x memory bandwidth reduction converting FP32 tensors to INT8 with dynamic scaling factors via AVX-512F/BW SIMD vectorization and CPU runtime fallback.
+
+#### 3. Cloudroom Core Process Supervisor & Runtime Safety (`crates/oxide-security`)
+- **Circuit Breaker Resource Gating (`resource_gater.rs`)**: Polling-based disk space ($< 2\text{GB}$ freeze / $> 2.5\text{GB}$ resume hysteresis) and VRAM tripwire admission control integrated into `oxide-gateway` and `AppState`.
+- **Idempotent Session State Machine (`session_supervisor.rs`)**: Atomic fsync receipt persistence (`SessionReceipt`), request deduplication, and a strict single-attempt crash recovery guarantee.
+- **Secure Stderr Capture & Sanitization (`stderr_sanitizer.rs`)**: 16 KiB bounded ring buffer tail, regex secret scrubbing (OpenAI/HF/GitHub API keys, Bearer tokens), and `0600` root-restricted JSONL diagnostic storage.
+- **Bounded Diagnostic Outbox (`bounded_outbox.rs`)**: Non-blocking 1,024-entry channel with Prometheus drop counter tracking and 8 MiB batch log file rotation.
+- **Process Tree Containment (`process_containment.rs`)**: Process group (`setpgid`) isolation, 4-second SIGTERM grace period, and guaranteed SIGKILL fallback to eliminate zombie child processes.
+
+---
+
 ## [v0.8.0-forge-rust] - 2026-09-19
 
 This milestone delivers the **Universal Polyglot-to-Rust Refactoring Engine (`crates/forge-rust`)**, providing automated AST lifting, semantic restructuring, safe ownership/error mapping, and crate scaffolding for converting arbitrary foreign codebases into idiomatic Rust 2024.

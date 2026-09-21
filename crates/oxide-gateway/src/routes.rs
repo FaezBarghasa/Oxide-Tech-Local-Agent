@@ -69,6 +69,17 @@ pub async fn chat_completions(
     state: web::Data<Arc<AppState>>,
     req: web::Json<ChatCompletionRequest>,
 ) -> impl Responder {
+    // Cloudroom Circuit-Breaker: Check storage and VRAM admission
+    if let Err(rejection) = state.resource_gater.admit_work(None).await {
+        tracing::warn!("Gateway circuit breaker tripped: {:?}", rejection);
+        return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "error": {
+                "message": format!("Service unavailable: {:?}", rejection),
+                "type": "circuit_breaker_tripped"
+            }
+        }));
+    }
+
     let model_name = req.model.clone();
     let provider = match state.models.get(&model_name) {
         Some(p) => p.value().clone(),
