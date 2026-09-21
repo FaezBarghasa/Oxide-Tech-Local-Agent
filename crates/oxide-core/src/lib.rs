@@ -163,7 +163,26 @@ impl GenerationParams {
             stream: true,
         }
     }
+
+    /// Optimal sampling parameters for Qwen3.8-27B dense deep reasoning and complex logic.
+    pub fn qwen_dense_mode() -> Self {
+        Self {
+            temperature: 0.6,
+            top_p: 0.9,
+            top_k: Some(20),
+            min_p: Some(0.0),
+            presence_penalty: Some(0.0),
+            repetition_penalty: Some(1.05),
+            max_tokens: Some(8192),
+            stop: Some(vec![
+                "<|im_end|>".to_string(),
+                "<|endoftext|>".to_string(),
+            ]),
+            stream: true,
+        }
+    }
 }
+
 
 
 

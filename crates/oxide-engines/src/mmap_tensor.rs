@@ -7,7 +7,9 @@ use std::sync::Arc;
 
 /// GGUF tensor quantization formats including mixed-precision Importance Matrix (IMatrix) types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(non_camel_case_types)]
 pub enum GgufTensorType {
+
     F32,
     F16,
     BF16,
