@@ -7178,13 +7178,19 @@ dependencies = [
  "blake3",
  "chrono",
  "dashmap",
+ "nix 0.31.3",
  "oxide-core",
+ "regex",
  "serde",
  "serde_json",
  "surrealdb",
  "surrealdb-types",
+ "sysinfo 0.39.6",
+ "tempfile",
+ "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

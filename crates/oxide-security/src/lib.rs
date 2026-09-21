@@ -80,3 +80,17 @@ impl SecurityManager {
         bucket.try_consume(tokens)
     }
 }
+
+pub mod bounded_outbox;
+pub mod process_containment;
+pub mod resource_gater;
+pub mod session_supervisor;
+pub mod stderr_sanitizer;
+
+pub use bounded_outbox::{BoundedDiagnosticOutbox, DiagnosticRecord};
+pub use process_containment::{ProcessContainmentError, ProcessTreeGuard};
+pub use resource_gater::{GateRejection, GateStatus, ResourceGater};
+pub use session_supervisor::{
+    SessionReceipt, SessionState, SessionSupervisor, SessionSupervisorError,
+};
+pub use stderr_sanitizer::StderrSanitizer;
