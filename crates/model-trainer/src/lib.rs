@@ -505,12 +505,14 @@ impl AdapterRegistry {
     }
 }
 
+pub mod ddr5_offload;
 pub mod distributed;
 pub mod gguf_exporter;
 pub mod hf_hub;
 pub mod rl_engine;
 pub mod vram_guard;
 
+pub use ddr5_offload::{Ddr5TierManager, MemoryTier, TieredBuffer};
 pub use distributed::{DistributedEngine, PartitionedTensor, ProcessGroup, ZeroStage};
 pub use gguf_exporter::GgufExporter;
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
