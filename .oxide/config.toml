@@ -23,7 +23,7 @@ model = "qwen3-embedding-0.6b"
 file = "Qwen3-Embedding-0.6B-Q4_K_M.gguf"
 device = "auto"
 max_seq_len = 1024
-batch_size = 4
+batch_size = 32
 
 [storage]
 engine = "surrealdb"
