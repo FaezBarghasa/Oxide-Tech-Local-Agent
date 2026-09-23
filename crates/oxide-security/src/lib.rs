@@ -82,12 +82,14 @@ impl SecurityManager {
 }
 
 pub mod bounded_outbox;
+pub mod ephemeral_tls;
 pub mod process_containment;
 pub mod resource_gater;
 pub mod session_supervisor;
 pub mod stderr_sanitizer;
 
 pub use bounded_outbox::{BoundedDiagnosticOutbox, DiagnosticRecord};
+pub use ephemeral_tls::{EphemeralTlsContext, SecurityError};
 pub use process_containment::{ProcessContainmentError, ProcessTreeGuard};
 pub use resource_gater::{GateRejection, GateStatus, ResourceGater};
 pub use session_supervisor::{
