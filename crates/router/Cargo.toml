@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
     common = { path = "../common" }
-    memory = { path = "../memory" }
+    oxide-state = { path = "../oxide-state" }
     agent-journal = { path = "../agent-journal" }
     serde = { workspace = true }
     serde_json = { workspace = true }

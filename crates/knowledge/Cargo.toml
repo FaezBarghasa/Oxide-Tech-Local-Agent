@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 common = { path = "../common" }
-memory = { path = "../memory" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
@@ -18,5 +17,5 @@ reqwest = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 regex = { workspace = true }
-tree-sitter = "0.20"
-tree-sitter-rust = "0.20"
+tree-sitter = "0.27.0"
+tree-sitter-rust = "0.24.2"

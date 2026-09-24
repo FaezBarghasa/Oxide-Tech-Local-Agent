@@ -1,5 +1,5 @@
 use common::contracts::{CloudTrainingSample, UserOutcome, ValidationResult};
-use memory::SurrealClient;
+use oxide_state::SurrealClient;
 use std::sync::Arc;
 use tracing::{info, warn};
 use uuid::Uuid;
