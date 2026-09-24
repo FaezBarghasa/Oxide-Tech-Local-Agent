@@ -7191,6 +7191,7 @@ dependencies = [
  "actix-web",
  "actix-web-lab",
  "anyhow",
+ "blake3",
  "chrono",
  "futures-util",
  "oxide-core",

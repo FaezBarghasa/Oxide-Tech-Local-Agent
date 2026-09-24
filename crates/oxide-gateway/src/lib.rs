@@ -5,7 +5,12 @@ use oxide_state::AppState;
 use std::sync::Arc;
 
 pub mod middleware;
+pub mod mobile_bridge;
 pub mod routes;
+
+pub use mobile_bridge::{
+    AgentControlAction, MobileBridgeManager, MobileSignalMessage, PendingApprovalPayload,
+};
 
 /// Construct a tuned multi-threaded Tokio runtime with CPU topology awareness and core pinning.
 pub fn build_tuned_runtime(
