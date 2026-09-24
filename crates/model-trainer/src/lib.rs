@@ -513,7 +513,9 @@ pub mod rl_engine;
 pub mod vram_guard;
 
 pub use ddr5_offload::{Ddr5TierManager, MemoryTier, TieredBuffer};
-pub use distributed::{DistributedEngine, PartitionedTensor, ProcessGroup, ZeroStage};
+pub use distributed::{
+    DistributedEngine, MmapGgufWeightLoader, PartitionedTensor, ProcessGroup, ZeroStage,
+};
 pub use gguf_exporter::GgufExporter;
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
 pub use rl_engine::{DpoLoss, GrpoEngine, MultiDomainReward, OrpoLoss, PreferenceSample};

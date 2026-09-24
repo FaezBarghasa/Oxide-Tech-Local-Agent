@@ -6161,6 +6161,7 @@ dependencies = [
  "async-trait",
  "blake3",
  "chrono",
+ "memmap2",
  "oxide-protocol",
  "serde",
  "serde_json",

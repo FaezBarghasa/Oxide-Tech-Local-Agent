@@ -1,5 +1,8 @@
+use memmap2::Mmap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs::File;
+use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -48,6 +51,50 @@ pub struct PartitionedTensor {
     pub rank_owner: usize,
 }
 
+/// Zero-Copy Memory-Mapped Weight Loader for GGUF & SafeTensors Shards
+pub struct MmapGgufWeightLoader {
+    pub file_path: std::path::PathBuf,
+    pub mmap: Arc<Mmap>,
+    pub tensor_offsets: HashMap<String, (usize, usize)>, // (byte_offset, element_count)
+}
+
+impl MmapGgufWeightLoader {
+    /// Memory map a GGUF / model file with OS virtual address mapping (zero heap-allocation copy)
+    pub fn open(path: impl AsRef<Path>) -> Result<Self, std::io::Error> {
+        let file = File::open(path.as_ref())?;
+        let mmap = unsafe { Mmap::map(&file)? };
+        Ok(Self {
+            file_path: path.as_ref().to_path_buf(),
+            mmap: Arc::new(mmap),
+            tensor_offsets: HashMap::new(),
+        })
+    }
+
+    /// Register tensor byte offset within memory-mapped buffer
+    pub fn register_tensor_offset(&mut self, tensor_name: impl Into<String>, offset: usize, count: usize) {
+        self.tensor_offsets.insert(tensor_name.into(), (offset, count));
+    }
+
+    /// Extract zero-copy f32 slice directly from mapped memory
+    pub fn read_f32_slice(&self, tensor_name: &str) -> Option<&[f32]> {
+        let &(offset, count) = self.tensor_offsets.get(tensor_name)?;
+        let byte_len = count * std::mem::size_of::<f32>();
+        if offset + byte_len > self.mmap.len() {
+            return None;
+        }
+
+        let slice_bytes = &self.mmap[offset..offset + byte_len];
+        if (slice_bytes.as_ptr() as usize) % std::mem::align_of::<f32>() != 0 {
+            return None;
+        }
+
+        let slice = unsafe {
+            std::slice::from_raw_parts(slice_bytes.as_ptr() as *const f32, count)
+        };
+        Some(slice)
+    }
+}
+
 /// ZeRO-3 Distributed Parameter & Optimizer Engine
 pub struct DistributedEngine {
     pub process_group: ProcessGroup,
@@ -90,6 +137,20 @@ impl DistributedEngine {
 
         let mut guard = self.local_parameters.write().await;
         guard.insert(name.to_string(), partitioned);
+    }
+
+    /// Register partitioned parameter directly from memory-mapped GGUF loader
+    pub async fn register_mmap_parameter(
+        &self,
+        name: &str,
+        mmap_loader: &MmapGgufWeightLoader,
+        tensor_name: &str,
+    ) -> Result<(), String> {
+        let slice = mmap_loader
+            .read_f32_slice(tensor_name)
+            .ok_or_else(|| format!("Tensor '{tensor_name}' not found or misaligned in mapped file"))?;
+        self.register_parameter(name, slice).await;
+        Ok(())
     }
 
     /// Simulate All-Gather across the Ring Topology to reconstruct full tensor for forward/backward pass
@@ -136,6 +197,8 @@ impl DistributedEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::NamedTempFile;
+    use std::io::Write;
 
     #[tokio::test]
     async fn test_zero3_parameter_partitioning_and_gather() {
@@ -153,5 +216,35 @@ mod tests {
 
         let gathered = dist.all_gather_parameter("layers.0.weight").await.unwrap();
         assert_eq!(gathered.len(), 100);
+    }
+
+    #[tokio::test]
+    async fn test_mmap_gguf_loader_zero_copy_partitioning() {
+        let mut tmp_file = NamedTempFile::new().unwrap();
+        let original_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0];
+        let bytes: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                original_data.as_ptr() as *const u8,
+                original_data.len() * std::mem::size_of::<f32>(),
+            )
+        };
+        tmp_file.write_all(bytes).unwrap();
+        tmp_file.flush().unwrap();
+
+        let mut loader = MmapGgufWeightLoader::open(tmp_file.path()).unwrap();
+        loader.register_tensor_offset("model.layer.0.q_proj.weight", 0, 8);
+
+        let pg = ProcessGroup::new(0, 2, 0, vec!["node1".into(), "node2".into()]);
+        let dist = DistributedEngine::new(pg, ZeroStage::ZeRO3_Parameters);
+
+        dist.register_mmap_parameter("model.layer.0.q_proj.weight", &loader, "model.layer.0.q_proj.weight")
+            .await
+            .expect("Mmap parameter registration should succeed");
+
+        let guard = dist.local_parameters.read().await;
+        let part = guard.get("model.layer.0.q_proj.weight").unwrap();
+        assert_eq!(part.local_slice.len(), 4); // 8 / 2 = 4
+        assert_eq!(part.local_slice[0], 1.0);
+        assert_eq!(part.local_slice[3], 4.0);
     }
 }
