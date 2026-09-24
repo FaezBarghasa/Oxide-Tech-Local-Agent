@@ -7165,6 +7165,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "blake3",
  "bytes",
  "flume 0.12.0",
  "fs2",
