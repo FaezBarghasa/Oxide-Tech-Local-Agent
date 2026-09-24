@@ -8,6 +8,24 @@ use surrealdb::engine::any::Any;
 use sysinfo::System;
 use tokio::sync::broadcast;
 
+pub mod action_graph;
+pub mod client;
+pub mod cross_domain_packer;
+pub mod ephemeral;
+pub mod pager;
+pub mod schema;
+pub mod temporal_git;
+pub mod working_memory;
+
+pub use action_graph::{ActionEdgeType, ActionGraph, ActionNode};
+pub use client::SurrealClient;
+pub use cross_domain_packer::{CrossDomainContextPacker, CrossDomainContextSlice, CrossDomainLink};
+pub use ephemeral::{ActiveStackTrace, EphemeralMemory, OpenEditorBuffer, TerminalBufferEntry};
+pub use pager::{MemoryPager, PageTier, SharedMemoryPager, VirtualPage};
+pub use schema::*;
+pub use temporal_git::{ModuleChurnMetrics, TemporalCommit, TemporalGitMemory};
+pub use working_memory::{WorkingMemoryEntry, WorkingMemoryManager};
+
 pub struct AppState {
     pub models: DashMap<String, Arc<dyn InferenceProvider>>,
     pub hardware_tx: broadcast::Sender<HardwareMetrics>,

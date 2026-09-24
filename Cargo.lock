@@ -7284,11 +7284,15 @@ dependencies = [
 name = "oxide-state"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
+ "common",
  "dashmap",
+ "lru",
  "oxide-core",
  "oxide-engines",
  "oxide-security",
+ "petgraph 0.8.3",
  "serde",
  "serde_json",
  "surrealdb",
@@ -7296,6 +7300,7 @@ dependencies = [
  "sysinfo 0.39.6",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
