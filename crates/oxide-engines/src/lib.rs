@@ -21,6 +21,7 @@ pub trait InferenceProvider: Send + Sync + 'static {
 
 pub mod candle_provider;
 pub mod decision_engine;
+pub mod grammar;
 pub mod llama_cpp;
 pub mod mistral_rs;
 pub mod mmap_tensor;
@@ -34,6 +35,7 @@ pub use decision_engine::{
     CandidateVectorCache, DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput,
     FastKanDecisionHead, SpeculativeCascadeConfig,
 };
+pub use grammar::{GbnfCompiler, GrammarRule};
 pub use mobile::MobileDecisionEngine;
 pub use polymorphic::{
     EngineCapabilities, EngineError, InferenceChunk, InferenceRequest, PolymorphicInferenceProvider,
