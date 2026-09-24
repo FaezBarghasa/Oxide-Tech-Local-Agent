@@ -157,6 +157,43 @@ impl GrpoEngine {
     }
 }
 
+/// Multi-domain objective reward weights and evaluation for GRPO
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiDomainReward {
+    pub compile_weight: f32,
+    pub formal_verify_weight: f32,
+    pub drc_pass_weight: f32,
+    pub sim_continuity_weight: f32,
+}
+
+impl Default for MultiDomainReward {
+    fn default() -> Self {
+        Self {
+            compile_weight: 0.3,
+            formal_verify_weight: 0.3,
+            drc_pass_weight: 0.2,
+            sim_continuity_weight: 0.2,
+        }
+    }
+}
+
+impl MultiDomainReward {
+    /// Compute composite scalar reward:
+    /// Reward(o_i) = w1 * R_compile + w2 * R_formal_verify + w3 * R_drc_pass + w4 * R_sim_continuity
+    pub fn evaluate(
+        &self,
+        r_compile: f32,
+        r_formal_verify: f32,
+        r_drc_pass: f32,
+        r_sim_continuity: f32,
+    ) -> f32 {
+        self.compile_weight * r_compile
+            + self.formal_verify_weight * r_formal_verify
+            + self.drc_pass_weight * r_drc_pass
+            + self.sim_continuity_weight * r_sim_continuity
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

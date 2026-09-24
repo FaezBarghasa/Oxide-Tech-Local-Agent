@@ -516,7 +516,7 @@ pub use ddr5_offload::{Ddr5TierManager, MemoryTier, TieredBuffer};
 pub use distributed::{DistributedEngine, PartitionedTensor, ProcessGroup, ZeroStage};
 pub use gguf_exporter::GgufExporter;
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
-pub use rl_engine::{DpoLoss, GrpoEngine, OrpoLoss, PreferenceSample};
+pub use rl_engine::{DpoLoss, GrpoEngine, MultiDomainReward, OrpoLoss, PreferenceSample};
 pub use vram_guard::{VramAction, VramGuard};
 
 #[cfg(test)]

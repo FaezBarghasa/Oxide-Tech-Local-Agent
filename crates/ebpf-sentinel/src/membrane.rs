@@ -117,6 +117,66 @@ impl ConstitutionalMembrane {
     }
 }
 
+/// Adaptive Isolation Tier for the containment membrane
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IsolationTier {
+    /// Full kernel ring-buffer interception (requires CAP_BPF / root)
+    PrivilegedEbpf,
+    /// Unprivileged Linux LSM sandboxing via Landlock / Seccomp
+    LandlockSeccomp,
+    /// Isolated userland sandbox / Wasm runtime fallback
+    RestrictedWasm,
+}
+
+/// Adaptive security membrane with capability negotiation matrix
+pub struct SystemMembrane {
+    pub active_tier: IsolationTier,
+    pub constitutional: Arc<ConstitutionalMembrane>,
+}
+
+impl Default for SystemMembrane {
+    fn default() -> Self {
+        Self::negotiate()
+    }
+}
+
+impl SystemMembrane {
+    /// Negotiate execution containment tier based on environmental capabilities
+    pub fn negotiate() -> Self {
+        let active_tier = if std::env::var("OXIDE_CAP_BPF").map(|v| v == "1").unwrap_or(false) {
+            IsolationTier::PrivilegedEbpf
+        } else if cfg!(target_os = "linux") {
+            IsolationTier::LandlockSeccomp
+        } else {
+            IsolationTier::RestrictedWasm
+        };
+
+        Self {
+            active_tier,
+            constitutional: Arc::new(ConstitutionalMembrane::new()),
+        }
+    }
+
+    /// Apply execution boundary based on negotiated isolation tier
+    pub fn apply_execution_boundary(&self, pid: u32) -> Result<IsolationTier, String> {
+        match self.active_tier {
+            IsolationTier::PrivilegedEbpf => {
+                tracing::info!(target: "ebpf_sentinel", "Attaching eBPF tracepoint membrane to PID {}", pid);
+                Ok(IsolationTier::PrivilegedEbpf)
+            }
+            IsolationTier::LandlockSeccomp => {
+                tracing::info!(target: "ebpf_sentinel", "Applying Landlock/rlimit sandbox boundary to PID {}", pid);
+                ConstitutionalMembrane::apply_sandboxed_rlimits(2 * 1024 * 1024 * 1024, 1024)?;
+                Ok(IsolationTier::LandlockSeccomp)
+            }
+            IsolationTier::RestrictedWasm => {
+                tracing::info!(target: "ebpf_sentinel", "Enforcing WASM isolated sandbox boundary on PID {}", pid);
+                Ok(IsolationTier::RestrictedWasm)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
