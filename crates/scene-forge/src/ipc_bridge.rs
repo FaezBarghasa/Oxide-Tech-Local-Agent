@@ -51,12 +51,17 @@ pub enum BlenderCommand {
         scale: [f32; 3],
     },
     GetMeshData(Uuid),
+    Heartbeat { timestamp_epoch_ms: u64 },
 }
 
 /// Responses returned from the 3D host across the binary IPC stream.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BlenderResponse {
     Ack,
+    Pong {
+        timestamp_epoch_ms: u64,
+        status_flags: u32,
+    },
     Mesh(MeshData),
     ObjectCreated(Uuid),
     Error(String),
@@ -132,6 +137,10 @@ impl MockBlenderEngine {
                     BlenderResponse::Error("No active object to extrude".to_string())
                 }
             }
+            BlenderCommand::Heartbeat { timestamp_epoch_ms } => BlenderResponse::Pong {
+                timestamp_epoch_ms,
+                status_flags: 1, // Healthy/Ready
+            },
             BlenderCommand::BevelSelection { .. }
             | BlenderCommand::BooleanUnion { .. }
             | BlenderCommand::BooleanDifference { .. }

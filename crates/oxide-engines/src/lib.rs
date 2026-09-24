@@ -24,8 +24,13 @@ pub mod llama_cpp;
 pub mod mistral_rs;
 pub mod mmap_tensor;
 pub mod mock;
+pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
+
+pub use polymorphic::{
+    EngineCapabilities, EngineError, InferenceChunk, InferenceRequest, PolymorphicInferenceProvider,
+};
 
 pub use candle_provider::CandleProvider;
 pub use llama_cpp::LlamaCppProvider;
