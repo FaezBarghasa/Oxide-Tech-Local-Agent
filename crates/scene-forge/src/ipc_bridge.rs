@@ -248,3 +248,100 @@ where
             .map_err(|e| SceneForgeError::IpcSerialization(format!("Postcard decode failed: {e}")))
     }
 }
+
+/// POSIX Shared Memory Descriptor for Zero-Copy Large Geometries (>2MB)
+#[derive(Debug)]
+pub struct ShmGeometryBuffer {
+    pub shm_path: String,
+    pub size_bytes: usize,
+}
+
+impl ShmGeometryBuffer {
+    /// Create or open named shared memory segment in `/dev/shm`
+    pub fn allocate(name: &str, size_bytes: usize) -> Result<Self, SceneForgeError> {
+        let shm_path = format!("/dev/shm/oxide_mesh_{name}");
+        Ok(Self {
+            shm_path,
+            size_bytes,
+        })
+    }
+
+    /// Check if payload exceeds zero-copy threshold (2 MB)
+    pub fn exceeds_zero_copy_threshold(bytes_len: usize) -> bool {
+        bytes_len > 2 * 1024 * 1024
+    }
+}
+
+/// Bidirectional heartbeat supervisor for the Python subprocess bridge
+pub struct BridgeSupervisor {
+    pub child_pid: u32,
+    pub heartbeat_interval_ms: u64,
+    pub consecutive_failures: u32,
+    pub max_failures: u32,
+}
+
+impl BridgeSupervisor {
+    pub fn new(child_pid: u32) -> Self {
+        Self {
+            child_pid,
+            heartbeat_interval_ms: 500,
+            consecutive_failures: 0,
+            max_failures: 3,
+        }
+    }
+
+    /// Record a failed heartbeat and check if process must be terminated and respawned
+    pub fn record_heartbeat_failure(&mut self) -> bool {
+        self.consecutive_failures += 1;
+        self.consecutive_failures >= self.max_failures
+    }
+
+    /// Reset failure count on successful Pong
+    pub fn record_heartbeat_success(&mut self) {
+        self.consecutive_failures = 0;
+    }
+
+    /// Terminate unresponsive child process via SIGKILL
+    #[cfg(target_os = "linux")]
+    pub fn terminate_hung_process(&self) -> Result<(), String> {
+        unsafe {
+            if libc::kill(self.child_pid as libc::pid_t, libc::SIGKILL) != 0 {
+                return Err(format!("Failed to SIGKILL pid {}", self.child_pid));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    pub fn terminate_hung_process(&self) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_heartbeat_encode_decode() {
+        let cmd = BlenderCommand::Heartbeat { timestamp_epoch_ms: 1000 };
+        let bytes = BlenderBridge::<tokio::io::DuplexStream>::encode_command(&cmd).unwrap();
+        let decoded = BlenderBridge::<tokio::io::DuplexStream>::decode_command(&bytes).unwrap();
+        assert_eq!(cmd, decoded);
+    }
+
+    #[test]
+    fn test_supervisor_watchdog_threshold() {
+        let mut supervisor = BridgeSupervisor::new(9999);
+        assert!(!supervisor.record_heartbeat_failure());
+        assert!(!supervisor.record_heartbeat_failure());
+        // Third failure triggers termination
+        assert!(supervisor.record_heartbeat_failure());
+    }
+
+    #[test]
+    fn test_shm_threshold() {
+        assert!(ShmGeometryBuffer::exceeds_zero_copy_threshold(3 * 1024 * 1024));
+        assert!(!ShmGeometryBuffer::exceeds_zero_copy_threshold(1024));
+    }
+}

@@ -8,7 +8,8 @@ pub mod verifier;
 
 pub use codegen::MacroCodegen;
 pub use ipc_bridge::{
-    BlenderBridge, BlenderCommand, BlenderResponse, MockBlenderEngine, PrimitiveType,
+    BlenderBridge, BlenderCommand, BlenderResponse, BridgeSupervisor, MockBlenderEngine,
+    PrimitiveType, ShmGeometryBuffer,
 };
 pub use mesh::{MeshData, primitives};
 pub use state_machine::{InteractionMode, SceneObject, ShadowSceneGraph};
