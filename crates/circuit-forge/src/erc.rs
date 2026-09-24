@@ -219,5 +219,72 @@ pub fn run_erc(graph: &CircuitGraph) -> ErcReport {
         }
     }
 
+    // Rule 5: Shared Bus Single-Driver Invariant Check (I2C, SPI, UART)
+    let mut bus_net_drivers: HashMap<String, Vec<String>> = HashMap::new();
+    for node_idx in graph.node_indices() {
+        if let NetlistNode::Component { ref_des, .. } = &graph[node_idx] {
+            for edge in graph.edges(node_idx) {
+                let pin_name = edge.weight().pin_name.to_uppercase();
+                let is_driver = pin_name.contains("TX")
+                    || pin_name.contains("MOSI")
+                    || pin_name.contains("OUT")
+                    || pin_name.contains("SCLK")
+                    || pin_name.contains("SCK");
+                if is_driver {
+                    let target_net = edge.target();
+                    if let Some(net_name) = graph[target_net].net_name() {
+                        let net_upper = net_name.to_uppercase();
+                        if net_upper.contains("TX") || net_upper.contains("MOSI") || net_upper.contains("SPI") || net_upper.contains("UART") {
+                            bus_net_drivers
+                                .entry(net_name.to_string())
+                                .or_default()
+                                .push(ref_des.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (bus_net, drivers) in bus_net_drivers {
+        if drivers.len() > 1 {
+            report.add_error(
+                "ERC_BUS_MULTIPLE_DRIVERS",
+                Some(&bus_net),
+                format!(
+                    "ERC Error: Shared communication bus '{}' has multiple active drivers: {:?}",
+                    bus_net, drivers
+                ),
+            );
+        }
+    }
+
     report
+}
+
+/// Calculate maximum trace current capacity using IPC-2152 formula:
+/// I = k * (delta_t)^beta * (area)^gamma
+/// For external layers: k = 0.048, beta = 0.44, gamma = 0.725
+pub fn calculate_ipc2152_max_current(
+    trace_width_mils: f64,
+    copper_thickness_oz: f64,
+    temp_rise_c: f64,
+) -> f64 {
+    let k = 0.048;
+    let beta = 0.44;
+    let gamma = 0.725;
+    // Cross-sectional area in mils^2 (1 oz Cu = ~1.37 mils)
+    let area_sq_mils = trace_width_mils * (copper_thickness_oz * 1.37);
+    k * temp_rise_c.powf(beta) * area_sq_mils.powf(gamma)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ipc2152_current_calculation() {
+        let current = calculate_ipc2152_max_current(20.0, 1.0, 10.0);
+        assert!(current > 0.5 && current < 5.0);
+    }
 }

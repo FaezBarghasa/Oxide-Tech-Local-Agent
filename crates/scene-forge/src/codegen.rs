@@ -80,6 +80,12 @@ impl MacroCodegen {
                         id
                     ));
                 }
+                BlenderCommand::Heartbeat { timestamp_epoch_ms } => {
+                    code.push_str(&format!(
+                        "            $bridge.execute(BlenderCommand::Heartbeat {{ timestamp_epoch_ms: {} }}).await?;\n",
+                        timestamp_epoch_ms
+                    ));
+                }
             }
         }
 
