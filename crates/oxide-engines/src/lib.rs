@@ -20,6 +20,7 @@ pub trait InferenceProvider: Send + Sync + 'static {
 }
 
 pub mod candle_provider;
+pub mod decision_engine;
 pub mod llama_cpp;
 pub mod mistral_rs;
 pub mod mmap_tensor;
@@ -28,6 +29,7 @@ pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
 
+pub use decision_engine::{DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput};
 pub use polymorphic::{
     EngineCapabilities, EngineError, InferenceChunk, InferenceRequest, PolymorphicInferenceProvider,
 };
