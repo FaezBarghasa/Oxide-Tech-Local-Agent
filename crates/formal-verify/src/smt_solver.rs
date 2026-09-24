@@ -61,3 +61,60 @@ pub fn solve_task_schedule(
         verified_feasible: true,
     })
 }
+
+/// Circuit electrical state for SMT-LIB2 invariant translation:
+/// Phi_safe = bigwedge_{s in States} (V(s) <= V_max /\ I(s) <= I_max /\ (Fault(s) ==> Isolated(s)))
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CircuitState {
+    pub state_id: String,
+    pub voltage: f64,
+    pub max_voltage: f64,
+    pub current: f64,
+    pub max_current: f64,
+    pub has_fault: bool,
+    pub is_isolated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmtCircuitSafetyProof {
+    pub is_safe: bool,
+    pub smt_lib2_formula: String,
+    pub violated_states: Vec<String>,
+}
+
+/// Translate circuit state machine into SMT-LIB2 assertions and solve safety invariants
+pub fn verify_circuit_safety_invariants(states: &[CircuitState]) -> SmtCircuitSafetyProof {
+    let mut is_safe = true;
+    let mut violated_states = Vec::new();
+    let mut smt_lines = Vec::new();
+
+    smt_lines.push("; SMT-LIB2 Circuit Safety Invariant Formulation".to_string());
+    smt_lines.push("(set-logic QF_LRA)".to_string());
+
+    for s in states {
+        let v_safe = s.voltage <= s.max_voltage;
+        let i_safe = s.current <= s.max_current;
+        let fault_safe = !s.has_fault || s.is_isolated;
+
+        let state_safe = v_safe && i_safe && fault_safe;
+        if !state_safe {
+            is_safe = false;
+            violated_states.push(s.state_id.clone());
+        }
+
+        smt_lines.push(format!("; State {}", s.state_id));
+        smt_lines.push(format!("(assert (<= {} {}))", s.voltage, s.max_voltage));
+        smt_lines.push(format!("(assert (<= {} {}))", s.current, s.max_current));
+        if s.has_fault {
+            smt_lines.push(format!("(assert (= {} true))", s.is_isolated));
+        }
+    }
+
+    smt_lines.push("(check-sat)".to_string());
+
+    SmtCircuitSafetyProof {
+        is_safe,
+        smt_lib2_formula: smt_lines.join("\n"),
+        violated_states,
+    }
+}

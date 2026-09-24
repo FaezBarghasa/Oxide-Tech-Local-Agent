@@ -7,5 +7,8 @@ pub use hardware_rules::{
     HardwareSafetyChecker, HardwareSafetyViolation, McuPowerBudget, PinConfig, PinMode,
 };
 pub use kani_harness::{KaniHarnessTarget, generate_kani_proof_harness};
-pub use smt_solver::{TaskConstraint, VerifiedSchedule, VerifyError, solve_task_schedule};
+pub use smt_solver::{
+    CircuitState, SmtCircuitSafetyProof, TaskConstraint, VerifiedSchedule, VerifyError,
+    solve_task_schedule, verify_circuit_safety_invariants,
+};
 pub use trace_validator::{ReasoningTrace, TraceJudgement, TraceValidator};
