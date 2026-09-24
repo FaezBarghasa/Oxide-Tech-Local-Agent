@@ -6,11 +6,16 @@ use std::sync::Arc;
 
 pub mod middleware;
 pub mod mobile_bridge;
+pub mod probe;
+pub mod quality;
+pub mod router;
 pub mod routes;
 
 pub use mobile_bridge::{
     AgentControlAction, MobileBridgeManager, MobileSignalMessage, PendingApprovalPayload,
 };
+pub use quality::QualityGate;
+pub use router::{CoderBackend, GatewayRouter};
 
 /// Construct a tuned multi-threaded Tokio runtime with CPU topology awareness and core pinning.
 pub fn build_tuned_runtime(

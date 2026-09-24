@@ -8,6 +8,8 @@ oxide-core = { path = "../oxide-core" }
 oxide-state = { path = "../oxide-state" }
 oxide-engines = { path = "../oxide-engines" }
 oxide-security = { path = "../oxide-security" }
+config-loader = { path = "../config-loader" }
+reqwest = { workspace = true }
 actix-web = { workspace = true }
 actix-web-lab = { workspace = true }
 tokio = { workspace = true }
