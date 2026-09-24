@@ -167,6 +167,16 @@ pub struct CandidateVectorCache {
     pub vectors: Vec<Vec<f32>>,
 }
 
+/// Structured candidate ranking and speculative spread evaluation result
+#[derive(Debug, Clone, PartialEq)]
+pub struct DecisionSpreadResult {
+    pub selected: String,
+    pub confidence: f32,
+    pub confidence_spread: f32,
+    pub escalated: bool,
+    pub candidate_scores: Vec<(String, f32)>,
+}
+
 impl CandidateVectorCache {
     pub fn new() -> Self {
         Self::default()
@@ -216,7 +226,7 @@ impl CandidateVectorCache {
         &self,
         state_embedding: &[f32],
         config: &SpeculativeCascadeConfig,
-    ) -> Option<(String, f32, f32, bool, Vec<(String, f32)>)> {
+    ) -> Option<DecisionSpreadResult> {
         let ranked = self.score_candidates_ranked(state_embedding);
         if ranked.is_empty() {
             return None;
@@ -229,7 +239,13 @@ impl CandidateVectorCache {
             && (spread < config.confidence_spread_threshold
                 || top1.1 < config.min_confidence_threshold);
 
-        Some((top1.0.clone(), top1.1, spread, escalated, ranked))
+        Some(DecisionSpreadResult {
+            selected: top1.0.clone(),
+            confidence: top1.1,
+            confidence_spread: spread,
+            escalated,
+            candidate_scores: ranked,
+        })
     }
 }
 
@@ -309,25 +325,23 @@ fn process_batch(batch: &[InferenceJob], _device: DecisionDevice) {
             .map(|&b| (b as f32 / 128.0) - 1.0)
             .collect();
 
-        let (selected, confidence, confidence_spread, escalated, candidate_scores) = cache
+        let spread_res = cache
             .score_state_with_spread(&state_vec, &job.cascade_config)
-            .unwrap_or_else(|| {
-                (
-                    "none".to_string(),
-                    0.5,
-                    0.0,
-                    false,
-                    vec![("none".to_string(), 0.5)],
-                )
+            .unwrap_or_else(|| DecisionSpreadResult {
+                selected: "none".to_string(),
+                confidence: 0.5,
+                confidence_spread: 0.0,
+                escalated: false,
+                candidate_scores: vec![("none".to_string(), 0.5)],
             });
 
         let res = DecisionOutput {
-            selected,
-            confidence,
-            confidence_spread,
-            escalated,
+            selected: spread_res.selected,
+            confidence: spread_res.confidence,
+            confidence_spread: spread_res.confidence_spread,
+            escalated: spread_res.escalated,
             latency: job.start_time.elapsed(),
-            candidate_scores,
+            candidate_scores: spread_res.candidate_scores,
         };
 
         let _ = job.tx.send(Ok(res));
@@ -389,11 +403,13 @@ mod tests {
             fallback_enabled: true,
         };
 
-        let (_selected, _conf, spread, escalated, ranked) =
-            cache.score_state_with_spread(&state_query, &cfg).unwrap();
-        assert_eq!(ranked.len(), 2);
-        assert!(spread < 0.15);
-        assert!(escalated, "Should trigger speculative escalation due to low spread");
+        let result = cache.score_state_with_spread(&state_query, &cfg).unwrap();
+        assert_eq!(result.candidate_scores.len(), 2);
+        assert!(result.confidence_spread < 0.15);
+        assert!(
+            result.escalated,
+            "Should trigger speculative escalation due to low spread"
+        );
     }
 
     #[test]

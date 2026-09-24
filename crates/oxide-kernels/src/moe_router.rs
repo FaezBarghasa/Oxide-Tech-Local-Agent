@@ -129,7 +129,7 @@ mod tests {
         logits[2] = 5.0;
         logits[5] = 4.0;
 
-        logits[8 + 0] = 6.0;
+        logits[8] = 6.0;
         logits[8 + 7] = 3.0;
 
         let plan = router.route_tokens(&logits, 2).unwrap();

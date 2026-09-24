@@ -84,7 +84,7 @@ impl MmapGgufWeightLoader {
         }
 
         let slice_bytes = &self.mmap[offset..offset + byte_len];
-        if (slice_bytes.as_ptr() as usize) % std::mem::align_of::<f32>() != 0 {
+        if !(slice_bytes.as_ptr() as usize).is_multiple_of(std::mem::align_of::<f32>()) {
             return None;
         }
 

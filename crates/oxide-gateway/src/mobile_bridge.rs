@@ -88,7 +88,7 @@ impl MobileBridgeManager {
 
         let nonce = self.pairing_nonce.read().await;
         // Derive session key K_session = HKDF/Blake3(client_pk + nonce + biometric_signature)
-        let mut hasher = blake3::Hasher::new_keyed(&*nonce);
+        let mut hasher = blake3::Hasher::new_keyed(&nonce);
         hasher.update(client_pk.as_bytes());
         hasher.update(biometric_signature);
         let derived_hash = hasher.finalize();

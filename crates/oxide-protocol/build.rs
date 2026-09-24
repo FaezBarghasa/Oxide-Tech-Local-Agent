@@ -48,11 +48,11 @@ fn main() {
             .arg(&schema_path)
             .status();
 
-        if let Ok(st) = status {
-            if st.success() {
-                let _ = fs::write(&checksum_path, &current_hash);
-                let _ = fs::copy(out_dir.join("pcb_layout_generated.rs"), &generated_file);
-            }
+        if let Ok(st) = status
+            && st.success()
+        {
+            let _ = fs::write(&checksum_path, &current_hash);
+            let _ = fs::copy(out_dir.join("pcb_layout_generated.rs"), &generated_file);
         }
     }
 
