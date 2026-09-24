@@ -292,8 +292,8 @@ mod tests {
     #[test]
     fn test_brier_score_loss_calibration() {
         let probs = vec![0.9, 0.1];
-        let loss_perfect = BrierScoreLoss::compute_brier_score(&probs, 0);
-        let loss_wrong = BrierScoreLoss::compute_brier_score(&probs, 1);
+        let loss_perfect = BrierScoreLoss::compute(&probs, &[1.0, 0.0]);
+        let loss_wrong = BrierScoreLoss::compute(&probs, &[0.0, 1.0]);
         assert!(loss_perfect < loss_wrong);
     }
 
