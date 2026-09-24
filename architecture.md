@@ -70,7 +70,38 @@ graph TD
 
 ---
 
-## 2. Subsystem Deep Dive
+## 2. Non-Autoregressive Pure-Rust Decision Engine (`crates/oxide-engines`)
+
+The decision engine runs **strictly non-autoregressive** (single forward pass, deterministic output, no token-generation loop), achieving ultra-low latency, calibrated confidence, and sub-500 MB footprint:
+
+```text
+[ Caller Threads / Rayon Tasks ]
+              │
+              ▼ (Non-blocking send via Flume MPMC Channel)
+    ┌────────────────────────┐
+    │     Job Queue          │
+    └────────────────────────┘
+              │
+              ▼ (Dynamic Micro-batching: up to 32 jobs or 2ms timeout)
+    ┌──────────────────────────────────┐
+    │ Dedicated Worker Thread          │ ──► [Non-Autoregressive Decision]
+    │ (CandidateVectorCache / Fast-KAN)│     • Single pooled forward pass
+    └──────────────────────────────────┘     • Brier score calibration
+              │
+              ▼ (Scatter results via oneshot sync channels)
+[ Return Result: { selected, confidence, latency } ]
+```
+
+### Core Primitives:
+- **`DecisionEngine`**: Zero-mutex contention actor-worker handle executing batched matrix multiplications on a dedicated thread.
+- **`CandidateVectorCache`**: Pre-computed normalized candidate embeddings for 30–100+ choices, performing microsecond dense dot-product evaluations against state embeddings.
+- **`FastKanDecisionHead`**: Non-autoregressive B-spline/trigonometric activation projection resolving multi-candidate probability distributions in a single pass.
+- **`BrierScoreLoss`**: Mathematically calibrated loss function avoiding the artificial overconfidence of standard cross-entropy.
+- **`AlignedTensorMap`**: SIMD-aligned (64-byte boundary) memory-mapped weights with `fs2` advisory reader locks.
+
+---
+
+## 3. Subsystem Deep Dive
 
 ### Layer 1: External Research & Perception Layer (`crates/mcp-live-docs`)
 - **Stealth Local Extraction (`d4vinci/Scrapling`)**: Fast Python-based extraction worker handling `docs.rs`, GitHub issues, and crates.io with sub-200ms DOM parsing.

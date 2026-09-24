@@ -93,7 +93,9 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`ratchet`** | `crates/ratchet/` | Dynamic native FFI hot-reloading and ABI validation runtime. |
 | **`surface-api`** | `crates/surface-api/` | Direct GPU compute and surface memory transfer abstractions. |
 | **`edge-swarm`** | `crates/edge-swarm/` | Decentralized edge agent gossip protocol and mesh coordination. |
-| **`oxide-security`** | `crates/oxide-security/` | Cloudroom-style process supervision, `< 2GB` circuit-breaker resource gater, idempotent session receipts, 16 KiB stderr ring sanitizer, bounded outbox, and process tree containment (`setpgid`). |
+| **`oxide-engines`** | `crates/oxide-engines/` | Pure-Rust non-autoregressive decision engine (`DecisionEngine`), dynamic micro-batching via Flume MPMC, `CandidateVectorCache`, Brier score calibration, Fast-KAN head, and `AlignedTensorMap` memory-mapped SIMD tensor loader. |
+| **`oxide-protocol`** | `crates/oxide-protocol/` | Hermetic FlatBuffers IPC schemas, PCB layout serialization, and zero-allocation cross-process DTOs. |
+| **`oxide-security`** | `crates/oxide-security/` | Ephemeral TLS bootstrap, Cloudroom-style process supervision, `< 2GB` circuit-breaker resource gater, idempotent session receipts, 16 KiB stderr ring sanitizer, bounded outbox, and process tree containment (`setpgid`). |
 | **`oxide-kernels`** | `crates/oxide-kernels/` | GPU architecture autotuning (Ampere, Ada, Hopper, Blackwell), tile sizing, and AVX-512F/BW SIMD tensor compression (4x FP32 $\to$ INT8). |
 | **`oxide-state`** | `crates/oxide-state/` | Centralized agent state holding SurrealDB connection, `ResourceGater`, `SessionSupervisor`, and model registries. |
 | **`oxide-gateway`** | `crates/oxide-gateway/` | High-performance Actix-web OpenAI-compatible HTTP server with token bucket rate-limiting and circuit-breaker preflight gating. |

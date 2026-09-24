@@ -4,6 +4,31 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v1.0.0-decision-engine-ascension] - 2026-09-24
+
+This milestone delivers the **Strictly Non-Autoregressive Pure-Rust Decision Engine (`crates/oxide-engines`)** and the complete execution of the **Version 2.0.0-PROD Engineering Plan**, achieving high-speed sub-millisecond local inference, sub-500 MB mobile footprints, mathematical probability calibration via Brier score loss, and hardened system-wide safety boundaries.
+
+### Major Upgrades & Enhancements
+
+#### 1. Non-Autoregressive Decision Engine (`crates/oxide-engines/src/decision_engine.rs`)
+- **Actor-Worker Dynamic Micro-Batching**: Embedded non-blocking `DecisionEngine` handle communicating with dedicated background inference worker via `flume` MPMC channel, dynamic batching (up to 32 requests or 2ms timeout) with zero mutex contention (`Arc<Mutex<Model>>` eliminated).
+- **Candidate Vector Cache (`CandidateVectorCache`)**: Pre-computed normalized candidate embeddings for 30–100+ option pools, performing microsecond dense dot-product evaluation against pooled state embeddings.
+- **Brier Score Probability Calibration (`BrierScoreLoss`)**: Mathematically enforces proper scoring rule calibration on multi-choice distributions, eliminating artificial cross-entropy overconfidence.
+- **Fast-KAN / MLP Decision Head (`FastKanDecisionHead`)**: Non-autoregressive B-spline/trigonometric activation projection layer resolving multi-candidate probability distributions in a single deterministic forward pass without token-generation loops.
+
+#### 2. Resilient Memory & High-Performance IPC (`crates/oxide-engines` & `crates/scene-forge`)
+- **Memory-Mapped SIMD Tensor Map (`AlignedTensorMap`)**: `memmap2`-backed zero-copy weight loading with `fs2` reader locks and strict 64-byte AVX-512/NEON memory alignment validation.
+- **IPC Bridge Supervisor & Shared Memory Thresholding (`BridgeSupervisor`, `ShmGeometryBuffer`)**: Bidirectional watchdog heartbeat supervisor with automatic switch to POSIX shared memory buffers for geometries $> 2\text{ MB}$.
+
+#### 3. Formal Verification, Thermal Solvers & Security Membrane
+- **Physical Trace Thermal Current (`crates/circuit-forge/src/erc.rs`)**: IPC-2152 compliant formula calculation (`calculate_ipc2152_max_current`) with electrical single-driver bus rule enforcement.
+- **SMT-LIB2 Circuit Safety Invariants (`crates/formal-verify/src/smt_solver.rs`)**: Formal SMT-LIB2 verification proving voltage, current, and ground isolation guarantees.
+- **GNN Thermal Solver (`python-bridge/training/train_thermal_model.py`)**: Graph message-passing solver for spatial temperature dissipation across multi-layer PCBs.
+- **Multi-Domain GRPO Reward Engine (`crates/model-trainer/src/rl_engine.rs`)**: Composite reward evaluator combining rustc compilation, timing slack, thermal headroom, and ERC/DRC compliance.
+- **Tiered Security Membrane (`crates/ebpf-sentinel/src/membrane.rs`)**: Capability negotiation matrix with automated containment fallbacks (`PrivilegedEbpf` $\to$ `LandlockSeccomp` $\to$ `RestrictedWasm`).
+
+---
+
 ## [v0.9.0-unsloth-cloudroom] - 2026-09-21
 
 This milestone delivers **Unsloth-Grade GPU Kernel Autotuning, Distributed RL Scaling, and Cloudroom Agent Runtime Safety & Process Supervision** across the Oxide-Tech backend.
