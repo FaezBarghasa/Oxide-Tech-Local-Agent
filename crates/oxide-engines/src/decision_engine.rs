@@ -13,12 +13,33 @@ pub struct DecisionInput {
 pub struct DecisionOutput {
     pub selected: String,
     pub confidence: f32,
+    pub confidence_spread: f32,
+    pub escalated: bool,
     pub latency: Duration,
+    pub candidate_scores: Vec<(String, f32)>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SpeculativeCascadeConfig {
+    pub confidence_spread_threshold: f32,
+    pub min_confidence_threshold: f32,
+    pub fallback_enabled: bool,
+}
+
+impl Default for SpeculativeCascadeConfig {
+    fn default() -> Self {
+        Self {
+            confidence_spread_threshold: 0.15,
+            min_confidence_threshold: 0.60,
+            fallback_enabled: true,
+        }
+    }
 }
 
 /// Internal job passing the task and a one-time response channel
 struct InferenceJob {
     input: DecisionInput,
+    cascade_config: SpeculativeCascadeConfig,
     start_time: Instant,
     tx: SyncSender<Result<DecisionOutput, String>>,
 }
@@ -34,10 +55,25 @@ pub enum DecisionDevice {
 #[derive(Clone)]
 pub struct DecisionEngine {
     tx: flume::Sender<InferenceJob>,
+    default_cascade: SpeculativeCascadeConfig,
 }
 
 impl DecisionEngine {
     pub fn new(device: DecisionDevice, max_batch_size: usize, timeout_ms: u64) -> Self {
+        Self::new_with_cascade(
+            device,
+            max_batch_size,
+            timeout_ms,
+            SpeculativeCascadeConfig::default(),
+        )
+    }
+
+    pub fn new_with_cascade(
+        device: DecisionDevice,
+        max_batch_size: usize,
+        timeout_ms: u64,
+        default_cascade: SpeculativeCascadeConfig,
+    ) -> Self {
         let (tx, rx) = flume::unbounded::<InferenceJob>();
 
         // Dedicated OS thread for compute.
@@ -49,16 +85,29 @@ impl DecisionEngine {
             })
             .expect("Failed to spawn inference worker thread");
 
-        Self { tx }
+        Self {
+            tx,
+            default_cascade,
+        }
     }
 
     /// Synchronous, blocking call. Thread-safe and re-entrant.
     pub fn decide(&self, input: DecisionInput) -> Result<DecisionOutput, String> {
+        self.decide_with_cascade(input, self.default_cascade.clone())
+    }
+
+    /// Synchronous decision call with explicit speculative cascading policy
+    pub fn decide_with_cascade(
+        &self,
+        input: DecisionInput,
+        cascade_config: SpeculativeCascadeConfig,
+    ) -> Result<DecisionOutput, String> {
         let (resp_tx, resp_rx) = channel();
 
         self.tx
             .send(InferenceJob {
                 input,
+                cascade_config,
                 start_time: Instant::now(),
                 tx: resp_tx,
             })
@@ -132,30 +181,55 @@ impl CandidateVectorCache {
 
     /// Dense dot-product similarity lookup against state embedding
     pub fn score_state(&self, state_embedding: &[f32]) -> Option<(String, f32)> {
+        let ranked = self.score_candidates_ranked(state_embedding);
+        ranked.first().cloned()
+    }
+
+    /// Ranks all candidate options with calibrated probabilities
+    pub fn score_candidates_ranked(&self, state_embedding: &[f32]) -> Vec<(String, f32)> {
         if self.vectors.is_empty() {
-            return None;
+            return Vec::new();
         }
 
         let state_norm: f32 = state_embedding.iter().map(|x| x * x).sum::<f32>().sqrt().max(1e-8);
-        let mut best_idx = 0;
-        let mut best_score = f32::NEG_INFINITY;
+        let mut scores: Vec<(String, f32)> = self
+            .candidate_ids
+            .iter()
+            .zip(self.vectors.iter())
+            .map(|(id, cand_vec)| {
+                let dot: f32 = state_embedding
+                    .iter()
+                    .zip(cand_vec.iter())
+                    .map(|(&s, &c)| (s / state_norm) * c)
+                    .sum();
+                let calibrated_prob = 1.0 / (1.0 + (-dot * 4.0).exp());
+                (id.clone(), calibrated_prob)
+            })
+            .collect();
 
-        for (i, cand_vec) in self.vectors.iter().enumerate() {
-            let dot: f32 = state_embedding
-                .iter()
-                .zip(cand_vec.iter())
-                .map(|(&s, &c)| (s / state_norm) * c)
-                .sum();
+        scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        scores
+    }
 
-            if dot > best_score {
-                best_score = dot;
-                best_idx = i;
-            }
+    /// Score state and evaluate speculative cascade thresholds
+    pub fn score_state_with_spread(
+        &self,
+        state_embedding: &[f32],
+        config: &SpeculativeCascadeConfig,
+    ) -> Option<(String, f32, f32, bool, Vec<(String, f32)>)> {
+        let ranked = self.score_candidates_ranked(state_embedding);
+        if ranked.is_empty() {
+            return None;
         }
 
-        // Apply sigmoid calibration
-        let calibrated_prob = 1.0 / (1.0 + (-best_score * 4.0).exp());
-        Some((self.candidate_ids[best_idx].clone(), calibrated_prob))
+        let top1 = &ranked[0];
+        let top2_score = if ranked.len() > 1 { ranked[1].1 } else { 0.0 };
+        let spread = top1.1 - top2_score;
+        let escalated = config.fallback_enabled
+            && (spread < config.confidence_spread_threshold
+                || top1.1 < config.min_confidence_threshold);
+
+        Some((top1.0.clone(), top1.1, spread, escalated, ranked))
     }
 }
 
@@ -228,20 +302,32 @@ fn process_batch(batch: &[InferenceJob], _device: DecisionDevice) {
             cache.insert(cand, vec);
         }
 
-        let state_hash = blake3::hash(format!("{}:{}", job.input.state, job.input.criteria).as_bytes());
+        let state_hash =
+            blake3::hash(format!("{}:{}", job.input.state, job.input.criteria).as_bytes());
         let state_vec: Vec<f32> = state_hash.as_bytes()[..16]
             .iter()
             .map(|&b| (b as f32 / 128.0) - 1.0)
             .collect();
 
-        let (selected, confidence) = cache
-            .score_state(&state_vec)
-            .unwrap_or_else(|| ("none".to_string(), 0.5));
+        let (selected, confidence, confidence_spread, escalated, candidate_scores) = cache
+            .score_state_with_spread(&state_vec, &job.cascade_config)
+            .unwrap_or_else(|| {
+                (
+                    "none".to_string(),
+                    0.5,
+                    0.0,
+                    false,
+                    vec![("none".to_string(), 0.5)],
+                )
+            });
 
         let res = DecisionOutput {
             selected,
             confidence,
+            confidence_spread,
+            escalated,
             latency: job.start_time.elapsed(),
+            candidate_scores,
         };
 
         let _ = job.tx.send(Ok(res));
@@ -284,9 +370,30 @@ mod tests {
         cache.insert("choice_b", vec![0.0, 1.0, 0.0]);
 
         let state_query = vec![0.9, 0.1, 0.0];
-        let (selected, conf) = cache.score_state(&state_query).expect("Scoring should produce result");
+        let (selected, conf) =
+            cache.score_state(&state_query).expect("Scoring should produce result");
         assert_eq!(selected, "choice_a");
         assert!(conf > 0.5);
+    }
+
+    #[test]
+    fn test_speculative_cascading_spread_detection() {
+        let mut cache = CandidateVectorCache::new();
+        cache.insert("option_1", vec![0.51, 0.50, 0.0]);
+        cache.insert("option_2", vec![0.50, 0.51, 0.0]);
+
+        let state_query = vec![0.505, 0.505, 0.0];
+        let cfg = SpeculativeCascadeConfig {
+            confidence_spread_threshold: 0.15,
+            min_confidence_threshold: 0.60,
+            fallback_enabled: true,
+        };
+
+        let (_selected, _conf, spread, escalated, ranked) =
+            cache.score_state_with_spread(&state_query, &cfg).unwrap();
+        assert_eq!(ranked.len(), 2);
+        assert!(spread < 0.15);
+        assert!(escalated, "Should trigger speculative escalation due to low spread");
     }
 
     #[test]

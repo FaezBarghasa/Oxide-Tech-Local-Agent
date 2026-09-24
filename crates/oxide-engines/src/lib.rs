@@ -24,12 +24,17 @@ pub mod decision_engine;
 pub mod llama_cpp;
 pub mod mistral_rs;
 pub mod mmap_tensor;
+pub mod mobile;
 pub mod mock;
 pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
 
-pub use decision_engine::{DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput};
+pub use decision_engine::{
+    CandidateVectorCache, DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput,
+    FastKanDecisionHead, SpeculativeCascadeConfig,
+};
+pub use mobile::MobileDecisionEngine;
 pub use polymorphic::{
     EngineCapabilities, EngineError, InferenceChunk, InferenceRequest, PolymorphicInferenceProvider,
 };
