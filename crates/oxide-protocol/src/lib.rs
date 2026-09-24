@@ -2,6 +2,11 @@ pub mod dtx;
 pub mod evidence;
 pub mod manifest;
 
+#[allow(clippy::all, unused_imports, dead_code, non_snake_case)]
+pub mod pcb_layout {
+    include!(concat!(env!("OUT_DIR"), "/pcb_layout_generated.rs"));
+}
+
 pub use dtx::*;
 pub use evidence::*;
 pub use manifest::*;

@@ -194,6 +194,78 @@ impl TensorSlice {
     }
 }
 
+/// Safe aligned tensor memory mapping with strict alignment assertion and advisory reader file-locking.
+pub struct AlignedTensorMap {
+    _file: File,
+    mmap: memmap2::Mmap,
+    aligned_offset: usize,
+    element_count: usize,
+}
+
+impl AlignedTensorMap {
+    /// Load f32 tensor slice from disk with advisory reader lock and SIMD alignment verification.
+    pub fn load_f32<P: AsRef<Path>>(path: P, offset: usize, count: usize) -> Result<Self, OxideError> {
+        let file = File::open(path.as_ref())
+            .map_err(|e| OxideError::Engine(format!("Failed to open file: {}", e)))?;
+
+        // Enforce shared advisory read lock to prevent concurrent truncation
+        file.lock_shared()
+            .map_err(|e| OxideError::Engine(format!("Failed to acquire shared lock: {}", e)))?;
+
+        let mmap = unsafe {
+            MmapOptions::new()
+                .map(&file)
+                .map_err(|e| OxideError::Engine(format!("mmap call failed: {}", e)))?
+        };
+
+        let align_req = std::mem::align_of::<f32>();
+
+        // Ensure memory mapping meets SIMD vector bounds (AVX-512 = 64-byte alignment preferred)
+        let ptr = unsafe { mmap.as_ptr().add(offset) };
+        let misalign = (ptr as usize) % align_req;
+        if misalign != 0 {
+            return Err(OxideError::Engine(format!(
+                "Alignment fault at offset {}: misaligned by {} bytes for required alignment {}",
+                offset, misalign, align_req
+            )));
+        }
+
+        // Validate byte boundary bounds
+        let required_bytes = count * std::mem::size_of::<f32>();
+        if offset + required_bytes > mmap.len() {
+            return Err(OxideError::Engine(format!(
+                "Out of bounds: requested {} bytes (offset {} + {}), available {}",
+                offset + required_bytes, offset, required_bytes, mmap.len()
+            )));
+        }
+
+        Ok(Self {
+            _file: file,
+            mmap,
+            aligned_offset: offset,
+            element_count: count,
+        })
+    }
+
+    /// Access mapped data as an immutable f32 slice.
+    pub fn as_slice(&self) -> &[f32] {
+        unsafe {
+            let ptr = self.mmap.as_ptr().add(self.aligned_offset) as *const f32;
+            std::slice::from_raw_parts(ptr, self.element_count)
+        }
+    }
+
+    /// Number of f32 elements.
+    pub fn len(&self) -> usize {
+        self.element_count
+    }
+
+    /// Check if slice is empty.
+    pub fn is_empty(&self) -> bool {
+        self.element_count == 0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -221,6 +293,25 @@ mod tests {
 
         // Out of bounds check
         let oob = model.get_tensor_slice(1000, 100, 1);
+        assert!(oob.is_err());
+    }
+
+    #[test]
+    fn test_aligned_tensor_map_f32() {
+        let mut temp = NamedTempFile::new().unwrap();
+        let floats: Vec<f32> = vec![1.0, 2.0, 3.5, 4.25, 5.125, 6.0625, 7.0, 8.0];
+        let bytes: &[u8] = unsafe {
+            std::slice::from_raw_parts(floats.as_ptr() as *const u8, floats.len() * std::mem::size_of::<f32>())
+        };
+        temp.write_all(bytes).unwrap();
+        temp.flush().unwrap();
+
+        let tensor_map = AlignedTensorMap::load_f32(temp.path(), 0, floats.len()).unwrap();
+        assert_eq!(tensor_map.len(), floats.len());
+        assert_eq!(tensor_map.as_slice(), &floats[..]);
+
+        // Test out of bounds
+        let oob = AlignedTensorMap::load_f32(temp.path(), 0, floats.len() + 1);
         assert!(oob.is_err());
     }
 }

@@ -30,7 +30,9 @@ pub mod sidecar;
 pub use candle_provider::CandleProvider;
 pub use llama_cpp::LlamaCppProvider;
 pub use mistral_rs::MistralRsProvider;
-pub use mmap_tensor::{GgufTensorInfo, GgufTensorType, MemoryAdvice, MmapModel, TensorSlice};
+pub use mmap_tensor::{
+    AlignedTensorMap, GgufTensorInfo, GgufTensorType, MemoryAdvice, MmapModel, TensorSlice,
+};
 pub use mock::MockProvider;
 pub use prism_sidecar::PrismBonsaiEngine;
 pub use sidecar::SidecarProvider;
