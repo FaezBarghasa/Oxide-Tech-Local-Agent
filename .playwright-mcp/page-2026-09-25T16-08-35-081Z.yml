@@ -1,0 +1,176 @@
+- generic [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - complementary [ref=f8e4]:
+      - generic [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - img "Oxide-Tech" [ref=f8e8]
+          - generic [ref=f8e424]:
+            - generic [ref=f8e425]:
+              - text: Oxide-Tech
+              - generic [ref=f8e426]: OS
+            - generic [ref=f8e427]: Local AI Studio
+        - button "Collapse sidebar" [ref=f8e15] [cursor=pointer]
+      - navigation [ref=f8e18]:
+        - generic [ref=f8e19]:
+          - generic [ref=f8e430]: Overview
+          - button "Dashboard System & telemetry" [ref=f8e21] [cursor=pointer]:
+            - generic [ref=f8e431]: Dashboard
+            - generic [ref=f8e432]: System & telemetry
+          - button "Playground Chat & testing" [ref=f8e31] [cursor=pointer]:
+            - generic [ref=f8e434]: Playground
+            - generic [ref=f8e435]: Chat & testing
+        - generic [ref=f8e37]:
+          - generic [ref=f8e436]: Compute
+          - button "Model Hub Universal loader" [ref=f8e39] [cursor=pointer]:
+            - generic [ref=f8e437]: Model Hub
+            - generic [ref=f8e438]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [ref=f8e53] [cursor=pointer]:
+            - generic [ref=f8e439]: Engines
+            - generic [ref=f8e440]: Candle / vLLM / SGLang
+        - generic [ref=f8e59]:
+          - generic [ref=f8e441]: Network
+          - button "Gateway OpenAI API & Keys" [ref=f8e61] [cursor=pointer]:
+            - generic [ref=f8e442]: Gateway
+            - generic [ref=f8e443]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [active] [ref=f8e69] [cursor=pointer]:
+            - generic [ref=f8e444]: Agents
+            - generic [ref=f8e445]: MCP tool sandboxes
+        - generic [ref=f8e75]:
+          - generic [ref=f8e446]: Tooling
+          - button "Datasets Formatting & recipes" [ref=f8e77] [cursor=pointer]:
+            - generic [ref=f8e447]: Datasets
+            - generic [ref=f8e448]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=f8e85] [cursor=pointer]:
+            - generic [ref=f8e449]: Export
+            - generic [ref=f8e450]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=f8e91] [cursor=pointer]:
+            - generic [ref=f8e451]: Memory
+            - generic [ref=f8e452]: STAIR & compaction
+          - button "Graph Code topology & AST" [ref=f8e103] [cursor=pointer]:
+            - generic [ref=f8e453]: Graph
+            - generic [ref=f8e454]: Code topology & AST
+        - generic [ref=f8e112]:
+          - generic [ref=f8e455]: System
+          - button "Diagnostics Hardware doctor" [ref=f8e114] [cursor=pointer]:
+            - generic [ref=f8e456]: Diagnostics
+            - generic [ref=f8e457]: Hardware doctor
+          - button "RE-Forge Binary disassembly & PTX" [ref=f8e122] [cursor=pointer]:
+            - generic [ref=f8e458]: RE-Forge
+            - generic [ref=f8e459]: Binary disassembly & PTX
+          - button "Settings Preferences" [ref=f8e131] [cursor=pointer]:
+            - generic [ref=f8e460]: Settings
+            - generic [ref=f8e461]: Preferences
+      - generic [ref=f8e138]:
+        - button "Mobile Companion P2P" [ref=f8e139] [cursor=pointer]:
+          - generic [ref=f8e462]: Mobile Companion
+          - generic [ref=f8e463]: P2P
+        - button "HITL Gate 1 Pending" [ref=f8e464] [cursor=pointer]:
+          - generic [ref=f8e465]: HITL Gate
+          - generic [ref=f8e466]: 1 Pending
+      - generic [ref=f8e467]:
+        - generic [ref=f8e468]: Cosmic Workstation
+        - generic [ref=f8e469]: Offline-First · Pop!_OS
+    - generic [ref=f8e155]:
+      - banner [ref=f8e156]:
+        - generic [ref=f8e157]:
+          - generic [ref=f8e158]: mcp
+          - generic [ref=f8e159]:
+            - heading "MCP Sandbox" [level=1] [ref=f8e1754]
+            - paragraph [ref=f8e161]: STDIO JSON-RPC 2.0
+        - generic [ref=f8e162]:
+          - button "HITL Gate" [ref=f8e163] [cursor=pointer]
+          - button "Mobile" [ref=f8e168] [cursor=pointer]
+          - button "New Session" [ref=f8e172] [cursor=pointer]
+          - button "Deploy" [ref=f8e176] [cursor=pointer]
+          - button "⌘K" [ref=f8e179] [cursor=pointer]
+      - main [ref=f8e184]:
+        - generic [ref=f8e1755]:
+          - generic [ref=f8e1756]:
+            - generic [ref=f8e1757]:
+              - generic [ref=f8e1758]:
+                - generic [ref=f8e1759]: Phase 3 · Model Context Protocol (MCP) Server Suite
+                - generic [ref=f8e1763]: STDIO JSON-RPC 2.0 · 9 native tools · JIT Tool Synthesizer · Bubblewrap sandbox
+              - generic [ref=f8e1764]: Bubblewrap Isolated
+            - generic [ref=f8e1768]:
+              - generic [ref=f8e1769] [cursor=pointer]:
+                - generic [ref=f8e1770]:
+                  - generic [ref=f8e1771]: pcb_synthesize
+                  - generic [ref=f8e1772]: 28ms
+                - generic [ref=f8e1773]: Generate KiCad 8/9 schematic from netlist specifications and component references
+              - generic [ref=f8e1774] [cursor=pointer]:
+                - generic [ref=f8e1775]:
+                  - generic [ref=f8e1776]: cargo_cross_build
+                  - generic [ref=f8e1777]: 142ms
+                - generic [ref=f8e1778]: Cross-compile bare-metal firmware targeting thumbv7em-none-eabihf with sccache
+              - generic [ref=f8e1779] [cursor=pointer]:
+                - generic [ref=f8e1780]:
+                  - generic [ref=f8e1781]: probe_rs_debug
+                  - generic [ref=f8e1782]: 85ms
+                - generic [ref=f8e1783]: Attach SWD/JTAG debugger to target MCU via CMSIS-DAP or ST-Link
+              - generic [ref=f8e1784] [cursor=pointer]:
+                - generic [ref=f8e1785]:
+                  - generic [ref=f8e1786]: qemu_redox_boot
+                  - generic [ref=f8e1787]: 310ms
+                - generic [ref=f8e1788]: Launch microVM KVM instance for Redox OS kernel verification
+              - generic [ref=f8e1789] [cursor=pointer]:
+                - generic [ref=f8e1790]:
+                  - generic [ref=f8e1791]: kicad_drc_check
+                  - generic [ref=f8e1792]: 38ms
+                - generic [ref=f8e1793]: Execute kicad-cli electrical and physical DRC rule checks with JSON output
+              - generic [ref=f8e1794] [cursor=pointer]:
+                - generic [ref=f8e1795]:
+                  - generic [ref=f8e1796]: step_to_gltf
+                  - generic [ref=f8e1797]: 64ms
+                - generic [ref=f8e1798]: FreeCAD/Blender tessellation bridge converting 3D STEP models to GLTF format
+              - generic [ref=f8e1799] [cursor=pointer]:
+                - generic [ref=f8e1800]:
+                  - generic [ref=f8e1801]: tree_sitter_parse
+                  - generic [ref=f8e1802]: 12ms
+                - generic [ref=f8e1803]: Extract AST declarations and strip function bodies for 70-90% token reduction
+              - generic [ref=f8e1804] [cursor=pointer]:
+                - generic [ref=f8e1805]:
+                  - generic [ref=f8e1806]: web_search
+                  - generic [ref=f8e1807]: 180ms
+                - generic [ref=f8e1808]: SearXNG local instance search query for electronics datasheets and RFCs
+              - generic [ref=f8e1809] [cursor=pointer]:
+                - generic [ref=f8e1810]:
+                  - generic [ref=f8e1811]: jit_tool_maker
+                  - generic [ref=f8e1812]: 95ms
+                - generic [ref=f8e1813]: Dynamic Python/Mojo tool synthesizer sandboxed with Linux bubblewrap (bwrap)
+          - generic [ref=f8e1814]:
+            - generic [ref=f8e1815]:
+              - generic [ref=f8e1816]:
+                - generic [ref=f8e1817]:
+                  - generic [ref=f8e1818]: "STDIO JSON-RPC Request: pcb_synthesize"
+                  - generic [ref=f8e1821]: "Method: tools/call"
+                - generic [ref=f8e1822]:
+                  - generic [ref=f8e1823]: "Params Payload (JSON):"
+                  - textbox [ref=f8e1824]: "{\"project_name\": \"stm32_core\", \"components\": [{\"ref\": \"U1\", \"val\": \"STM32F401\"}]}"
+              - button "Execute pcb_synthesize" [ref=f8e1825] [cursor=pointer]
+            - generic [ref=f8e1829]:
+              - generic [ref=f8e1830]:
+                - generic [ref=f8e1831]: STDIO JSON-RPC 2.0 Response
+                - generic [ref=f8e1837]: Click "Execute pcb_synthesize" to trigger the STDIO JSON-RPC 2.0 protocol cycle.
+              - generic [ref=f8e1841]:
+                - text: Bubblewrap sandbox guarantees no network or disk escapes outside
+                - code [ref=f8e1842]: workspace/
+                - text: .
+      - status "system telemetry" [ref=f8e379]:
+        - 'button "vLLM Sidecar: Running Local CUDA" [ref=f8e380] [cursor=pointer]':
+          - generic [ref=f8e382]: "vLLM Sidecar: Running"
+          - generic [ref=f8e383]: Local CUDA
+        - generic [ref=f8e384]:
+          - 'button "VRAM: 23.7GB / 24GB" [ref=f8e1843] [cursor=pointer]':
+            - generic [ref=f8e386]: "VRAM:"
+            - generic [ref=f8e387]: 23.7GB / 24GB
+          - generic [ref=f8e414]:
+            - generic [ref=f8e415]: "Tokens/sec:"
+            - generic [ref=f8e416]: "83.7"
+        - generic [ref=f8e417]:
+          - 'button "LAN: Visible" [ref=f8e418] [cursor=pointer]':
+            - generic [ref=f8e419]: "LAN:"
+            - generic [ref=f8e420]: Visible
+          - 'button "Tunnel: Inactive" [ref=f8e421] [cursor=pointer]':
+            - generic [ref=f8e422]: "Tunnel:"
+            - generic [ref=f8e423]: Inactive
+  - generic [aria-hidden] [ref=f8e534]: "0"

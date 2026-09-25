@@ -1,0 +1,147 @@
+- generic [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - complementary [ref=f8e4]:
+      - generic [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - img "Oxide-Tech" [ref=f8e8]
+          - generic [ref=f8e424]:
+            - generic [ref=f8e425]:
+              - text: Oxide-Tech
+              - generic [ref=f8e426]: OS
+            - generic [ref=f8e427]: Local AI Studio
+        - button "Collapse sidebar" [ref=f8e15] [cursor=pointer]
+      - navigation [ref=f8e18]:
+        - generic [ref=f8e19]:
+          - generic [ref=f8e430]: Overview
+          - button "Dashboard System & telemetry" [ref=f8e21] [cursor=pointer]:
+            - generic [ref=f8e431]: Dashboard
+            - generic [ref=f8e432]: System & telemetry
+          - button "Playground Chat & testing" [ref=f8e31] [cursor=pointer]:
+            - generic [ref=f8e434]: Playground
+            - generic [ref=f8e435]: Chat & testing
+        - generic [ref=f8e37]:
+          - generic [ref=f8e436]: Compute
+          - button "Model Hub Universal loader" [ref=f8e39] [cursor=pointer]:
+            - generic [ref=f8e437]: Model Hub
+            - generic [ref=f8e438]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [ref=f8e53] [cursor=pointer]:
+            - generic [ref=f8e439]: Engines
+            - generic [ref=f8e440]: Candle / vLLM / SGLang
+        - generic [ref=f8e59]:
+          - generic [ref=f8e441]: Network
+          - button "Gateway OpenAI API & Keys" [ref=f8e61] [cursor=pointer]:
+            - generic [ref=f8e442]: Gateway
+            - generic [ref=f8e443]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [ref=f8e69] [cursor=pointer]:
+            - generic [ref=f8e444]: Agents
+            - generic [ref=f8e445]: MCP tool sandboxes
+        - generic [ref=f8e75]:
+          - generic [ref=f8e446]: Tooling
+          - button "Datasets Formatting & recipes" [ref=f8e77] [cursor=pointer]:
+            - generic [ref=f8e447]: Datasets
+            - generic [ref=f8e448]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=f8e85] [cursor=pointer]:
+            - generic [ref=f8e449]: Export
+            - generic [ref=f8e450]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=f8e91] [cursor=pointer]:
+            - generic [ref=f8e451]: Memory
+            - generic [ref=f8e452]: STAIR & compaction
+          - button "Graph Code topology & AST" [ref=f8e103] [cursor=pointer]:
+            - generic [ref=f8e453]: Graph
+            - generic [ref=f8e454]: Code topology & AST
+        - generic [ref=f8e112]:
+          - generic [ref=f8e455]: System
+          - button "Diagnostics Hardware doctor" [ref=f8e114] [cursor=pointer]:
+            - generic [ref=f8e456]: Diagnostics
+            - generic [ref=f8e457]: Hardware doctor
+          - button "RE-Forge Binary disassembly & PTX" [ref=f8e122] [cursor=pointer]:
+            - generic [ref=f8e458]: RE-Forge
+            - generic [ref=f8e459]: Binary disassembly & PTX
+          - button "Settings Preferences" [active] [ref=f8e131] [cursor=pointer]:
+            - generic [ref=f8e460]: Settings
+            - generic [ref=f8e461]: Preferences
+      - generic [ref=f8e138]:
+        - button "Mobile Companion P2P" [ref=f8e139] [cursor=pointer]:
+          - generic [ref=f8e462]: Mobile Companion
+          - generic [ref=f8e463]: P2P
+        - button "HITL Gate 1 Pending" [ref=f8e464] [cursor=pointer]:
+          - generic [ref=f8e465]: HITL Gate
+          - generic [ref=f8e466]: 1 Pending
+      - generic [ref=f8e467]:
+        - generic [ref=f8e468]: Cosmic Workstation
+        - generic [ref=f8e469]: Offline-First · Pop!_OS
+    - generic [ref=f8e155]:
+      - banner [ref=f8e156]:
+        - generic [ref=f8e157]:
+          - generic [ref=f8e158]: settings
+          - generic [ref=f8e159]:
+            - heading "Settings" [level=1] [ref=f8e1845]
+            - paragraph [ref=f8e161]: Configuration
+        - generic [ref=f8e162]:
+          - button "HITL Gate" [ref=f8e163] [cursor=pointer]
+          - button "Mobile" [ref=f8e168] [cursor=pointer]
+          - button "New Session" [ref=f8e172] [cursor=pointer]
+          - button "Deploy" [ref=f8e176] [cursor=pointer]
+          - button "⌘K" [ref=f8e179] [cursor=pointer]
+      - main [ref=f8e184]:
+        - generic [ref=f8e1846]:
+          - generic [ref=f8e1847]:
+            - generic [ref=f8e1848]:
+              - generic [ref=f8e1849]:
+                - heading "Configuration" [level=2] [ref=f8e1850]
+                - paragraph [ref=f8e1854]: "Profile: standard · config.toml"
+              - generic [ref=f8e1855]:
+                - button "Reload" [ref=f8e1856] [cursor=pointer]
+                - button "Save Config" [ref=f8e1862] [cursor=pointer]
+            - generic [ref=f8e1867]:
+              - generic [ref=f8e1868]: Profile
+              - generic [ref=f8e1869]:
+                - button "Lite" [ref=f8e1870] [cursor=pointer]
+                - button "Standard" [ref=f8e1871] [cursor=pointer]
+                - button "Pro" [ref=f8e1872] [cursor=pointer]
+                - button "Airgapped" [ref=f8e1873] [cursor=pointer]
+                - button "Enterprise" [ref=f8e1874] [cursor=pointer]
+              - generic [ref=f8e1875]: standard profile
+          - generic [ref=f8e1876]:
+            - generic [ref=f8e1877]:
+              - generic [ref=f8e1878]:
+                - heading "Local Model & GGUF Storage" [level=3] [ref=f8e1879]
+                - paragraph [ref=f8e1882]:
+                  - text: Place .gguf weights in
+                  - code [ref=f8e1883]: ~/models/
+                  - text: or
+                  - code [ref=f8e1884]: /var/lib/oxide-tech/models/
+              - generic [ref=f8e1885]: OFFLINE READY
+            - generic [ref=f8e1886]:
+              - generic [ref=f8e1887]:
+                - generic [ref=f8e1888]: "Option 1: Ollama Model Runner"
+                - paragraph [ref=f8e1892]: "Run any GGUF or standard model locally with zero setup:"
+                - generic [ref=f8e1893]: ollama pull qwen2.5-coder:7b-instruct-q4_K_M
+              - generic [ref=f8e1894]:
+                - generic [ref=f8e1895]: "Option 2: Direct GGUF File Download"
+                - paragraph [ref=f8e1899]: "Download any .gguf file directly to your models folder:"
+                - generic [ref=f8e1900]: mkdir -p ~/models && curl -L -o ~/models/model.gguf <URL>
+          - generic [ref=f8e1901]:
+            - generic [ref=f8e1902]:
+              - heading "config.toml" [level=3] [ref=f8e1903]
+              - generic [ref=f8e1907]: standard profile
+            - textbox [ref=f8e1908]: "# Oxide-Tech Local Agent OS Configuration # Generated by oxide-agent-studio [profile] name = \"standard\" [gateway] host = \"127.0.0.1\" port = 8080 latency_threshold_ms = 2000 quality_threshold = 0.85 max_retries = 5 [thinker] provider = \"ollama\" model = \"deepseek-coder-v2\" temperature = 0.7 max_tokens = 4096 [oxide_embed] budget = 1500 stair_enabled = true [verifier] enabled = true phases = 7"
+      - status "system telemetry" [ref=f8e379]:
+        - 'button "vLLM Sidecar: Running Local CUDA" [ref=f8e380] [cursor=pointer]':
+          - generic [ref=f8e382]: "vLLM Sidecar: Running"
+          - generic [ref=f8e383]: Local CUDA
+        - generic [ref=f8e384]:
+          - 'button "VRAM: 23.3GB / 24GB" [ref=f8e1909] [cursor=pointer]':
+            - generic [ref=f8e386]: "VRAM:"
+            - generic [ref=f8e387]: 23.3GB / 24GB
+          - generic [ref=f8e414]:
+            - generic [ref=f8e415]: "Tokens/sec:"
+            - generic [ref=f8e416]: "87.4"
+        - generic [ref=f8e417]:
+          - 'button "LAN: Visible" [ref=f8e418] [cursor=pointer]':
+            - generic [ref=f8e419]: "LAN:"
+            - generic [ref=f8e420]: Visible
+          - 'button "Tunnel: Inactive" [ref=f8e421] [cursor=pointer]':
+            - generic [ref=f8e422]: "Tunnel:"
+            - generic [ref=f8e423]: Inactive
+  - generic [aria-hidden] [ref=f8e534]: "0"

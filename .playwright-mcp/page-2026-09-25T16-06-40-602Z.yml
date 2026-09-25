@@ -1,0 +1,471 @@
+- generic [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - complementary [ref=f8e4]:
+      - generic [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - img "Oxide-Tech" [ref=f8e8]
+          - generic [ref=f8e424]:
+            - generic [ref=f8e425]:
+              - text: Oxide-Tech
+              - generic [ref=f8e426]: OS
+            - generic [ref=f8e427]: Local AI Studio
+        - button "Collapse sidebar" [ref=f8e15] [cursor=pointer]
+      - navigation [ref=f8e18]:
+        - generic [ref=f8e19]:
+          - generic [ref=f8e430]: Overview
+          - button "Dashboard System & telemetry" [ref=f8e21] [cursor=pointer]:
+            - generic [ref=f8e431]: Dashboard
+            - generic [ref=f8e432]: System & telemetry
+          - button "Playground Chat & testing" [ref=f8e31] [cursor=pointer]:
+            - generic [ref=f8e434]: Playground
+            - generic [ref=f8e435]: Chat & testing
+        - generic [ref=f8e37]:
+          - generic [ref=f8e436]: Compute
+          - button "Model Hub Universal loader" [active] [ref=f8e39] [cursor=pointer]:
+            - generic [ref=f8e437]: Model Hub
+            - generic [ref=f8e438]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [ref=f8e53] [cursor=pointer]:
+            - generic [ref=f8e439]: Engines
+            - generic [ref=f8e440]: Candle / vLLM / SGLang
+        - generic [ref=f8e59]:
+          - generic [ref=f8e441]: Network
+          - button "Gateway OpenAI API & Keys" [ref=f8e61] [cursor=pointer]:
+            - generic [ref=f8e442]: Gateway
+            - generic [ref=f8e443]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [ref=f8e69] [cursor=pointer]:
+            - generic [ref=f8e444]: Agents
+            - generic [ref=f8e445]: MCP tool sandboxes
+        - generic [ref=f8e75]:
+          - generic [ref=f8e446]: Tooling
+          - button "Datasets Formatting & recipes" [ref=f8e77] [cursor=pointer]:
+            - generic [ref=f8e447]: Datasets
+            - generic [ref=f8e448]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=f8e85] [cursor=pointer]:
+            - generic [ref=f8e449]: Export
+            - generic [ref=f8e450]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=f8e91] [cursor=pointer]:
+            - generic [ref=f8e451]: Memory
+            - generic [ref=f8e452]: STAIR & compaction
+          - button "Graph Code topology & AST" [ref=f8e103] [cursor=pointer]:
+            - generic [ref=f8e453]: Graph
+            - generic [ref=f8e454]: Code topology & AST
+        - generic [ref=f8e112]:
+          - generic [ref=f8e455]: System
+          - button "Diagnostics Hardware doctor" [ref=f8e114] [cursor=pointer]:
+            - generic [ref=f8e456]: Diagnostics
+            - generic [ref=f8e457]: Hardware doctor
+          - button "RE-Forge Binary disassembly & PTX" [ref=f8e122] [cursor=pointer]:
+            - generic [ref=f8e458]: RE-Forge
+            - generic [ref=f8e459]: Binary disassembly & PTX
+          - button "Settings Preferences" [ref=f8e131] [cursor=pointer]:
+            - generic [ref=f8e460]: Settings
+            - generic [ref=f8e461]: Preferences
+      - generic [ref=f8e138]:
+        - button "Mobile Companion P2P" [ref=f8e139] [cursor=pointer]:
+          - generic [ref=f8e462]: Mobile Companion
+          - generic [ref=f8e463]: P2P
+        - button "HITL Gate 1 Pending" [ref=f8e464] [cursor=pointer]:
+          - generic [ref=f8e465]: HITL Gate
+          - generic [ref=f8e466]: 1 Pending
+      - generic [ref=f8e467]:
+        - generic [ref=f8e468]: Cosmic Workstation
+        - generic [ref=f8e469]: Offline-First · Pop!_OS
+    - generic [ref=f8e155]:
+      - banner [ref=f8e156]:
+        - generic [ref=f8e157]:
+          - generic [ref=f8e158]: catalog
+          - generic [ref=f8e159]:
+            - heading "Model Catalog" [level=1] [ref=f8e1240]
+            - paragraph [ref=f8e161]: Memory profiling & fit calculator
+        - generic [ref=f8e162]:
+          - button "HITL Gate" [ref=f8e163] [cursor=pointer]
+          - button "Mobile" [ref=f8e168] [cursor=pointer]
+          - button "New Session" [ref=f8e172] [cursor=pointer]
+          - button "Deploy" [ref=f8e176] [cursor=pointer]
+          - button "⌘K" [ref=f8e179] [cursor=pointer]
+      - main [ref=f8e184]:
+        - generic [ref=f8e1241]:
+          - generic [ref=f8e1242]:
+            - generic [ref=f8e1243]:
+              - generic [ref=f8e1244]:
+                - generic [ref=f8e1245]: Phase 6 · Model Catalog & Comparative Evaluation Benchmarks
+                - generic [ref=f8e1257]: Dual RTX 3090 (48 GB Total VRAM) · SGLang TP=2 Serving · Latency & Throughput Benchmark Suite
+              - generic [ref=f8e1258]:
+                - generic [ref=f8e1259]: 🦥
+                - text: "RIG CAPACITY: 48 GB (DUAL 3090)"
+            - generic [ref=f8e1260]:
+              - generic [ref=f8e1261]:
+                - generic [ref=f8e1262]:
+                  - generic [ref=f8e1263]:
+                    - generic [ref=f8e1264]: DeepSeek R1 Qwen3 8B (Local GGUF)
+                    - generic [ref=f8e1265]: READY
+                  - generic [ref=f8e1266]: Local GGUF in ~/models with deep chain-of-thought reasoning and math/code capabilities
+                  - generic [ref=f8e1267]:
+                    - generic [ref=f8e1268]:
+                      - generic [ref=f8e1269]: "Params:"
+                      - generic [ref=f8e1270]: 8B
+                    - generic [ref=f8e1271]:
+                      - generic [ref=f8e1272]: "Format:"
+                      - text: GGUF
+                    - generic [ref=f8e1273]:
+                      - generic [ref=f8e1274]: "Parallelism:"
+                      - generic [ref=f8e1275]: TP=1
+                    - generic [ref=f8e1276]:
+                      - generic [ref=f8e1277]: "VRAM Req:"
+                      - generic [ref=f8e1278]: 5.2 GB
+                - generic [ref=f8e1279]:
+                  - generic [ref=f8e1280]:
+                    - generic [ref=f8e1281]: Local ~/models
+                    - generic [ref=f8e1282]: GGUF Q4_K_M
+                    - generic [ref=f8e1283]: Reasoning CoT
+                    - generic [ref=f8e1284]: Active
+                  - button "Deploy →" [ref=f8e1285] [cursor=pointer]
+              - generic [ref=f8e1286]:
+                - generic [ref=f8e1287]:
+                  - generic [ref=f8e1288]:
+                    - generic [ref=f8e1289]: Ornith 1.0 9B (Local GGUF)
+                    - generic [ref=f8e1290]: READY
+                  - generic [ref=f8e1291]: Local GGUF in ~/models optimized for systems, embedded firmware, and KiCad DRC generation
+                  - generic [ref=f8e1292]:
+                    - generic [ref=f8e1293]:
+                      - generic [ref=f8e1294]: "Params:"
+                      - generic [ref=f8e1295]: 9B
+                    - generic [ref=f8e1296]:
+                      - generic [ref=f8e1297]: "Format:"
+                      - text: GGUF
+                    - generic [ref=f8e1298]:
+                      - generic [ref=f8e1299]: "Parallelism:"
+                      - generic [ref=f8e1300]: TP=1
+                    - generic [ref=f8e1301]:
+                      - generic [ref=f8e1302]: "VRAM Req:"
+                      - generic [ref=f8e1303]: 5.8 GB
+                - generic [ref=f8e1304]:
+                  - generic [ref=f8e1305]:
+                    - generic [ref=f8e1306]: Local ~/models
+                    - generic [ref=f8e1307]: GGUF Q4_K_M
+                    - generic [ref=f8e1308]: Embedded & EDA
+                    - generic [ref=f8e1309]: Active
+                  - button "Deploy →" [ref=f8e1310] [cursor=pointer]
+              - generic [ref=f8e1311]:
+                - generic [ref=f8e1312]:
+                  - generic [ref=f8e1313]:
+                    - generic [ref=f8e1314]: Gemma 4 v2 (Local GGUF Q3)
+                    - generic [ref=f8e1315]: READY
+                  - generic [ref=f8e1316]: Local GGUF in ~/models for fast multi-modal context comprehension and code translation
+                  - generic [ref=f8e1317]:
+                    - generic [ref=f8e1318]:
+                      - generic [ref=f8e1319]: "Params:"
+                      - generic [ref=f8e1320]: 9B
+                    - generic [ref=f8e1321]:
+                      - generic [ref=f8e1322]: "Format:"
+                      - text: GGUF
+                    - generic [ref=f8e1323]:
+                      - generic [ref=f8e1324]: "Parallelism:"
+                      - generic [ref=f8e1325]: TP=1
+                    - generic [ref=f8e1326]:
+                      - generic [ref=f8e1327]: "VRAM Req:"
+                      - generic [ref=f8e1328]: 6.2 GB
+                - generic [ref=f8e1329]:
+                  - generic [ref=f8e1330]:
+                    - generic [ref=f8e1331]: Local ~/models
+                    - generic [ref=f8e1332]: GGUF Q3_K_M
+                    - generic [ref=f8e1333]: Fast TTFT
+                  - button "Deploy →" [ref=f8e1334] [cursor=pointer]
+              - generic [ref=f8e1335]:
+                - generic [ref=f8e1336]:
+                  - generic [ref=f8e1337]:
+                    - generic [ref=f8e1338]: Gemma 4 e2b IT (Local GGUF Q8)
+                    - generic [ref=f8e1339]: READY
+                  - generic [ref=f8e1340]: Local GGUF in ~/models with high-precision 8-bit quantization for deterministic verification
+                  - generic [ref=f8e1341]:
+                    - generic [ref=f8e1342]:
+                      - generic [ref=f8e1343]: "Params:"
+                      - generic [ref=f8e1344]: 9B
+                    - generic [ref=f8e1345]:
+                      - generic [ref=f8e1346]: "Format:"
+                      - text: GGUF
+                    - generic [ref=f8e1347]:
+                      - generic [ref=f8e1348]: "Parallelism:"
+                      - generic [ref=f8e1349]: TP=1
+                    - generic [ref=f8e1350]:
+                      - generic [ref=f8e1351]: "VRAM Req:"
+                      - generic [ref=f8e1352]: 5.1 GB
+                - generic [ref=f8e1353]:
+                  - generic [ref=f8e1354]:
+                    - generic [ref=f8e1355]: Local ~/models
+                    - generic [ref=f8e1356]: GGUF Q8_0
+                    - generic [ref=f8e1357]: High Precision
+                  - button "Deploy →" [ref=f8e1358] [cursor=pointer]
+              - generic [ref=f8e1359]:
+                - generic [ref=f8e1360]:
+                  - generic [ref=f8e1361]:
+                    - generic [ref=f8e1362]: Qwen 2.5 32B Instruct
+                    - generic [ref=f8e1363]: READY
+                  - generic [ref=f8e1364]: Primary base model for bare-metal embedded Rust & KiCad EDA synthesis
+                  - generic [ref=f8e1365]:
+                    - generic [ref=f8e1366]:
+                      - generic [ref=f8e1367]: "Params:"
+                      - generic [ref=f8e1368]: 32B
+                    - generic [ref=f8e1369]:
+                      - generic [ref=f8e1370]: "Format:"
+                      - text: AWQ
+                    - generic [ref=f8e1371]:
+                      - generic [ref=f8e1372]: "Parallelism:"
+                      - generic [ref=f8e1373]: TP=2
+                    - generic [ref=f8e1374]:
+                      - generic [ref=f8e1375]: "VRAM Req:"
+                      - generic [ref=f8e1376]: 18.4 GB
+                - generic [ref=f8e1377]:
+                  - generic [ref=f8e1378]:
+                    - generic [ref=f8e1379]: QDoRA 4-bit
+                    - generic [ref=f8e1380]: TP=2 Ready
+                  - button "Deploy →" [ref=f8e1381] [cursor=pointer]
+              - generic [ref=f8e1382]:
+                - generic [ref=f8e1383]:
+                  - generic [ref=f8e1384]:
+                    - generic [ref=f8e1385]: Llama 3.3 70B Instruct
+                    - generic [ref=f8e1386]: READY
+                  - generic [ref=f8e1387]: Unsloth 4-bit dynamic quantized checkpoint with 80% VRAM reduction
+                  - generic [ref=f8e1388]:
+                    - generic [ref=f8e1389]:
+                      - generic [ref=f8e1390]: "Params:"
+                      - generic [ref=f8e1391]: 70B
+                    - generic [ref=f8e1392]:
+                      - generic [ref=f8e1393]: "Format:"
+                      - text: NF4
+                    - generic [ref=f8e1394]:
+                      - generic [ref=f8e1395]: "Parallelism:"
+                      - generic [ref=f8e1396]: TP=2
+                    - generic [ref=f8e1397]:
+                      - generic [ref=f8e1398]: "VRAM Req:"
+                      - generic [ref=f8e1399]: 23.5 GB
+                - generic [ref=f8e1400]:
+                  - generic [ref=f8e1401]:
+                    - generic [ref=f8e1402]: Unsloth Native
+                    - generic [ref=f8e1403]: Fast Kernels
+                  - button "Deploy →" [ref=f8e1404] [cursor=pointer]
+              - generic [ref=f8e1405]:
+                - generic [ref=f8e1406]:
+                  - generic [ref=f8e1407]:
+                    - generic [ref=f8e1408]: Qwen 2.5 Coder 32B
+                    - generic [ref=f8e1409]: READY
+                  - generic [ref=f8e1410]: High tool-agent precision for STDIO JSON-RPC 2.0 multi-step workflows
+                  - generic [ref=f8e1411]:
+                    - generic [ref=f8e1412]:
+                      - generic [ref=f8e1413]: "Params:"
+                      - generic [ref=f8e1414]: 32B
+                    - generic [ref=f8e1415]:
+                      - generic [ref=f8e1416]: "Format:"
+                      - text: AWQ
+                    - generic [ref=f8e1417]:
+                      - generic [ref=f8e1418]: "Parallelism:"
+                      - generic [ref=f8e1419]: TP=2
+                    - generic [ref=f8e1420]:
+                      - generic [ref=f8e1421]: "VRAM Req:"
+                      - generic [ref=f8e1422]: 18.5 GB
+                - generic [ref=f8e1423]:
+                  - generic [ref=f8e1424]:
+                    - generic [ref=f8e1425]: Tool Agent
+                    - generic [ref=f8e1426]: MCP Ready
+                  - button "Deploy →" [ref=f8e1427] [cursor=pointer]
+              - generic [ref=f8e1428]:
+                - generic [ref=f8e1429]:
+                  - generic [ref=f8e1430]:
+                    - generic [ref=f8e1431]: Gemma 2 9B IT
+                    - generic [ref=f8e1432]: READY
+                  - generic [ref=f8e1433]: Lightweight fast inference model for real-time AST linting and DRC parsing
+                  - generic [ref=f8e1434]:
+                    - generic [ref=f8e1435]:
+                      - generic [ref=f8e1436]: "Params:"
+                      - generic [ref=f8e1437]: 9B
+                    - generic [ref=f8e1438]:
+                      - generic [ref=f8e1439]: "Format:"
+                      - text: BF16
+                    - generic [ref=f8e1440]:
+                      - generic [ref=f8e1441]: "Parallelism:"
+                      - generic [ref=f8e1442]: TP=1
+                    - generic [ref=f8e1443]:
+                      - generic [ref=f8e1444]: "VRAM Req:"
+                      - generic [ref=f8e1445]: 12.8 GB
+                - generic [ref=f8e1446]:
+                  - generic [ref=f8e1447]:
+                    - generic [ref=f8e1448]: Fast TTFT
+                    - generic [ref=f8e1449]: Single GPU
+                  - button "Deploy →" [ref=f8e1450] [cursor=pointer]
+              - generic [ref=f8e1451]:
+                - generic [ref=f8e1452]:
+                  - generic [ref=f8e1453]:
+                    - generic [ref=f8e1454]: Llama 3.1 8B Instruct
+                    - generic [ref=f8e1455]: REMOTE
+                  - generic [ref=f8e1456]: Ultra-fast sub-agent reasoning unit for steno.rs context pruning
+                  - generic [ref=f8e1457]:
+                    - generic [ref=f8e1458]:
+                      - generic [ref=f8e1459]: "Params:"
+                      - generic [ref=f8e1460]: 8B
+                    - generic [ref=f8e1461]:
+                      - generic [ref=f8e1462]: "Format:"
+                      - text: 4-bit
+                    - generic [ref=f8e1463]:
+                      - generic [ref=f8e1464]: "Parallelism:"
+                      - generic [ref=f8e1465]: TP=1
+                    - generic [ref=f8e1466]:
+                      - generic [ref=f8e1467]: "VRAM Req:"
+                      - generic [ref=f8e1468]: 6.2 GB
+                - generic [ref=f8e1469]:
+                  - generic [ref=f8e1470]:
+                    - generic [ref=f8e1471]: Sub-agent
+                    - generic [ref=f8e1472]: Unsloth Optimized
+                  - button "Deploy →" [ref=f8e1473] [cursor=pointer]
+              - generic [ref=f8e1474]:
+                - generic [ref=f8e1475]:
+                  - generic [ref=f8e1476]:
+                    - generic [ref=f8e1477]: DeepSeek Coder V2 Lite
+                    - generic [ref=f8e1478]: REMOTE
+                  - generic [ref=f8e1479]: MoE architecture for synthetic dataset generation and schema validation
+                  - generic [ref=f8e1480]:
+                    - generic [ref=f8e1481]:
+                      - generic [ref=f8e1482]: "Params:"
+                      - generic [ref=f8e1483]: 16B
+                    - generic [ref=f8e1484]:
+                      - generic [ref=f8e1485]: "Format:"
+                      - text: NF4
+                    - generic [ref=f8e1486]:
+                      - generic [ref=f8e1487]: "Parallelism:"
+                      - generic [ref=f8e1488]: TP=2
+                    - generic [ref=f8e1489]:
+                      - generic [ref=f8e1490]: "VRAM Req:"
+                      - generic [ref=f8e1491]: 11.2 GB
+                - generic [ref=f8e1492]:
+                  - generic [ref=f8e1493]:
+                    - generic [ref=f8e1494]: Synthetic Teacher
+                    - generic [ref=f8e1495]: MoE
+                  - button "Deploy →" [ref=f8e1496] [cursor=pointer]
+          - generic [ref=f8e1497]:
+            - generic [ref=f8e1498]:
+              - generic [ref=f8e1499]:
+                - generic [ref=f8e1500]: Comparative Model Evaluation & Latency/Throughput Benchmarks
+                - generic [ref=f8e1504]: Empirical SGLang + RadixAttention metrics benchmarked on Dual NVIDIA RTX 3090 (48GB VRAM)
+              - generic [ref=f8e1505]:
+                - generic [ref=f8e1506]:
+                  - button "Throughput (tok/s)" [ref=f8e1507] [cursor=pointer]
+                  - button "TTFT Latency (ms)" [ref=f8e1511] [cursor=pointer]
+                  - button "DRC Accuracy %" [ref=f8e1516] [cursor=pointer]
+                - generic [ref=f8e1520]:
+                  - button "All" [ref=f8e1521]
+                  - button "TP=2" [ref=f8e1522]
+                  - button "TP=1" [ref=f8e1523]
+            - generic [ref=f8e1524]:
+              - generic [ref=f8e1525]:
+                - generic [ref=f8e1526]:
+                  - generic [ref=f8e1527]: Generation Throughput (Tokens / Second)
+                  - generic [ref=f8e1528]: Standard vs RadixAttention KV
+                - generic [ref=f8e1531]:
+                  - generic [ref=f8e1533]:
+                    - generic [ref=f8e1534]: Standard Throughput
+                    - generic [ref=f8e1537]: RadixAttention Cache Hit
+                  - application [ref=f8e1540]:
+                    - generic [ref=f8e1544]:
+                      - generic [ref=f8e1547]:
+                        - generic [ref=f8e1550] [cursor=pointer]
+                        - generic [ref=f8e1553] [cursor=pointer]
+                        - generic [ref=f8e1556] [cursor=pointer]
+                        - generic [ref=f8e1559] [cursor=pointer]
+                        - generic [ref=f8e1562] [cursor=pointer]
+                        - generic [ref=f8e1565] [cursor=pointer]
+                      - generic [ref=f8e1568]:
+                        - generic [ref=f8e1571] [cursor=pointer]
+                        - generic [ref=f8e1574] [cursor=pointer]
+                        - generic [ref=f8e1577] [cursor=pointer]
+                        - generic [ref=f8e1580] [cursor=pointer]
+                        - generic [ref=f8e1583] [cursor=pointer]
+                        - generic [ref=f8e1586] [cursor=pointer]
+                    - generic [ref=f8e1594]:
+                      - generic [ref=f8e1595]:
+                        - generic [ref=f8e1596]: Qwen 32B QDoRA
+                        - generic [ref=f8e1598]: Llama 70B NF4
+                        - generic [ref=f8e1600]: Qwen Coder 32B
+                        - generic [ref=f8e1602]: Gemma 2 9B
+                        - generic [ref=f8e1604]: Llama 8B 4-bit
+                        - generic [ref=f8e1606]: DeepSeek Coder MoE
+                      - generic [ref=f8e1608]:
+                        - generic [ref=f8e1609]: 0 tok/s
+                        - generic [ref=f8e1611]: 65tok/s
+                        - generic [ref=f8e1613]: 130tok/s
+                        - generic [ref=f8e1615]: 195tok/s
+                        - generic [ref=f8e1617]: 260tok/s
+              - generic [ref=f8e1619]:
+                - generic [ref=f8e1620]:
+                  - generic [ref=f8e1621]:
+                    - generic [ref=f8e1622]: Qwen 32B QDoRA
+                    - generic [ref=f8e1627]: TP=2
+                  - generic [ref=f8e1628]:
+                    - generic [ref=f8e1629]:
+                      - generic [ref=f8e1630]: "Time To First Token:"
+                      - generic [ref=f8e1631]: 42 ms
+                    - generic [ref=f8e1632]:
+                      - generic [ref=f8e1633]: "Single-Stream Gen:"
+                      - generic [ref=f8e1634]: 88.4 tok/s
+                    - generic [ref=f8e1635]:
+                      - generic [ref=f8e1636]: "Radix Cache Reuse:"
+                      - generic [ref=f8e1637]: 142 tok/s
+                    - generic [ref=f8e1638]:
+                      - generic [ref=f8e1639]: "Batch=16 Throughput:"
+                      - generic [ref=f8e1640]: 395 tok/s
+                    - generic [ref=f8e1641]:
+                      - generic [ref=f8e1642]: "KiCad DRC Pass Rate:"
+                      - generic [ref=f8e1643]: 94.2%
+                - generic [ref=f8e1644]:
+                  - generic [ref=f8e1645]: "VRAM Footprint:"
+                  - generic [ref=f8e1646]: 18.4 GB / 48 GB (Dual 3090)
+          - generic [ref=f8e1647]:
+            - generic [ref=f8e1648]:
+              - generic [ref=f8e1649]: Unsloth VRAM Pre-Flight Calculator (Dual RTX 3090)
+              - generic [ref=f8e1653]: "Formula: (Φ · b / 8) × 1.25 + KV_Cache + Adapter_Memory"
+            - generic [ref=f8e1654]:
+              - generic [ref=f8e1655]:
+                - generic [ref=f8e1656]: Parameters (Billion)
+                - spinbutton [ref=f8e1657]: "32"
+              - generic [ref=f8e1658]:
+                - generic [ref=f8e1659]: Quantization Bit Width
+                - combobox [ref=f8e1660]:
+                  - option "4-bit (Unsloth QDoRA / AWQ / NF4)" [selected]
+                  - option "8-bit (INT8)"
+                  - option "16-bit (BF16 / FP16)"
+              - generic [ref=f8e1661]:
+                - generic [ref=f8e1662]: Context Length (Tokens)
+                - spinbutton [ref=f8e1663]: "16384"
+              - generic [ref=f8e1664]:
+                - generic [ref=f8e1665]: LoRA Rank (r)
+                - spinbutton [ref=f8e1666]: "16"
+            - generic [ref=f8e1667]:
+              - generic [ref=f8e1668]:
+                - generic [ref=f8e1669]: Total Estimated VRAM
+                - generic [ref=f8e1670]: 24.5 GB
+                - generic [ref=f8e1671]: Dual RTX 3090 (48 GB)
+              - generic [ref=f8e1672]:
+                - generic [ref=f8e1673]: Headroom / Buffer
+                - generic [ref=f8e1674]: 23.5 GB
+                - generic [ref=f8e1675]: ✓ Safe for serving
+              - generic [ref=f8e1676]:
+                - generic [ref=f8e1677]: Per-GPU Allocation (TP=2)
+                - generic [ref=f8e1678]: 12.3 GB / GPU
+                - generic [ref=f8e1679]: Tensor Parallelism = 2
+      - status "system telemetry" [ref=f8e379]:
+        - 'button "vLLM Sidecar: Running Local CUDA" [ref=f8e380] [cursor=pointer]':
+          - generic [ref=f8e382]: "vLLM Sidecar: Running"
+          - generic [ref=f8e383]: Local CUDA
+        - generic [ref=f8e384]:
+          - 'button "VRAM: 23.7GB / 24GB" [ref=f8e1680] [cursor=pointer]':
+            - generic [ref=f8e386]: "VRAM:"
+            - generic [ref=f8e387]: 23.7GB / 24GB
+          - generic [ref=f8e414]:
+            - generic [ref=f8e415]: "Tokens/sec:"
+            - generic [ref=f8e416]: "54.6"
+        - generic [ref=f8e417]:
+          - 'button "LAN: Visible" [ref=f8e418] [cursor=pointer]':
+            - generic [ref=f8e419]: "LAN:"
+            - generic [ref=f8e420]: Visible
+          - 'button "Tunnel: Inactive" [ref=f8e421] [cursor=pointer]':
+            - generic [ref=f8e422]: "Tunnel:"
+            - generic [ref=f8e423]: Inactive
+  - generic [aria-hidden] [ref=f8e534]: "0"

@@ -1,0 +1,168 @@
+- generic [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - complementary [ref=f8e4]:
+      - generic [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - img "Oxide-Tech" [ref=f8e8]
+          - generic [ref=f8e424]:
+            - generic [ref=f8e425]:
+              - text: Oxide-Tech
+              - generic [ref=f8e426]: OS
+            - generic [ref=f8e427]: Local AI Studio
+        - button "Collapse sidebar" [ref=f8e15] [cursor=pointer]
+      - navigation [ref=f8e18]:
+        - generic [ref=f8e19]:
+          - generic [ref=f8e430]: Overview
+          - button "Dashboard System & telemetry" [ref=f8e21] [cursor=pointer]:
+            - generic [ref=f8e431]: Dashboard
+            - generic [ref=f8e432]: System & telemetry
+          - button "Playground Chat & testing" [ref=f8e31] [cursor=pointer]:
+            - generic [ref=f8e434]: Playground
+            - generic [ref=f8e435]: Chat & testing
+        - generic [ref=f8e37]:
+          - generic [ref=f8e436]: Compute
+          - button "Model Hub Universal loader" [ref=f8e39] [cursor=pointer]:
+            - generic [ref=f8e437]: Model Hub
+            - generic [ref=f8e438]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [active] [ref=f8e53] [cursor=pointer]:
+            - generic [ref=f8e439]: Engines
+            - generic [ref=f8e440]: Candle / vLLM / SGLang
+        - generic [ref=f8e59]:
+          - generic [ref=f8e441]: Network
+          - button "Gateway OpenAI API & Keys" [ref=f8e61] [cursor=pointer]:
+            - generic [ref=f8e442]: Gateway
+            - generic [ref=f8e443]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [ref=f8e69] [cursor=pointer]:
+            - generic [ref=f8e444]: Agents
+            - generic [ref=f8e445]: MCP tool sandboxes
+        - generic [ref=f8e75]:
+          - generic [ref=f8e446]: Tooling
+          - button "Datasets Formatting & recipes" [ref=f8e77] [cursor=pointer]:
+            - generic [ref=f8e447]: Datasets
+            - generic [ref=f8e448]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=f8e85] [cursor=pointer]:
+            - generic [ref=f8e449]: Export
+            - generic [ref=f8e450]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=f8e91] [cursor=pointer]:
+            - generic [ref=f8e451]: Memory
+            - generic [ref=f8e452]: STAIR & compaction
+          - button "Graph Code topology & AST" [ref=f8e103] [cursor=pointer]:
+            - generic [ref=f8e453]: Graph
+            - generic [ref=f8e454]: Code topology & AST
+        - generic [ref=f8e112]:
+          - generic [ref=f8e455]: System
+          - button "Diagnostics Hardware doctor" [ref=f8e114] [cursor=pointer]:
+            - generic [ref=f8e456]: Diagnostics
+            - generic [ref=f8e457]: Hardware doctor
+          - button "RE-Forge Binary disassembly & PTX" [ref=f8e122] [cursor=pointer]:
+            - generic [ref=f8e458]: RE-Forge
+            - generic [ref=f8e459]: Binary disassembly & PTX
+          - button "Settings Preferences" [ref=f8e131] [cursor=pointer]:
+            - generic [ref=f8e460]: Settings
+            - generic [ref=f8e461]: Preferences
+      - generic [ref=f8e138]:
+        - button "Mobile Companion P2P" [ref=f8e139] [cursor=pointer]:
+          - generic [ref=f8e462]: Mobile Companion
+          - generic [ref=f8e463]: P2P
+        - button "HITL Gate 1 Pending" [ref=f8e464] [cursor=pointer]:
+          - generic [ref=f8e465]: HITL Gate
+          - generic [ref=f8e466]: 1 Pending
+      - generic [ref=f8e467]:
+        - generic [ref=f8e468]: Cosmic Workstation
+        - generic [ref=f8e469]: Offline-First · Pop!_OS
+    - generic [ref=f8e155]:
+      - banner [ref=f8e156]:
+        - generic [ref=f8e157]:
+          - generic [ref=f8e158]: sglang
+          - generic [ref=f8e159]:
+            - heading "SGLang Engine" [level=1] [ref=f8e1682]
+            - paragraph [ref=f8e161]: RadixAttention prefix caching
+        - generic [ref=f8e162]:
+          - button "HITL Gate" [ref=f8e163] [cursor=pointer]
+          - button "Mobile" [ref=f8e168] [cursor=pointer]
+          - button "New Session" [ref=f8e172] [cursor=pointer]
+          - button "Deploy" [ref=f8e176] [cursor=pointer]
+          - button "⌘K" [ref=f8e179] [cursor=pointer]
+      - main [ref=f8e184]:
+        - generic [ref=f8e1683]:
+          - generic [ref=f8e1684]:
+            - generic [ref=f8e1685]:
+              - generic [ref=f8e1686]:
+                - generic [ref=f8e1687]: SGLang TP=2 Serving Engine · Unsloth Optimized
+                - generic [ref=f8e1692]: Qwen/Qwen2.5-32B (4-bit QDoRA) · RadixAttention LRU Tree · Multi-LoRA Multi-Tenant
+              - generic [ref=f8e1693]: SGLang :8080 ONLINE
+            - generic [ref=f8e1695]:
+              - generic [ref=f8e1696]:
+                - generic [ref=f8e1697]: Active Model
+                - generic [ref=f8e1698]: Qwen2.5-32B
+                - generic [ref=f8e1699]: Unsloth 4-bit
+              - generic [ref=f8e1700]:
+                - generic [ref=f8e1701]: TP Cluster
+                - generic [ref=f8e1702]: TP=2
+                - generic [ref=f8e1703]: Dual RTX 3090
+              - generic [ref=f8e1704]:
+                - generic [ref=f8e1705]: Port
+                - generic [ref=f8e1706]: :8080
+                - generic [ref=f8e1707]: HTTP & OpenAI API
+              - generic [ref=f8e1708]:
+                - generic [ref=f8e1709]: Max LoRA
+                - generic [ref=f8e1710]: r=32
+                - generic [ref=f8e1711]: Multi-adapter
+              - generic [ref=f8e1712]:
+                - generic [ref=f8e1713]: Cache Hit
+                - generic [ref=f8e1714]: 87.3%
+                - generic [ref=f8e1715]: RadixAttention
+          - generic [ref=f8e1716]:
+            - generic [ref=f8e1718]:
+              - generic [ref=f8e1719]:
+                - generic [ref=f8e1720]: Active In-Memory LoRA Adapters
+                - generic [ref=f8e1721]: 3 / 8 slots used
+              - generic [ref=f8e1722]:
+                - generic [ref=f8e1723]:
+                  - generic [ref=f8e1724]:
+                    - generic [ref=f8e1725]: rust_v2 (embedded-rust)
+                    - generic [ref=f8e1726]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=f8e1727]: LOADED
+                - generic [ref=f8e1728]:
+                  - generic [ref=f8e1729]:
+                    - generic [ref=f8e1730]: pcb_v1 (kicad-schgen)
+                    - generic [ref=f8e1731]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=f8e1732]: LOADED
+                - generic [ref=f8e1733]:
+                  - generic [ref=f8e1734]:
+                    - generic [ref=f8e1735]: cad_v1 (build123d-step)
+                    - generic [ref=f8e1736]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=f8e1737]: LOADED
+            - generic [ref=f8e1739]:
+              - generic [ref=f8e1740]:
+                - generic [ref=f8e1741]: SGLang Direct REST Test
+                - generic [ref=f8e1742]: http://localhost:8080
+              - generic [ref=f8e1743]:
+                - generic [ref=f8e1744]:
+                  - generic [ref=f8e1745]: POST
+                  - combobox [ref=f8e1746]:
+                    - option "/generate (Structured Generation)" [selected]
+                    - option "/update_weights_from_disk (Hot-Swap)"
+                    - option "/load_lora_adapter (Deploy LoRA)"
+                    - option "/get_model_info (Cache Telemetry)"
+                - textbox [ref=f8e1747]: "{\"prompt\": \"fn test_spi()\", \"temperature\": 0.2, \"max_tokens\": 128}"
+              - button "Send REST Request" [ref=f8e1748] [cursor=pointer]
+      - status "system telemetry" [ref=f8e379]:
+        - 'button "vLLM Sidecar: Running Local CUDA" [ref=f8e380] [cursor=pointer]':
+          - generic [ref=f8e382]: "vLLM Sidecar: Running"
+          - generic [ref=f8e383]: Local CUDA
+        - generic [ref=f8e384]:
+          - 'button "VRAM: 23.6GB / 24GB" [ref=f8e1752] [cursor=pointer]':
+            - generic [ref=f8e386]: "VRAM:"
+            - generic [ref=f8e387]: 23.6GB / 24GB
+          - generic [ref=f8e414]:
+            - generic [ref=f8e415]: "Tokens/sec:"
+            - generic [ref=f8e416]: "80.1"
+        - generic [ref=f8e417]:
+          - 'button "LAN: Visible" [ref=f8e418] [cursor=pointer]':
+            - generic [ref=f8e419]: "LAN:"
+            - generic [ref=f8e420]: Visible
+          - 'button "Tunnel: Inactive" [ref=f8e421] [cursor=pointer]':
+            - generic [ref=f8e422]: "Tunnel:"
+            - generic [ref=f8e423]: Inactive
+  - generic [aria-hidden] [ref=f8e534]: "0"
