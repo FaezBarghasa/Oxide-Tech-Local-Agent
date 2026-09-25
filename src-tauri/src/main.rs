@@ -38,8 +38,8 @@ fn usage() -> String {
            oxide-tech-local-agent [desktop] [--config PATH]       Launch Desktop UI (Embedded Gateway + Memory)\n  \
            oxide-tech-local-agent daemon [--config PATH]          Run Headless Gateway (Systemd Service Mode)\n  \
            oxide-tech-local-agent doctor [--json]                 Run Environment & Toolchain Diagnostics\n  \
-           oxide-tech-local-agent re-forge <FILE> [--arch ARCH]   Reverse Engineer Binary / PTX GPU Code\n  \
-           oxide-tech-local-agent verify [--workspace PATH]       Run Deterministic Verifier Suite\n  \
+           oxide-tech-local-agent re-forge <FILE> [--arch ARCH] [--json] Reverse Engineer Binary / PTX GPU Code\n  \
+           oxide-tech-local-agent verify [--workspace PATH] [--json]     Run Deterministic Verifier Suite\n  \
            oxide-tech-local-agent memory <subcommand> [args...]   STAIR Code-ToC & Memanto Memory Passthrough\n  \
            oxide-tech-local-agent embed <subcommand> [args...]    Alias for oxide-embed commands\n  \
            oxide-tech-local-agent status [--gateway-url URL]      Probe Running Gateway Liveness\n  \
@@ -167,7 +167,7 @@ fn run_doctor_cli(json_output: bool) {
     }
 }
 
-fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: bool) -> Result<()> {
+fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: bool, json: bool) -> Result<()> {
     let req = reforge_ipc::ReforgeRequest {
         file_path: file_path.display().to_string(),
         arch: Some(arch),
@@ -175,6 +175,11 @@ fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: b
         decompile: Some(decompile),
     };
     let res = reforge_ipc::analyze_file(req)?;
+
+    if json {
+        println!("{}", serde_json::to_string_pretty(&res)?);
+        return Ok(());
+    }
 
     println!(
         "\x1b[1;36m[+] RE-Forge Analysis: {}\x1b[0m",
@@ -239,11 +244,13 @@ fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: b
     Ok(())
 }
 
-fn run_verify_cli(workspace: PathBuf, export_path: Option<PathBuf>) -> Result<()> {
-    println!(
-        "\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m",
-        workspace.display()
-    );
+fn run_verify_cli(workspace: PathBuf, export_path: Option<PathBuf>, json: bool) -> Result<()> {
+    if !json {
+        println!(
+            "\x1b[1;36m[+] Running Deterministic Verifier Suite on {}\x1b[0m",
+            workspace.display()
+        );
+    }
 
     let req = verifier_ipc::VerifierRequest {
         workspace: workspace.display().to_string(),
@@ -252,6 +259,11 @@ fn run_verify_cli(workspace: PathBuf, export_path: Option<PathBuf>) -> Result<()
     };
 
     let bundle = verifier_ipc::run_verification(req)?;
+
+    if json {
+        println!("{}", serde_json::to_string_pretty(&bundle)?);
+        return Ok(());
+    }
 
     for r in &bundle.reports {
         if r.passed {
@@ -345,7 +357,8 @@ fn main() {
             let arch = flag_value(&raw, "--arch").unwrap_or_else(|| "auto".to_string());
             let summary = raw.iter().any(|a| a == "--summary" || a == "-s");
             let decompile = raw.iter().any(|a| a == "--decompile" || a == "-d");
-            if let Err(e) = run_reforge_cli(file, arch, summary, decompile) {
+            let json = raw.iter().any(|a| a == "--json");
+            if let Err(e) = run_reforge_cli(file, arch, summary, decompile, json) {
                 eprintln!("re-forge error: {e:?}");
                 std::process::exit(1);
             }
@@ -355,7 +368,8 @@ fn main() {
                 .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from("."));
             let export = flag_value(&raw, "--export-evidence").map(PathBuf::from);
-            if let Err(e) = run_verify_cli(workspace, export) {
+            let json = raw.iter().any(|a| a == "--json");
+            if let Err(e) = run_verify_cli(workspace, export, json) {
                 eprintln!("verify error: {e:?}");
                 std::process::exit(1);
             }

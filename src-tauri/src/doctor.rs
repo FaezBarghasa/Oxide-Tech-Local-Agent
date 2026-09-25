@@ -147,6 +147,7 @@ pub fn run_diagnostics_scan() -> DoctorResult {
     checks.push(gpu_check);
 
     let udev_present = Path::new("/etc/udev/rules.d/99-probe-rs.rules").exists()
+        || Path::new("/etc/udev/rules.d/69-probe-rs.rules").exists()
         || Path::new("/usr/lib/udev/rules.d/69-probe-rs.rules").exists();
     checks.push(DiagnosticCheck {
         name: "Hardware Debugger udev Rules".to_string(),
