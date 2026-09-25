@@ -108,9 +108,9 @@ python3 -m sglang.launch_server \\
             <div>
               <div className="text-xs font-bold text-white flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                SGLang TP=2 Server
+                Local Inference Server
               </div>
-              <div className="text-[10px] mono text-gray-400 mt-0.5">port :8080 · dual RTX 3090</div>
+              <div className="text-[10px] mono text-gray-400 mt-0.5">port :8080 · local GPU accelerated</div>
               <div className="text-[11px] text-gray-300 mt-2 leading-relaxed">
                 Serving Qwen3.8-35B-AWQ with RadixAttention prefix caching and dynamic LoRA.
               </div>

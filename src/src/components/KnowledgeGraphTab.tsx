@@ -134,14 +134,14 @@ const INITIAL_NODES: GraphNode[] = [
     label: 'Oxide Hardware Agent Studio',
     category: 'project',
     subLabel: 'This AI Engineering Platform',
-    description: 'Full-stack AI workspace with Unsloth GRPO RLVR tuning, SGLang TP=2 serving, gRPC KiCad bridge, Tree-Sitter AST compactor, and Mojo RAG.',
+    description: 'Full-stack AI workspace with Unsloth GRPO RLVR tuning, high-throughput local serving, gRPC KiCad bridge, Tree-Sitter AST compactor, and Mojo RAG.',
     status: 'active',
     drcScore: 100,
     tokens: 8900,
     color: '#f97316',
     radius: 32,
-    tags: ['AI Agent', 'Unsloth', 'SGLang', 'gRPC', 'Compiler RL'],
-    metrics: { frequency: 'Dual RTX 3090', voltage: '48 GB VRAM', busSpeed: 'gRPC :50051', passRate: '99.8%' },
+    tags: ['AI Agent', 'Unsloth', 'Serving', 'gRPC', 'Compiler RL'],
+    metrics: { frequency: 'CUDA / ROCm', voltage: 'Unified Memory', busSpeed: 'gRPC :50051', passRate: '99.8%' },
   },
 
   // --- MCUs & SOCs ---

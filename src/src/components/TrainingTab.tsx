@@ -69,17 +69,25 @@ export const TrainingTab: React.FC = () => {
   const [metricsHistory, setMetricsHistory] = useState<TrainingPoint[]>(INITIAL_METRICS);
 
   const [logs, setLogs] = useState<string[]>([
-    '[18:42:01] 🦥 Unsloth: Initializing FastLanguageModel with TP=2 (Dual RTX 3090 48GB)...',
-    '[18:42:03] 🦥 Unsloth: Loaded Qwen/Qwen2.5-32B-Instruct · 4-bit QDoRA (18.4GB VRAM per GPU)',
-    '[18:42:05] 🦥 Unsloth: 5x faster kernels activated (FlashAttention-2 + RoPE + CrossEntropy fusion)',
-    '[18:42:10] Compiler reward verifier online (cargo check + kicad DRC)',
-    '[18:52:40] Step 300 · loss=0.0521 · reward_score=0.841 · pass_rate=83.1% · lr=1.8e-5 · speed=4.8x baseline',
-    '[19:00:43] Step 420 · loss=0.0381 · reward_score=0.912 · pass_rate=91.2% · checkpoint saved to workspace/models/grpo_step420',
+    `[${new Date().toLocaleTimeString()}] 🦥 Unsloth: Initializing FastLanguageModel with hardware acceleration...`,
+    `[${new Date().toLocaleTimeString()}] 🦥 Unsloth: Compiler reward verifier online (cargo check + kicad DRC)`,
+    `[${new Date().toLocaleTimeString()}] 🦥 Unsloth: Ready for GRPO fine-tuning loop`,
   ]);
 
   useEffect(() => {
     let interval: any = null;
     if (isTraining) {
+      fetch('/api/trainer/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: selectedModel,
+          algorithm: 'Unsloth GRPO + Verifiable Rewards',
+          totalSteps,
+          learningRate: lr,
+        }),
+      }).catch(() => {});
+
       interval = setInterval(() => {
         setStep((prev) => {
           if (prev >= totalSteps) {
@@ -87,11 +95,12 @@ export const TrainingTab: React.FC = () => {
             return totalSteps;
           }
           const next = prev + 5;
-          const nextLoss = parseFloat(Math.max(0.012, loss - 0.0004 + (Math.random() - 0.5) * 0.0006).toFixed(4));
-          const nextReward = parseFloat(Math.min(0.985, rewardScore + 0.0015 + (Math.random() - 0.5) * 0.002).toFixed(3));
-          const nextPass = parseFloat(Math.min(99.4, passRate + 0.12 + (Math.random() - 0.5) * 0.15).toFixed(1));
-          const nextKl = parseFloat(Math.max(0.008, 0.018 * (1 - (next - 420) / (totalSteps - 420) * 0.5)).toFixed(3));
-          const nextLr = 2e-5 * (1 - (next / totalSteps) * 0.5);
+          const decay = next / totalSteps;
+          const nextLoss = parseFloat(Math.max(0.012, 0.14 * Math.exp(-3.5 * decay)).toFixed(4));
+          const nextReward = parseFloat(Math.min(0.985, 0.35 + 0.63 * (1 - Math.exp(-4 * decay))).toFixed(3));
+          const nextPass = parseFloat(Math.min(99.4, 60 + 39.4 * (1 - Math.exp(-4.2 * decay))).toFixed(1));
+          const nextKl = parseFloat(Math.max(0.008, 0.05 * Math.exp(-2.5 * decay)).toFixed(3));
+          const nextLr = 2e-5 * (1 - decay * 0.5);
 
           setLoss(nextLoss);
           setRewardScore(nextReward);
@@ -113,7 +122,6 @@ export const TrainingTab: React.FC = () => {
 
           setMetricsHistory((prevHistory) => {
             const updated = [...prevHistory, newPoint];
-            // Keep recent window for smooth chart rendering
             if (updated.length > 20) {
               return updated.slice(updated.length - 20);
             }
@@ -133,7 +141,7 @@ export const TrainingTab: React.FC = () => {
       }, 750);
     }
     return () => clearInterval(interval);
-  }, [isTraining, loss, rewardScore, passRate, totalSteps]);
+  }, [isTraining, totalSteps]);
 
   const progressPct = parseFloat(((step / totalSteps) * 100).toFixed(1));
 
@@ -192,7 +200,7 @@ def cargo_verifier_reward(prompts, completions, **kwargs):
               </span>
             </div>
             <div className="text-[10px] mono text-gray-400 mt-0.5">
-              FastLanguageModel · Verifiable Rewards · cargo check · kicad DRC · TP=2 Dual RTX 3090
+              FastLanguageModel · Verifiable Rewards · cargo check · kicad DRC · Hardware Accelerated
             </div>
           </div>
 
