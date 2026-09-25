@@ -35,7 +35,9 @@ impl KnowledgeClient {
         let qdrant_url =
             std::env::var("QDRANT_URL").unwrap_or_else(|_| "http://localhost:6334".to_string());
 
-        let qdrant = Qdrant::from_url(&qdrant_url)
+        let mut config = Qdrant::from_url(&qdrant_url);
+        config.check_compatibility = false;
+        let qdrant = config
             .build()
             .map_err(|e| EiosError::VectorStore(e.to_string()))?;
 

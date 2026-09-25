@@ -13,7 +13,9 @@ impl QdrantServiceClient {
         let qdrant_url =
             env::var("QDRANT_URL").unwrap_or_else(|_| "http://localhost:6334".to_string());
 
-        let client = Qdrant::from_url(&qdrant_url).build()?;
+        let mut config = Qdrant::from_url(&qdrant_url);
+        config.check_compatibility = false;
+        let client = config.build()?;
         let l1_semantic_cache = Cache::builder()
             .max_capacity(16384)
             .time_to_live(Duration::from_secs(3600))

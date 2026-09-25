@@ -3,3 +3,6 @@
 # Tauri bundler inputs regenerated at build time (70MB+ sidecar copy)
 /src-tauri/binaries/
 /src-tauri/target/
+cert.pem
+.gitignore
+key.pem

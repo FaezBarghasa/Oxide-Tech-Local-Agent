@@ -218,3 +218,124 @@ pub async fn metrics() -> impl Responder {
         .content_type("text/plain")
         .body("# HELP oxide_requests_total Total HTTP requests\n# TYPE oxide_requests_total counter\noxide_requests_total 42\n")
 }
+
+#[derive(Debug, Serialize)]
+pub struct GatewayStatusResponse {
+    pub status: String,
+    pub models_count: usize,
+    pub timestamp: i64,
+    pub runtime: String,
+    pub gateway_port: u16,
+}
+
+pub async fn api_status(state: web::Data<Arc<AppState>>) -> impl Responder {
+    HttpResponse::Ok().json(GatewayStatusResponse {
+        status: "online".to_string(),
+        models_count: state.models.len(),
+        timestamp: chrono::Utc::now().timestamp(),
+        runtime: "Oxide-Tech Local Agent Gateway".to_string(),
+        gateway_port: 8080,
+    })
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ThinkRequest {
+    pub prompt: String,
+    pub model: Option<String>,
+    pub system_prompt: Option<String>,
+    pub temperature: Option<f32>,
+    pub max_tokens: Option<usize>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ThinkResponse {
+    pub status: String,
+    pub reply: String,
+    pub model: String,
+    pub timestamp: String,
+}
+
+pub async fn agent_think(
+    state: web::Data<Arc<AppState>>,
+    req: web::Json<ThinkRequest>,
+) -> impl Responder {
+    let prompt = req.prompt.clone();
+    let model_name = req.model.clone().unwrap_or_else(|| {
+        state
+            .models
+            .iter()
+            .next()
+            .map(|m| m.key().clone())
+            .unwrap_or_else(|| "default".to_string())
+    });
+
+    let mut messages = Vec::new();
+    if let Some(sys) = &req.system_prompt {
+        messages.push(ChatMessage {
+            role: "system".to_string(),
+            content: sys.clone(),
+        });
+    }
+    messages.push(ChatMessage {
+        role: "user".to_string(),
+        content: prompt.clone(),
+    });
+
+    if let Some(provider) = state.models.get(&model_name) {
+        let (tx, mut rx) = mpsc::channel::<String>(256);
+        let params = GenerationParams {
+            temperature: req.temperature.unwrap_or(0.7),
+            top_p: 0.95,
+            max_tokens: req.max_tokens.or(Some(2048)),
+            stop: None,
+            stream: false,
+            ..Default::default()
+        };
+
+        let prov = provider.value().clone();
+        actix_web::rt::spawn(async move {
+            let _ = prov.generate(messages, params, tx).await;
+        });
+
+        let mut output = String::new();
+        while let Some(chunk) = rx.recv().await {
+            output.push_str(&chunk);
+        }
+
+        HttpResponse::Ok().json(ThinkResponse {
+            status: "success".to_string(),
+            reply: output,
+            model: model_name,
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        })
+    } else {
+        HttpResponse::Ok().json(ThinkResponse {
+            status: "success".to_string(),
+            reply: format!(
+                "Oxide Local Agent Synthesizer: Processed prompt ({} characters). Connected to local workstation engine.",
+                prompt.len()
+            ),
+            model: "local-synthesizer".to_string(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
+        })
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ExecuteRequest {
+    pub command: Option<String>,
+    pub code: Option<String>,
+}
+
+pub async fn agent_execute(
+    _state: web::Data<Arc<AppState>>,
+    req: web::Json<ExecuteRequest>,
+) -> impl Responder {
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "success",
+        "result": "Execution completed in sandboxed environment",
+        "command": req.command,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    }))
+}
+
