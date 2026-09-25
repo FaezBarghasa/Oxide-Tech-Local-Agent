@@ -1,0 +1,130 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - img "Oxide-Tech" [ref=f1e8]
+        - generic [ref=f1e11]:
+          - generic [ref=f1e12]:
+            - text: Oxide-Tech
+            - generic [ref=f1e13]: OS
+          - generic [ref=f1e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f1e15] [cursor=pointer]
+    - navigation [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f1e21] [cursor=pointer]:
+          - generic [ref=f1e29]: Dashboard
+          - generic [ref=f1e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f1e31] [cursor=pointer]:
+          - generic [ref=f1e35]: Playground
+          - generic [ref=f1e36]: Chat & testing
+      - generic [ref=f1e37]:
+        - generic [ref=f1e38]: Compute
+        - button "Model Hub Universal loader" [ref=f1e39] [cursor=pointer]:
+          - generic [ref=f1e51]: Model Hub
+          - generic [ref=f1e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f1e53] [cursor=pointer]:
+          - generic [ref=f1e57]: Engines
+          - generic [ref=f1e58]: Candle / vLLM / SGLang
+      - generic [ref=f1e59]:
+        - generic [ref=f1e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f1e61] [cursor=pointer]:
+          - generic [ref=f1e67]: Gateway
+          - generic [ref=f1e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f1e69] [cursor=pointer]:
+          - generic [ref=f1e73]: Agents
+          - generic [ref=f1e74]: MCP tool sandboxes
+      - generic [ref=f1e75]:
+        - generic [ref=f1e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f1e77] [cursor=pointer]:
+          - generic [ref=f1e83]: Datasets
+          - generic [ref=f1e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f1e85] [cursor=pointer]:
+          - generic [ref=f1e89]: Export
+          - generic [ref=f1e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [ref=f1e91] [cursor=pointer]:
+          - generic [ref=f1e101]: Memory
+          - generic [ref=f1e102]: STAIR & compaction
+      - generic [ref=f1e103]:
+        - generic [ref=f1e104]: System
+        - button "Diagnostics Hardware doctor" [ref=f1e105] [cursor=pointer]:
+          - generic [ref=f1e111]: Diagnostics
+          - generic [ref=f1e112]: Hardware doctor
+        - button "Settings Preferences" [ref=f1e113] [cursor=pointer]:
+          - generic [ref=f1e118]: Settings
+          - generic [ref=f1e119]: Preferences
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]: Cosmic Workstation
+      - generic [ref=f1e125]: Offline-First · Pop!_OS
+  - generic [ref=f1e126]:
+    - banner [ref=f1e127]:
+      - generic [ref=f1e128]:
+        - generic [ref=f1e129]: settings
+        - generic [ref=f1e130]:
+          - heading "Settings" [level=1] [ref=f1e628]
+          - paragraph [ref=f1e132]: Configuration
+      - generic [ref=f1e133]:
+        - button "New Session" [ref=f1e134] [cursor=pointer]
+        - button "Deploy" [ref=f1e137] [cursor=pointer]
+        - button [ref=f1e140] [cursor=pointer]
+    - main [ref=f1e144]:
+      - generic [ref=f1e629]:
+        - generic [ref=f1e630]:
+          - generic [ref=f1e631]:
+            - generic [ref=f1e632]:
+              - heading "Configuration" [level=2] [ref=f1e633]
+              - paragraph [ref=f1e637]: "Profile: airgapped · config.toml"
+            - generic [ref=f1e638]:
+              - button "Reload" [ref=f1e639] [cursor=pointer]
+              - button "Save Config" [ref=f1e645] [cursor=pointer]
+          - generic [ref=f1e650]:
+            - generic [ref=f1e651]: Profile
+            - generic [ref=f1e652]:
+              - button "Lite" [ref=f1e653] [cursor=pointer]
+              - button "Standard" [ref=f1e654] [cursor=pointer]
+              - button "Pro" [ref=f1e655] [cursor=pointer]
+              - button "Airgapped" [active] [ref=f1e656] [cursor=pointer]
+              - button "Enterprise" [ref=f1e657] [cursor=pointer]
+            - generic [ref=f1e658]: airgapped profile
+        - generic [ref=f1e659]:
+          - generic [ref=f1e660]:
+            - generic [ref=f1e661]:
+              - heading "Local Model & GGUF Storage" [level=3] [ref=f1e662]
+              - paragraph [ref=f1e665]:
+                - text: Place .gguf weights in
+                - code [ref=f1e666]: ~/models/
+                - text: or
+                - code [ref=f1e667]: /var/lib/oxide-tech/models/
+            - generic [ref=f1e668]: OFFLINE READY
+          - generic [ref=f1e669]:
+            - generic [ref=f1e670]:
+              - generic [ref=f1e671]: "Option 1: Ollama Model Runner"
+              - paragraph [ref=f1e675]: "Run any GGUF or standard model locally with zero setup:"
+              - generic [ref=f1e676]: ollama pull qwen2.5-coder:7b-instruct-q4_K_M
+            - generic [ref=f1e677]:
+              - generic [ref=f1e678]: "Option 2: Direct GGUF File Download"
+              - paragraph [ref=f1e682]: "Download any .gguf file directly to your models folder:"
+              - generic [ref=f1e683]: mkdir -p ~/models && curl -L -o ~/models/model.gguf <URL>
+        - generic [ref=f1e684]:
+          - generic [ref=f1e685]:
+            - heading "config.toml" [level=3] [ref=f1e686]
+            - generic [ref=f1e690]: airgapped profile
+          - textbox [ref=f1e691]: "[profile] name = \"standard\" [gateway] host = \"127.0.0.1\" port = 8080 latency_threshold_ms = 2000 quality_threshold = 0.85 max_retries = 5 [thinker] provider = \"ollama\" model = \"deepseek-coder-v2\" temperature = 0.7 max_tokens = 4096 [oxide_embed] budget = 1500 stair_enabled = true [verifier] enabled = true phases = 7"
+    - status "system telemetry" [ref=f1e339]:
+      - generic [ref=f1e340]:
+        - generic [ref=f1e342]: "vLLM Sidecar: Running"
+        - generic [ref=f1e343]: Local CUDA
+      - generic [ref=f1e344]:
+        - generic [ref=f1e345]:
+          - generic [ref=f1e346]: "VRAM:"
+          - generic [ref=f1e347]: 22.1GB / 24GB
+        - generic [ref=f1e374]:
+          - generic [ref=f1e375]: "Tokens/sec:"
+          - generic [ref=f1e376]: "16.7"
+      - generic [ref=f1e377]:
+        - generic [ref=f1e378]:
+          - generic [ref=f1e379]: "LAN:"
+          - generic [ref=f1e380]: Visible
+        - generic [ref=f1e381]:
+          - generic [ref=f1e382]: "Tunnel:"
+          - generic [ref=f1e383]: Inactive

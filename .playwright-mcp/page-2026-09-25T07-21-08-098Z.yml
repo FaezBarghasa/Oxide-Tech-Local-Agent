@@ -1,0 +1,142 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - img "Oxide-Tech" [ref=f1e8]
+        - generic [ref=f1e11]:
+          - generic [ref=f1e12]:
+            - text: Oxide-Tech
+            - generic [ref=f1e13]: OS
+          - generic [ref=f1e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f1e15] [cursor=pointer]
+    - navigation [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f1e21] [cursor=pointer]:
+          - generic [ref=f1e29]: Dashboard
+          - generic [ref=f1e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f1e31] [cursor=pointer]:
+          - generic [ref=f1e35]: Playground
+          - generic [ref=f1e36]: Chat & testing
+      - generic [ref=f1e37]:
+        - generic [ref=f1e38]: Compute
+        - button "Model Hub Universal loader" [ref=f1e39] [cursor=pointer]:
+          - generic [ref=f1e51]: Model Hub
+          - generic [ref=f1e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f1e53] [cursor=pointer]:
+          - generic [ref=f1e57]: Engines
+          - generic [ref=f1e58]: Candle / vLLM / SGLang
+      - generic [ref=f1e59]:
+        - generic [ref=f1e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f1e61] [cursor=pointer]:
+          - generic [ref=f1e67]: Gateway
+          - generic [ref=f1e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f1e69] [cursor=pointer]:
+          - generic [ref=f1e73]: Agents
+          - generic [ref=f1e74]: MCP tool sandboxes
+      - generic [ref=f1e75]:
+        - generic [ref=f1e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f1e77] [cursor=pointer]:
+          - generic [ref=f1e83]: Datasets
+          - generic [ref=f1e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f1e85] [cursor=pointer]:
+          - generic [ref=f1e89]: Export
+          - generic [ref=f1e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [active] [ref=f1e91] [cursor=pointer]:
+          - generic [ref=f1e101]: Memory
+          - generic [ref=f1e102]: STAIR & compaction
+      - generic [ref=f1e103]:
+        - generic [ref=f1e104]: System
+        - button "Diagnostics Hardware doctor" [ref=f1e105] [cursor=pointer]:
+          - generic [ref=f1e111]: Diagnostics
+          - generic [ref=f1e112]: Hardware doctor
+        - button "Settings Preferences" [ref=f1e113] [cursor=pointer]:
+          - generic [ref=f1e118]: Settings
+          - generic [ref=f1e119]: Preferences
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]: Cosmic Workstation
+      - generic [ref=f1e125]: Offline-First · Pop!_OS
+  - generic [ref=f1e126]:
+    - banner [ref=f1e127]:
+      - generic [ref=f1e128]:
+        - generic [ref=f1e129]: memory
+        - generic [ref=f1e130]:
+          - heading "Project Memory" [level=1] [ref=f1e463]
+          - paragraph [ref=f1e132]: oxide-embed semantic memory
+      - generic [ref=f1e133]:
+        - button "New Session" [ref=f1e134] [cursor=pointer]
+        - button "Deploy" [ref=f1e137] [cursor=pointer]
+        - button [ref=f1e140] [cursor=pointer]
+    - main [ref=f1e144]:
+      - generic [ref=f1e464]:
+        - generic [ref=f1e465]:
+          - generic [ref=f1e466]:
+            - generic [ref=f1e467]:
+              - heading "Project Memory · oxide-embed" [level=2] [ref=f1e468]
+              - paragraph [ref=f1e478]: oxide-embed (via gateway host PATH) · browser mode — use desktop app for direct memory access · manifest missing · browser mode (read-only gateway fallback)
+            - button "Refresh" [ref=f1e479] [cursor=pointer]
+          - generic [ref=f1e486]:
+            - generic [ref=f1e487]:
+              - generic [ref=f1e488]: Project directory (contains .oxide/)
+              - textbox "Project directory (contains .oxide/)" [ref=f1e494]:
+                - /placeholder: /path/to/project
+            - button "Status" [disabled] [ref=f1e495] [cursor=pointer]
+            - button "Init" [disabled] [ref=f1e501] [cursor=pointer]
+            - button "Re-index" [disabled] [ref=f1e503] [cursor=pointer]
+        - generic [ref=f1e505]:
+          - heading "Semantic search & recall" [level=3] [ref=f1e506]
+          - generic [ref=f1e510]:
+            - textbox "symbol, topic, or question…" [ref=f1e511]
+            - generic [ref=f1e512]:
+              - generic [ref=f1e513]: Limit
+              - textbox "Limit" [ref=f1e514]: "8"
+            - generic [ref=f1e515]:
+              - button "Search" [disabled] [ref=f1e516] [cursor=pointer]
+              - button "Recall" [disabled] [ref=f1e525] [cursor=pointer]
+          - generic [ref=f1e527] [cursor=pointer]:
+            - checkbox "hierarchical (--stair) search" [checked] [ref=f1e528]
+            - text: hierarchical (--stair) search
+        - generic [ref=f1e529]:
+          - generic [ref=f1e530]:
+            - heading "Remember assertion" [level=3] [ref=f1e531]
+            - generic [ref=f1e534]:
+              - textbox "Decision, fact, preference, or goal to store…" [ref=f1e535]
+              - generic [ref=f1e536]:
+                - textbox "kind" [ref=f1e537]: fact
+                - textbox "tags a,b" [ref=f1e538]
+                - textbox "symbol" [ref=f1e539]
+              - generic [ref=f1e540]:
+                - generic [ref=f1e541] [cursor=pointer]:
+                  - checkbox "auto-resolve conflicts" [checked] [ref=f1e542]
+                  - text: auto-resolve conflicts
+                - button "Remember" [disabled] [ref=f1e543] [cursor=pointer]
+          - generic [ref=f1e545]:
+            - heading "Task context pack" [level=3] [ref=f1e546]
+            - generic [ref=f1e550]:
+              - textbox "Describe the engineering task to pack context for…" [ref=f1e551]
+              - generic [ref=f1e552]:
+                - generic [ref=f1e553]:
+                  - text: budget
+                  - textbox "budget" [ref=f1e554]: "1500"
+                - button "Pack context" [disabled] [ref=f1e555] [cursor=pointer]
+        - generic [ref=f1e557]:
+          - generic [ref=f1e558]: oxide-embed console
+          - generic [ref=f1e559]: // oxide-embed output appears here
+    - status "system telemetry" [ref=f1e339]:
+      - generic [ref=f1e340]:
+        - generic [ref=f1e342]: "vLLM Sidecar: Running"
+        - generic [ref=f1e343]: Local CUDA
+      - generic [ref=f1e344]:
+        - generic [ref=f1e345]:
+          - generic [ref=f1e346]: "VRAM:"
+          - generic [ref=f1e347]: 14.0GB / 24GB
+        - generic [ref=f1e374]:
+          - generic [ref=f1e375]: "Tokens/sec:"
+          - generic [ref=f1e376]: "28.9"
+      - generic [ref=f1e377]:
+        - generic [ref=f1e378]:
+          - generic [ref=f1e379]: "LAN:"
+          - generic [ref=f1e380]: Visible
+        - generic [ref=f1e381]:
+          - generic [ref=f1e382]: "Tunnel:"
+          - generic [ref=f1e383]: Inactive

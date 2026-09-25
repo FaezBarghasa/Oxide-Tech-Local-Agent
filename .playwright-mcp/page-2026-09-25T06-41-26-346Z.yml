@@ -1,0 +1,153 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "Oxide-Tech" [ref=e8]
+          - generic [ref=e478]:
+            - generic [ref=e479]:
+              - text: Oxide-Tech
+              - generic [ref=e480]: OS
+            - generic [ref=e481]: Local AI Studio
+        - button "Collapse sidebar" [ref=e482] [cursor=pointer]
+      - navigation [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e485]: Overview
+          - button "Dashboard System & telemetry" [ref=e486] [cursor=pointer]:
+            - generic [ref=e487]: Dashboard
+            - generic [ref=e488]: System & telemetry
+          - button "Playground Chat & testing" [ref=e489] [cursor=pointer]:
+            - generic [ref=e490]: Playground
+            - generic [ref=e491]: Chat & testing
+        - generic [ref=e37]:
+          - generic [ref=e492]: Compute
+          - button "Model Hub Universal loader" [ref=e493] [cursor=pointer]:
+            - generic [ref=e494]: Model Hub
+            - generic [ref=e495]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [active] [ref=e496] [cursor=pointer]:
+            - generic [ref=e497]: Engines
+            - generic [ref=e498]: Candle / vLLM / SGLang
+        - generic [ref=e59]:
+          - generic [ref=e499]: Network
+          - button "Gateway OpenAI API & Keys" [ref=e500] [cursor=pointer]:
+            - generic [ref=e501]: Gateway
+            - generic [ref=e502]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [ref=e503] [cursor=pointer]:
+            - generic [ref=e504]: Agents
+            - generic [ref=e505]: MCP tool sandboxes
+        - generic [ref=e75]:
+          - generic [ref=e506]: Tooling
+          - button "Datasets Formatting & recipes" [ref=e507] [cursor=pointer]:
+            - generic [ref=e508]: Datasets
+            - generic [ref=e509]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=e510] [cursor=pointer]:
+            - generic [ref=e511]: Export
+            - generic [ref=e512]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=e513] [cursor=pointer]:
+            - generic [ref=e514]: Memory
+            - generic [ref=e515]: STAIR & compaction
+        - generic [ref=e103]:
+          - generic [ref=e516]: System
+          - button "Diagnostics Hardware doctor" [ref=e517] [cursor=pointer]:
+            - generic [ref=e518]: Diagnostics
+            - generic [ref=e519]: Hardware doctor
+          - button "Settings Preferences" [ref=e520] [cursor=pointer]:
+            - generic [ref=e521]: Settings
+            - generic [ref=e522]: Preferences
+      - generic [ref=e523]:
+        - generic [ref=e524]: Cosmic Workstation
+        - generic [ref=e525]: Offline-First · Pop!_OS
+    - generic [ref=e126]:
+      - banner [ref=e127]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: sglang
+          - generic [ref=e130]:
+            - heading "SGLang Engine" [level=1] [ref=e1086]
+            - paragraph [ref=e132]: RadixAttention prefix caching
+        - generic [ref=e133]:
+          - button "New Session" [ref=e134] [cursor=pointer]
+          - button "Deploy" [ref=e137] [cursor=pointer]
+          - button [ref=e140] [cursor=pointer]
+      - main [ref=e144]:
+        - generic [ref=e1087]:
+          - generic [ref=e1088]:
+            - generic [ref=e1089]:
+              - generic [ref=e1090]:
+                - generic [ref=e1091]: SGLang TP=2 Serving Engine · Unsloth Optimized
+                - generic [ref=e1096]: Qwen/Qwen2.5-32B (4-bit QDoRA) · RadixAttention LRU Tree · Multi-LoRA Multi-Tenant
+              - generic [ref=e1097]: SGLang :8080 ONLINE
+            - generic [ref=e1099]:
+              - generic [ref=e1100]:
+                - generic [ref=e1101]: Active Model
+                - generic [ref=e1102]: Qwen2.5-32B
+                - generic [ref=e1103]: Unsloth 4-bit
+              - generic [ref=e1104]:
+                - generic [ref=e1105]: TP Cluster
+                - generic [ref=e1106]: TP=2
+                - generic [ref=e1107]: Dual RTX 3090
+              - generic [ref=e1108]:
+                - generic [ref=e1109]: Port
+                - generic [ref=e1110]: :8080
+                - generic [ref=e1111]: HTTP & OpenAI API
+              - generic [ref=e1112]:
+                - generic [ref=e1113]: Max LoRA
+                - generic [ref=e1114]: r=32
+                - generic [ref=e1115]: Multi-adapter
+              - generic [ref=e1116]:
+                - generic [ref=e1117]: Cache Hit
+                - generic [ref=e1118]: 87.3%
+                - generic [ref=e1119]: RadixAttention
+          - generic [ref=e1120]:
+            - generic [ref=e1122]:
+              - generic [ref=e1123]:
+                - generic [ref=e1124]: Active In-Memory LoRA Adapters
+                - generic [ref=e1125]: 3 / 8 slots used
+              - generic [ref=e1126]:
+                - generic [ref=e1127]:
+                  - generic [ref=e1128]:
+                    - generic [ref=e1129]: rust_v2 (embedded-rust)
+                    - generic [ref=e1130]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=e1131]: LOADED
+                - generic [ref=e1132]:
+                  - generic [ref=e1133]:
+                    - generic [ref=e1134]: pcb_v1 (kicad-schgen)
+                    - generic [ref=e1135]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=e1136]: LOADED
+                - generic [ref=e1137]:
+                  - generic [ref=e1138]:
+                    - generic [ref=e1139]: cad_v1 (build123d-step)
+                    - generic [ref=e1140]: rank=16 · alpha=32 · 12.4 MB
+                  - generic [ref=e1141]: LOADED
+            - generic [ref=e1143]:
+              - generic [ref=e1144]:
+                - generic [ref=e1145]: SGLang Direct REST Test
+                - generic [ref=e1146]: http://localhost:8080
+              - generic [ref=e1147]:
+                - generic [ref=e1148]:
+                  - generic [ref=e1149]: POST
+                  - combobox [ref=e1150]:
+                    - option "/generate (Structured Generation)" [selected]
+                    - option "/update_weights_from_disk (Hot-Swap)"
+                    - option "/load_lora_adapter (Deploy LoRA)"
+                    - option "/get_model_info (Cache Telemetry)"
+                - textbox [ref=e1151]: "{\"prompt\": \"fn test_spi()\", \"temperature\": 0.2, \"max_tokens\": 128}"
+              - button "Send REST Request" [ref=e1152] [cursor=pointer]
+      - status "system telemetry" [ref=e339]:
+        - generic [ref=e340]:
+          - generic [ref=e342]: "vLLM Sidecar: Running"
+          - generic [ref=e343]: Local CUDA
+        - generic [ref=e344]:
+          - generic [ref=e345]:
+            - generic [ref=e346]: "VRAM:"
+            - generic [ref=e347]: 21.7GB / 24GB
+          - generic [ref=e374]:
+            - generic [ref=e375]: "Tokens/sec:"
+            - generic [ref=e376]: "106.6"
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - generic [ref=e379]: "LAN:"
+            - generic [ref=e380]: Visible
+          - generic [ref=e381]:
+            - generic [ref=e382]: "Tunnel:"
+            - generic [ref=e383]: Inactive
+  - generic [aria-hidden] [ref=e462]: "0"

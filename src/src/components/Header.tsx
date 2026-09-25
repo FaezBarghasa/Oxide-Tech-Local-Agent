@@ -1,6 +1,7 @@
 import React from 'react';
 import { TabId } from '../types';
-import { Play, Search, Zap, Settings } from 'lucide-react';
+import { useUI } from '../store/uiStore';
+import { Play, Search, Zap, Smartphone, ShieldAlert } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: TabId;
@@ -12,7 +13,7 @@ interface HeaderProps {
 const tabInfo: Record<TabId, { title: string; subtitle: string }> = {
   chat: { title: 'AI Assistant', subtitle: 'STAIR Code-ToC AST retrieval' },
   overview: { title: 'Workspace Overview', subtitle: 'Verified crates & system telemetry' },
-  graph: { title: 'Knowledge Graph', subtitle: 'Relational topology' },
+  graph: { title: 'Knowledge Graph', subtitle: 'Relational topology & AST' },
   memory: { title: 'Project Memory', subtitle: 'oxide-embed semantic memory' },
   training: { title: 'Unsloth Tuning', subtitle: 'FastLanguageModel fine-tuning' },
   catalog: { title: 'Model Catalog', subtitle: 'Memory profiling & fit calculator' },
@@ -30,8 +31,9 @@ const tabInfo: Record<TabId, { title: string; subtitle: string }> = {
   infra: { title: 'Infrastructure', subtitle: 'System resources' },
 };
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onNewSession, onQuickDeploy }) => {
+export const Header: React.FC<HeaderProps> = ({ currentTab, onNewSession, onQuickDeploy }) => {
   const current = tabInfo[currentTab] || { title: 'Oxide Agent Studio', subtitle: '' };
+  const { setPalette, setMobileCompanionOpen, setHitlOpen } = useUI();
 
   return (
     <header className="h-12 border-b border-white/[0.05] flex items-center justify-between px-4 bg-[#0A0A0A]/80 backdrop-blur-sm shrink-0">
@@ -47,21 +49,47 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onNewSe
 
       <div className="flex items-center gap-1.5">
         <button
+          onClick={() => setHitlOpen(true)}
+          title="Human-in-the-Loop Execution Gate"
+          className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer"
+        >
+          <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+          <span className="hidden sm:inline">HITL Gate</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+        </button>
+
+        <button
+          onClick={() => setMobileCompanionOpen(true)}
+          title="Pair Mobile Companion (Zero-Trust P2P WebRTC)"
+          className="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer"
+        >
+          <Smartphone className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="hidden sm:inline">Mobile</span>
+        </button>
+
+        <button
           onClick={onNewSession}
           className="px-3 py-1.5 rounded-lg bg-[#141418] hover:bg-[#1c1c22] text-zinc-300 border border-white/[0.08] hover:border-[#10B981]/40 text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer"
         >
           <Play className="w-3 h-3" />
-          New Session
+          <span className="hidden md:inline">New Session</span>
         </button>
+
         <button
           onClick={onQuickDeploy}
           className="px-3 py-1.5 rounded-lg bg-[#141418] hover:bg-[#1c1c22] text-zinc-300 border border-white/[0.08] hover:border-[#10B981]/40 text-[11px] font-medium transition flex items-center gap-1.5 cursor-pointer"
         >
-          <Zap className="w-3 h-3" />
+          <Zap className="w-3 h-3 text-amber-400" />
           Deploy
         </button>
-        <button className="p-1.5 rounded-lg hover:bg-[#18181b] text-zinc-500 hover:text-zinc-300 transition cursor-pointer">
+
+        <button
+          onClick={() => setPalette(true)}
+          title="Command Palette (Ctrl+K / Cmd+K)"
+          className="p-1.5 rounded-lg hover:bg-[#18181b] text-zinc-400 hover:text-white border border-white/[0.06] transition cursor-pointer flex items-center gap-1 text-[11px]"
+        >
           <Search className="w-3.5 h-3.5" />
+          <kbd className="hidden sm:inline text-[9px] font-mono bg-zinc-800 text-zinc-400 px-1 py-0.2 rounded border border-zinc-700">⌘K</kbd>
         </button>
       </div>
     </header>

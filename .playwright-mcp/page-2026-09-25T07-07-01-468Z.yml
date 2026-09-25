@@ -1,0 +1,111 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "Oxide-Tech" [ref=e8]
+          - generic [ref=e478]:
+            - generic [ref=e479]:
+              - text: Oxide-Tech
+              - generic [ref=e480]: OS
+            - generic [ref=e481]: Local AI Studio
+        - button "Collapse sidebar" [ref=e482] [cursor=pointer]
+      - navigation [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e485]: Overview
+          - button "Dashboard System & telemetry" [ref=e486] [cursor=pointer]:
+            - generic [ref=e487]: Dashboard
+            - generic [ref=e488]: System & telemetry
+          - button "Playground Chat & testing" [ref=e489] [cursor=pointer]:
+            - generic [ref=e490]: Playground
+            - generic [ref=e491]: Chat & testing
+        - generic [ref=e37]:
+          - generic [ref=e492]: Compute
+          - button "Model Hub Universal loader" [ref=e493] [cursor=pointer]:
+            - generic [ref=e494]: Model Hub
+            - generic [ref=e495]: Universal loader
+          - button "Engines Candle / vLLM / SGLang" [ref=e496] [cursor=pointer]:
+            - generic [ref=e497]: Engines
+            - generic [ref=e498]: Candle / vLLM / SGLang
+        - generic [ref=e59]:
+          - generic [ref=e499]: Network
+          - button "Gateway OpenAI API & Keys" [ref=e500] [cursor=pointer]:
+            - generic [ref=e501]: Gateway
+            - generic [ref=e502]: OpenAI API & Keys
+          - button "Agents MCP tool sandboxes" [ref=e503] [cursor=pointer]:
+            - generic [ref=e504]: Agents
+            - generic [ref=e505]: MCP tool sandboxes
+        - generic [ref=e75]:
+          - generic [ref=e506]: Tooling
+          - button "Datasets Formatting & recipes" [active] [ref=e507] [cursor=pointer]:
+            - generic [ref=e508]: Datasets
+            - generic [ref=e509]: Formatting & recipes
+          - button "Export GGUF & weight soups" [ref=e510] [cursor=pointer]:
+            - generic [ref=e511]: Export
+            - generic [ref=e512]: GGUF & weight soups
+          - button "Memory STAIR & compaction" [ref=e513] [cursor=pointer]:
+            - generic [ref=e514]: Memory
+            - generic [ref=e515]: STAIR & compaction
+        - generic [ref=e103]:
+          - generic [ref=e516]: System
+          - button "Diagnostics Hardware doctor" [ref=e517] [cursor=pointer]:
+            - generic [ref=e518]: Diagnostics
+            - generic [ref=e519]: Hardware doctor
+          - button "Settings Preferences" [ref=e520] [cursor=pointer]:
+            - generic [ref=e521]: Settings
+            - generic [ref=e522]: Preferences
+      - generic [ref=e523]:
+        - generic [ref=e524]: Cosmic Workstation
+        - generic [ref=e525]: Offline-First · Pop!_OS
+    - generic [ref=e126]:
+      - banner [ref=e127]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: dataset
+          - generic [ref=e130]:
+            - heading "Dataset Recipes" [level=1] [ref=e1385]
+            - paragraph [ref=e132]: Visual recipe studio
+        - generic [ref=e133]:
+          - button "New Session" [ref=e134] [cursor=pointer]
+          - button "Deploy" [ref=e137] [cursor=pointer]
+          - button [ref=e140] [cursor=pointer]
+      - main [ref=e144]:
+        - generic [ref=e1387]:
+          - generic [ref=e1388]:
+            - generic [ref=e1389]:
+              - heading "Tooling Suite & Data Operations" [level=2] [ref=e1390]
+              - paragraph [ref=e1395]: Unsloth data preparation · GGUF export compilation · Context compression
+            - generic [ref=e1396]:
+              - button "Dataset Formatter" [ref=e1397] [cursor=pointer]
+              - button "GGUF Exporter" [ref=e1398] [cursor=pointer]
+              - button "Context Compactor" [ref=e1399] [cursor=pointer]
+          - generic [ref=e1400]:
+            - generic [ref=e1406] [cursor=pointer]:
+              - generic [ref=e1407]: "Selected: telemetry_embedded_episodes.jsonl"
+              - generic [ref=e1408]: Supports ShareGPT, OpenAI format, and raw instruction-response pairs
+            - generic [ref=e1409]:
+              - generic [ref=e1410]:
+                - text: Target Prompt Template
+                - combobox [ref=e1411] [cursor=pointer]:
+                  - option "ChatML (<|im_start|>system...)" [selected]
+                  - option "Llama-3 (<|start_header_id|>...)"
+                  - option "Alpaca (### Instruction:...)"
+              - button "Convert & Optimize Dataset" [ref=e1412] [cursor=pointer]
+      - status "system telemetry" [ref=e339]:
+        - generic [ref=e340]:
+          - generic [ref=e342]: "vLLM Sidecar: Running"
+          - generic [ref=e343]: Local CUDA
+        - generic [ref=e344]:
+          - generic [ref=e345]:
+            - generic [ref=e346]: "VRAM:"
+            - generic [ref=e347]: 23.8GB / 24GB
+          - generic [ref=e374]:
+            - generic [ref=e375]: "Tokens/sec:"
+            - generic [ref=e376]: "106.6"
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - generic [ref=e379]: "LAN:"
+            - generic [ref=e380]: Visible
+          - generic [ref=e381]:
+            - generic [ref=e382]: "Tunnel:"
+            - generic [ref=e383]: Inactive
+  - generic [aria-hidden] [ref=e462]: "0"

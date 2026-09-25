@@ -40,6 +40,7 @@ export const HitlApprovalModal: React.FC<HitlApprovalModalProps> = ({
   requests,
   onApprove,
   onReject,
+  onClose,
 }) => {
   const [selectedId, setSelectedId] = useState<string>(requests[0]?.id || '');
   const [rejectReason, setRejectReason] = useState<string>('');
@@ -88,6 +89,16 @@ export const HitlApprovalModal: React.FC<HitlApprovalModalProps> = ({
     }
   };
 
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -109,7 +120,18 @@ export const HitlApprovalModal: React.FC<HitlApprovalModalProps> = ({
               </p>
             </div>
           </div>
-          {getImpactBadge(currentReq.impactLevel)}
+          <div className="flex items-center gap-3">
+            {getImpactBadge(currentReq.impactLevel)}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                title="Close"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Modal Body */}

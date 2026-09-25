@@ -18,6 +18,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Server,
+  Network,
+  Binary,
+  Smartphone,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -63,19 +67,21 @@ const navSections: NavSection[] = [
       { id: 'dataset', label: 'Datasets', icon: <Database className="w-4 h-4" />, desc: 'Formatting & recipes' },
       { id: 'soup', label: 'Export', icon: <Flame className="w-4 h-4" />, desc: 'GGUF & weight soups' },
       { id: 'memory', label: 'Memory', icon: <Brain className="w-4 h-4" />, desc: 'STAIR & compaction' },
+      { id: 'graph', label: 'Graph', icon: <Network className="w-4 h-4" />, desc: 'Code topology & AST' },
     ],
   },
   {
     title: 'System',
     items: [
       { id: 'doctor', label: 'Diagnostics', icon: <Stethoscope className="w-4 h-4" />, desc: 'Hardware doctor' },
+      { id: 'reforge', label: 'RE-Forge', icon: <Binary className="w-4 h-4" />, desc: 'Binary disassembly & PTX' },
       { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" />, desc: 'Preferences' },
     ],
   },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
-  const { sidebarCollapsed, toggleSidebar } = useUI();
+  const { sidebarCollapsed, toggleSidebar, setMobileCompanionOpen, setHitlOpen } = useUI();
 
   return (
     <aside
@@ -163,6 +169,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           </div>
         ))}
       </nav>
+
+      {/* Quick Action Controls */}
+      <div className="p-2 border-t border-[#27272A] bg-[#0c0d10] space-y-1">
+        <button
+          onClick={() => setMobileCompanionOpen(true)}
+          title="Pair Mobile Companion (Zero-Trust P2P WebRTC)"
+          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-cyan-400 hover:text-cyan-300 hover:bg-cyan-950/30 border border-cyan-900/40 transition-all cursor-pointer group"
+        >
+          <Smartphone className="w-4 h-4 shrink-0 text-cyan-400 group-hover:scale-105 transition-transform" />
+          {!sidebarCollapsed && (
+            <>
+              <span className="truncate">Mobile Companion</span>
+              <span className="ml-auto text-[9px] font-mono px-1 rounded bg-cyan-500/10 text-cyan-400">P2P</span>
+            </>
+          )}
+        </button>
+        <button
+          onClick={() => setHitlOpen(true)}
+          title="Inspect Human-in-the-Loop (HITL) Execution Gate"
+          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 hover:bg-amber-950/30 border border-amber-900/40 transition-all cursor-pointer group"
+        >
+          <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 group-hover:scale-105 transition-transform" />
+          {!sidebarCollapsed && (
+            <>
+              <span className="truncate">HITL Gate</span>
+              <span className="ml-auto text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">2 Pending</span>
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Bottom Status / Local Workstation info */}
       <div className="p-3 border-t border-[#27272A] bg-[#111113]">

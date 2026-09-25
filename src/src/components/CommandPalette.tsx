@@ -16,6 +16,10 @@ import {
   Stethoscope,
   Settings,
   ArrowRight,
+  Network,
+  Binary,
+  Smartphone,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface CommandAction {
@@ -28,6 +32,8 @@ interface CommandAction {
 
 const ACTIONS: CommandAction[] = [
   { id: 'deploy', label: 'Deploy Qwen3-8B with Candle…', category: 'Actions', icon: <Cpu className="w-4 h-4 text-[#10B981]" />, shortcut: '↵' },
+  { id: 'pair-mobile', label: 'Pair Mobile Companion (Zero-Trust P2P WebRTC)', category: 'Actions', icon: <Smartphone className="w-4 h-4 text-cyan-400" /> },
+  { id: 'hitl-gate', label: 'Inspect HITL Execution Gate (Safety Authorizations)', category: 'Actions', icon: <ShieldAlert className="w-4 h-4 text-amber-400" /> },
   { id: 'gen-key', label: 'Generate new API key for Gateway', category: 'Actions', icon: <Key className="w-4 h-4 text-[#8B5CF6]" /> },
   { id: 'tunnel', label: 'Start Cloudflare Tunnel', category: 'Actions', icon: <Globe className="w-4 h-4 text-cyan-400" /> },
   { id: 'dataset', label: 'Open Dataset Formatter (JSONL/CSV)', category: 'Tooling', icon: <Database className="w-4 h-4 text-amber-400" /> },
@@ -39,7 +45,9 @@ const ACTIONS: CommandAction[] = [
   { id: 'nav-engines', label: 'Go to Inference Engines', category: 'Navigation', icon: <Zap className="w-4 h-4 text-zinc-400" /> },
   { id: 'nav-gateway', label: 'Go to Gateway & API Keys', category: 'Navigation', icon: <Key className="w-4 h-4 text-zinc-400" /> },
   { id: 'nav-mcp', label: 'Go to MCP Agents & Tools', category: 'Navigation', icon: <Wrench className="w-4 h-4 text-zinc-400" /> },
+  { id: 'nav-graph', label: 'Go to Knowledge Graph (Code AST & Topology)', category: 'Navigation', icon: <Network className="w-4 h-4 text-zinc-400" /> },
   { id: 'nav-doctor', label: 'Run Hardware Doctor Diagnostics', category: 'Navigation', icon: <Stethoscope className="w-4 h-4 text-zinc-400" /> },
+  { id: 'nav-reforge', label: 'Go to RE-Forge (Binary Disassembler & PTX)', category: 'Navigation', icon: <Binary className="w-4 h-4 text-zinc-400" /> },
   { id: 'nav-settings', label: 'Open Settings', category: 'Navigation', icon: <Settings className="w-4 h-4 text-zinc-400" /> },
 ];
 

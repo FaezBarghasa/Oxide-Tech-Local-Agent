@@ -24,10 +24,90 @@ import { StatusBar } from './components/StatusBar';
 import { CommandPalette } from './components/CommandPalette';
 import { DeploySlideOver } from './components/DeploySlideOver';
 import { GatewayTab } from './components/GatewayTab';
+import { MobileCompanionModal } from './components/MobileCompanionModal';
+import { HitlApprovalModal, HitlActionRequest } from './components/HitlApprovalModal';
 import { UIProvider, useUI } from './store/uiStore';
 
+const INITIAL_HITL_REQUESTS: HitlActionRequest[] = [
+  {
+    id: 'hitl-001',
+    timestamp: '11:42:09',
+    title: 'Flash STM32F401 Bare-Metal Firmware (SWD Target)',
+    subsystem: 'probe-rs',
+    impactLevel: 'CRITICAL',
+    description: 'Autonomous agent generated binary patch for RTIC v2 USB-MIDI endpoint. Requests automated erase and flash over ST-LINK v2 on thumbv7em-none-eabihf.',
+    proposedCommand: 'probe-rs run --chip STM32F401CEUx target/thumbv7em-none-eabihf/release/app',
+    targetPath: '/dev/bus/usb/001/004',
+    parameters: {
+      chip: 'STM32F401CEUx',
+      speed_khz: 4000,
+      reset_after_flash: true,
+      verify: true,
+    },
+    verificationPassed: true,
+    status: 'PENDING',
+    reviewerScore: 0.94,
+    reviewerVerdict: 'Formal memory map bounds check passed. Zero bootloader overwrite risk.',
+    confidenceScore: 0.98,
+  },
+  {
+    id: 'hitl-002',
+    timestamp: '11:43:28',
+    title: 'Sync KiCad PCB Netlist & Route Power Traces',
+    subsystem: 'eda-kicad',
+    impactLevel: 'HIGH',
+    description: 'Agent calculated trace impedance for 12V 5A power bus on layer F.Cu. Netlist changes ready to merge into PCB layout.',
+    targetPath: 'hardware/schematics/oxide_power_stage.kicad_pcb',
+    parameters: {
+      net: 'VBUS_12V',
+      trace_width_mm: 1.5,
+      clearance_mm: 0.35,
+      copper_oz: 2,
+    },
+    verificationPassed: true,
+    status: 'PENDING',
+    reviewerScore: 0.89,
+    reviewerVerdict: 'IPC-2152 thermal dissipation verified (ΔT < 10°C). DRC check 0 errors.',
+    confidenceScore: 0.95,
+  },
+];
+
 function Shell() {
-  const { tab, setTab, toasts, toast, setDeployModel, setPalette, toggleSidebar } = useUI();
+  const {
+    tab,
+    setTab,
+    toasts,
+    toast,
+    setDeployModel,
+    mobileCompanionOpen,
+    setMobileCompanionOpen,
+    hitlOpen,
+    setHitlOpen,
+  } = useUI();
+  const [hitlRequests, setHitlRequests] = React.useState<HitlActionRequest[]>(INITIAL_HITL_REQUESTS);
+
+  React.useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setHitlOpen(!hitlOpen);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [hitlOpen, setHitlOpen]);
+
+  const handleHitlApprove = (id: string) => {
+    setHitlRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'APPROVED' } : r)));
+    toast(`Authorized operation: ${id}`);
+    setHitlOpen(false);
+  };
+
+  const handleHitlReject = (id: string, reason?: string) => {
+    setHitlRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'REJECTED' } : r)));
+    toast(`Rejected operation: ${id}${reason ? ` (${reason})` : ''}`);
+    setHitlOpen(false);
+  };
 
   const renderTab = () => {
     switch (tab as TabId) {
@@ -110,6 +190,18 @@ function Shell() {
       case 'nav-mcp':
         setTab('mcp');
         break;
+      case 'pair-mobile':
+        setMobileCompanionOpen(true);
+        break;
+      case 'hitl-gate':
+        setHitlOpen(true);
+        break;
+      case 'nav-graph':
+        setTab('graph');
+        break;
+      case 'nav-reforge':
+        setTab('reforge');
+        break;
       case 'nav-doctor':
         setTab('doctor');
         break;
@@ -141,6 +233,18 @@ function Shell() {
       </div>
       <CommandPalette onAction={onPalette} />
       <DeploySlideOver />
+      <MobileCompanionModal
+        isOpen={mobileCompanionOpen}
+        onClose={() => setMobileCompanionOpen(false)}
+      />
+      {hitlOpen && (
+        <HitlApprovalModal
+          requests={hitlRequests.filter((r) => r.status === 'PENDING')}
+          onApprove={handleHitlApprove}
+          onReject={handleHitlReject}
+          onClose={() => setHitlOpen(false)}
+        />
+      )}
 
       {/* Floating Toast Notification Stack */}
       <div className="fixed bottom-12 right-6 z-[70] flex flex-col gap-2 items-end pointer-events-none" aria-live="polite">

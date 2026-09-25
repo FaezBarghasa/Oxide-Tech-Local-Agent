@@ -1,0 +1,226 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - img "Oxide-Tech" [ref=f1e8]
+        - generic [ref=f1e11]:
+          - generic [ref=f1e12]:
+            - text: Oxide-Tech
+            - generic [ref=f1e13]: OS
+          - generic [ref=f1e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f1e15] [cursor=pointer]
+    - navigation [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f1e21] [cursor=pointer]:
+          - generic [ref=f1e29]: Dashboard
+          - generic [ref=f1e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f1e31] [cursor=pointer]:
+          - generic [ref=f1e35]: Playground
+          - generic [ref=f1e36]: Chat & testing
+      - generic [ref=f1e37]:
+        - generic [ref=f1e38]: Compute
+        - button "Model Hub Universal loader" [ref=f1e39] [cursor=pointer]:
+          - generic [ref=f1e51]: Model Hub
+          - generic [ref=f1e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f1e53] [cursor=pointer]:
+          - generic [ref=f1e57]: Engines
+          - generic [ref=f1e58]: Candle / vLLM / SGLang
+      - generic [ref=f1e59]:
+        - generic [ref=f1e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f1e61] [cursor=pointer]:
+          - generic [ref=f1e67]: Gateway
+          - generic [ref=f1e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f1e69] [cursor=pointer]:
+          - generic [ref=f1e73]: Agents
+          - generic [ref=f1e74]: MCP tool sandboxes
+      - generic [ref=f1e75]:
+        - generic [ref=f1e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f1e77] [cursor=pointer]:
+          - generic [ref=f1e83]: Datasets
+          - generic [ref=f1e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f1e85] [cursor=pointer]:
+          - generic [ref=f1e89]: Export
+          - generic [ref=f1e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [ref=f1e91] [cursor=pointer]:
+          - generic [ref=f1e101]: Memory
+          - generic [ref=f1e102]: STAIR & compaction
+      - generic [ref=f1e103]:
+        - generic [ref=f1e104]: System
+        - button "Diagnostics Hardware doctor" [ref=f1e105] [cursor=pointer]:
+          - generic [ref=f1e111]: Diagnostics
+          - generic [ref=f1e112]: Hardware doctor
+        - button "Settings Preferences" [ref=f1e113] [cursor=pointer]:
+          - generic [ref=f1e118]: Settings
+          - generic [ref=f1e119]: Preferences
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]: Cosmic Workstation
+      - generic [ref=f1e125]: Offline-First · Pop!_OS
+  - generic [ref=f1e126]:
+    - banner [ref=f1e127]:
+      - generic [ref=f1e128]:
+        - generic [ref=f1e129]: overview
+        - generic [ref=f1e130]:
+          - heading "Workspace Overview" [level=1] [ref=f1e131]
+          - paragraph [ref=f1e132]: Verified crates & system telemetry
+      - generic [ref=f1e133]:
+        - button "New Session" [ref=f1e134] [cursor=pointer]
+        - button "Deploy" [ref=f1e137] [cursor=pointer]
+        - button [ref=f1e140] [cursor=pointer]
+    - main [ref=f1e144]:
+      - generic [ref=f1e145]:
+        - generic [ref=f1e146]:
+          - generic [ref=f1e147]:
+            - generic [ref=f1e148]: Local Engine Active
+            - generic [ref=f1e150]: Actix-Web SSE :8080
+            - generic [ref=f1e151]: Rust 2024 · Pop!_OS Cosmic
+          - generic [ref=f1e152]:
+            - generic [ref=f1e153]:
+              - heading "Oxide-Tech Studio" [level=2] [ref=f1e154]
+              - paragraph [ref=f1e155]: High-performance local AI operating system with Unsloth-speed inference, native Candle/GGUF/vLLM backends, STAIR Code-ToC memory, and an OpenAI-compatible network gateway.
+            - generic [ref=f1e156]:
+              - button "Open Playground" [ref=f1e157] [cursor=pointer]
+              - button "Manage API Keys" [ref=f1e160] [cursor=pointer]
+          - generic [ref=f1e165]:
+            - generic [ref=f1e166]:
+              - generic [ref=f1e167]: Workspace Crates
+              - generic [ref=f1e168]: 8 Crates
+              - generic [ref=f1e169]: 0 Errors · Clean Build
+            - generic [ref=f1e170]:
+              - generic [ref=f1e171]: Inference Backends
+              - generic [ref=f1e172]: 5 Engines
+              - generic [ref=f1e173]: Candle / llama.cpp / vLLM
+            - generic [ref=f1e174]:
+              - generic [ref=f1e175]: Gateway Status
+              - generic [ref=f1e176]: Port 8080
+              - generic [ref=f1e177]: OpenAI Compatible SSE
+            - generic [ref=f1e178]:
+              - generic [ref=f1e179]: Hardware VRAM
+              - generic [ref=f1e180]: 12.4 / 24 GB
+              - generic [ref=f1e181]: CUDA Acceleration Active
+        - generic [ref=f1e182]:
+          - generic [ref=f1e183]:
+            - generic [ref=f1e184]:
+              - generic [ref=f1e185]:
+                - generic [ref=f1e186]: Compute
+                - generic [ref=f1e187]: Ready
+              - heading "Universal Loader" [level=3] [ref=f1e188]
+              - paragraph [ref=f1e189]: Candle, llama.cpp & vLLM sidecar
+            - generic [ref=f1e190]:
+              - generic [ref=f1e191]: 5 modules
+              - generic [ref=f1e192]: 100% OPERATIONAL
+          - generic [ref=f1e193]:
+            - generic [ref=f1e194]:
+              - generic [ref=f1e195]:
+                - generic [ref=f1e196]: Gateway
+                - generic [ref=f1e197]: Port 8080
+              - heading "OpenAI API Proxy" [level=3] [ref=f1e198]
+              - paragraph [ref=f1e199]: Actix-Web SSE streaming on :8080
+            - generic [ref=f1e200]:
+              - generic [ref=f1e201]: 3 modules
+              - generic [ref=f1e202]: 100% OPERATIONAL
+          - generic [ref=f1e203]:
+            - generic [ref=f1e204]:
+              - generic [ref=f1e205]:
+                - generic [ref=f1e206]: Memory
+                - generic [ref=f1e207]: Indexed
+              - heading "STAIR & Memanto" [level=3] [ref=f1e208]
+              - paragraph [ref=f1e209]: AST hierarchical retrieval & cache
+            - generic [ref=f1e210]:
+              - generic [ref=f1e211]: 4 modules
+              - generic [ref=f1e212]: 100% OPERATIONAL
+          - generic [ref=f1e213]:
+            - generic [ref=f1e214]:
+              - generic [ref=f1e215]:
+                - generic [ref=f1e216]: Security
+                - generic [ref=f1e217]: Enforced
+              - heading "Blake3 Auth & Limiter" [level=3] [ref=f1e218]
+              - paragraph [ref=f1e219]: Constant-time key verification
+            - generic [ref=f1e220]:
+              - generic [ref=f1e221]: 2 modules
+              - generic [ref=f1e222]: 100% OPERATIONAL
+        - generic [ref=f1e223]:
+          - generic [ref=f1e224]:
+            - generic [ref=f1e225]:
+              - heading "Rust Workspace Crates" [level=3] [ref=f1e226]
+              - generic [ref=f1e231]: 8 Modular Crates
+            - generic [ref=f1e232]:
+              - generic [ref=f1e233]:
+                - generic [ref=f1e234]: oxide-gateway
+                - generic [ref=f1e237]:
+                  - generic [ref=f1e238]: Actix-Web 4 SSE streaming & API proxy
+                  - generic [ref=f1e239]: Core
+              - generic [ref=f1e240]:
+                - generic [ref=f1e241]: oxide-engines
+                - generic [ref=f1e244]:
+                  - generic [ref=f1e245]: InferenceProvider (Candle, llama.cpp, vLLM)
+                  - generic [ref=f1e246]: Compute
+              - generic [ref=f1e247]:
+                - generic [ref=f1e248]: oxide-state
+                - generic [ref=f1e251]:
+                  - generic [ref=f1e252]: DashMap registry & SurrealDB 3 state
+                  - generic [ref=f1e253]: State
+              - generic [ref=f1e254]:
+                - generic [ref=f1e255]: oxide-security
+                - generic [ref=f1e258]:
+                  - generic [ref=f1e259]: Blake3 hashed API keys & TokenBucket limiter
+                  - generic [ref=f1e260]: Security
+              - generic [ref=f1e261]:
+                - generic [ref=f1e262]: oxide-kernels
+                - generic [ref=f1e265]:
+                  - generic [ref=f1e266]: FusedCrossEntropyOp GPU CUDA acceleration
+                  - generic [ref=f1e267]: GPU
+              - generic [ref=f1e268]:
+                - generic [ref=f1e269]: oxide-tooling
+                - generic [ref=f1e272]:
+                  - generic [ref=f1e273]: Polars dataset formatter & GGUF export
+                  - generic [ref=f1e274]: Tooling
+              - generic [ref=f1e275]:
+                - generic [ref=f1e276]: oxide-mcp
+                - generic [ref=f1e279]:
+                  - generic [ref=f1e280]: STAIR hierarchical Code-ToC & tools
+                  - generic [ref=f1e281]: Agents
+              - generic [ref=f1e282]:
+                - generic [ref=f1e283]: oxide-network
+                - generic [ref=f1e286]:
+                  - generic [ref=f1e287]: mDNS local LAN discovery & tunnel
+                  - generic [ref=f1e288]: Network
+          - generic [ref=f1e289]:
+            - generic [ref=f1e290]:
+              - generic [ref=f1e291]:
+                - heading "Interactive Workflows" [level=3] [ref=f1e292]
+                - generic [ref=f1e296]: Quick Launch
+              - generic [ref=f1e297]:
+                - button "Model Hub & Loader Deploy GGUF, Candle, and vLLM instances" [ref=f1e298] [cursor=pointer]:
+                  - generic [ref=f1e310]:
+                    - generic [ref=f1e311]: Model Hub & Loader
+                    - generic [ref=f1e312]: Deploy GGUF, Candle, and vLLM instances
+                - button "Dataset Recipe Studio Unsloth formatting, GGUF export & compactor" [ref=f1e315] [cursor=pointer]:
+                  - generic [ref=f1e321]:
+                    - generic [ref=f1e322]: Dataset Recipe Studio
+                    - generic [ref=f1e323]: Unsloth formatting, GGUF export & compactor
+                - button "Hardware Diagnostics CUDA, driver versions & system sanity" [ref=f1e326] [cursor=pointer]:
+                  - generic [ref=f1e331]:
+                    - generic [ref=f1e332]: Hardware Diagnostics
+                    - generic [ref=f1e333]: CUDA, driver versions & system sanity
+            - generic [ref=f1e336]:
+              - generic [ref=f1e337]: Press Cmd+K to open Command Palette
+              - generic [ref=f1e338]: Local-First
+    - status "system telemetry" [ref=f1e339]:
+      - generic [ref=f1e340]:
+        - generic [ref=f1e342]: "vLLM Sidecar: Running"
+        - generic [ref=f1e343]: Local CUDA
+      - generic [ref=f1e344]:
+        - generic [ref=f1e345]:
+          - generic [ref=f1e346]: "VRAM:"
+          - generic [ref=f1e347]: 12.4GB / 24GB
+        - generic [ref=f1e374]:
+          - generic [ref=f1e375]: "Tokens/sec:"
+          - generic [ref=f1e376]: "42.5"
+      - generic [ref=f1e377]:
+        - generic [ref=f1e378]:
+          - generic [ref=f1e379]: "LAN:"
+          - generic [ref=f1e380]: Visible
+        - generic [ref=f1e381]:
+          - generic [ref=f1e382]: "Tunnel:"
+          - generic [ref=f1e383]: Inactive

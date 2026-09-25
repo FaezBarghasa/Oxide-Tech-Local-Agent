@@ -1,0 +1,115 @@
+- generic [ref=f1e3]:
+  - complementary [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - img "Oxide-Tech" [ref=f1e8]
+        - generic [ref=f1e11]:
+          - generic [ref=f1e12]:
+            - text: Oxide-Tech
+            - generic [ref=f1e13]: OS
+          - generic [ref=f1e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f1e15] [cursor=pointer]
+    - navigation [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f1e21] [cursor=pointer]:
+          - generic [ref=f1e29]: Dashboard
+          - generic [ref=f1e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f1e31] [cursor=pointer]:
+          - generic [ref=f1e35]: Playground
+          - generic [ref=f1e36]: Chat & testing
+      - generic [ref=f1e37]:
+        - generic [ref=f1e38]: Compute
+        - button "Model Hub Universal loader" [ref=f1e39] [cursor=pointer]:
+          - generic [ref=f1e51]: Model Hub
+          - generic [ref=f1e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f1e53] [cursor=pointer]:
+          - generic [ref=f1e57]: Engines
+          - generic [ref=f1e58]: Candle / vLLM / SGLang
+      - generic [ref=f1e59]:
+        - generic [ref=f1e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f1e61] [cursor=pointer]:
+          - generic [ref=f1e67]: Gateway
+          - generic [ref=f1e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f1e69] [cursor=pointer]:
+          - generic [ref=f1e73]: Agents
+          - generic [ref=f1e74]: MCP tool sandboxes
+      - generic [ref=f1e75]:
+        - generic [ref=f1e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f1e77] [cursor=pointer]:
+          - generic [ref=f1e83]: Datasets
+          - generic [ref=f1e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f1e85] [cursor=pointer]:
+          - generic [ref=f1e89]: Export
+          - generic [ref=f1e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [ref=f1e91] [cursor=pointer]:
+          - generic [ref=f1e101]: Memory
+          - generic [ref=f1e102]: STAIR & compaction
+      - generic [ref=f1e103]:
+        - generic [ref=f1e104]: System
+        - button "Diagnostics Hardware doctor" [active] [ref=f1e105] [cursor=pointer]:
+          - generic [ref=f1e111]: Diagnostics
+          - generic [ref=f1e112]: Hardware doctor
+        - button "Settings Preferences" [ref=f1e113] [cursor=pointer]:
+          - generic [ref=f1e118]: Settings
+          - generic [ref=f1e119]: Preferences
+    - generic [ref=f1e123]:
+      - generic [ref=f1e124]: Cosmic Workstation
+      - generic [ref=f1e125]: Offline-First · Pop!_OS
+  - generic [ref=f1e126]:
+    - banner [ref=f1e127]:
+      - generic [ref=f1e128]:
+        - generic [ref=f1e129]: doctor
+        - generic [ref=f1e130]:
+          - heading "Doctor" [level=1] [ref=f1e561]
+          - paragraph [ref=f1e132]: Diagnostics & health
+      - generic [ref=f1e133]:
+        - button "New Session" [ref=f1e134] [cursor=pointer]
+        - button "Deploy" [ref=f1e137] [cursor=pointer]
+        - button [ref=f1e140] [cursor=pointer]
+    - main [ref=f1e144]:
+      - generic [ref=f1e562]:
+        - generic [ref=f1e563]:
+          - generic [ref=f1e564]:
+            - generic [ref=f1e565]:
+              - heading "System Diagnostics" [level=2] [ref=f1e566]
+              - paragraph [ref=f1e570]: Verified environment scan · 9/25/2026, 10:57:30 AM
+            - button "Run Diagnostics" [ref=f1e572] [cursor=pointer]
+          - generic [ref=f1e578]:
+            - generic [ref=f1e584]:
+              - generic [ref=f1e585]: "0"
+              - generic [ref=f1e586]: Passed
+            - generic [ref=f1e590]:
+              - generic [ref=f1e591]: "0"
+              - generic [ref=f1e592]: Warnings
+            - generic [ref=f1e598]:
+              - generic [ref=f1e599]: "0"
+              - generic [ref=f1e600]: Critical Failures
+            - generic [ref=f1e606]:
+              - generic [ref=f1e607]: CPU
+              - generic [ref=f1e608]: Acceleration
+        - generic [ref=f1e609]: Diagnostics requires the desktop application
+        - generic [ref=f1e612]:
+          - heading "Toolchain Verification" [level=3] [ref=f1e614]
+          - generic [ref=f1e617]: Run diagnostics to see results
+          - generic [ref=f1e619]:
+            - generic [ref=f1e620]: udev rules
+            - button "Install udev" [ref=f1e624] [cursor=pointer]
+    - status "system telemetry" [ref=f1e339]:
+      - generic [ref=f1e340]:
+        - generic [ref=f1e342]: "vLLM Sidecar: Running"
+        - generic [ref=f1e343]: Local CUDA
+      - generic [ref=f1e344]:
+        - generic [ref=f1e345]:
+          - generic [ref=f1e346]: "VRAM:"
+          - generic [ref=f1e347]: 19.4GB / 24GB
+        - generic [ref=f1e374]:
+          - generic [ref=f1e375]: "Tokens/sec:"
+          - generic [ref=f1e376]: "22.4"
+      - generic [ref=f1e377]:
+        - generic [ref=f1e378]:
+          - generic [ref=f1e379]: "LAN:"
+          - generic [ref=f1e380]: Visible
+        - generic [ref=f1e381]:
+          - generic [ref=f1e382]: "Tunnel:"
+          - generic [ref=f1e383]: Inactive
