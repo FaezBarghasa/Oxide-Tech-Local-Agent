@@ -1,0 +1,112 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - img "Oxide-Tech" [ref=e8]
+        - button "Expand sidebar" [ref=e384] [cursor=pointer]
+      - navigation [ref=e18]:
+        - generic [ref=e19]:
+          - button "Dashboard — System & telemetry" [ref=e387] [cursor=pointer]
+          - button "Playground — Chat & testing" [ref=e388] [cursor=pointer]
+        - generic [ref=e37]:
+          - button "Model Hub — Universal loader" [ref=e390] [cursor=pointer]
+          - button "Engines — Candle / vLLM / SGLang" [ref=e391] [cursor=pointer]
+        - generic [ref=e59]:
+          - button "Gateway — OpenAI API & Keys" [ref=e392] [cursor=pointer]
+          - button "Agents — MCP tool sandboxes" [ref=e393] [cursor=pointer]
+        - generic [ref=e75]:
+          - button "Datasets — Formatting & recipes" [ref=e394] [cursor=pointer]
+          - button "Export — GGUF & weight soups" [ref=e395] [cursor=pointer]
+          - button "Memory — STAIR & compaction" [ref=e396] [cursor=pointer]
+        - generic [ref=e103]:
+          - button "Diagnostics — Hardware doctor" [ref=e397] [cursor=pointer]
+          - button "Settings — Preferences" [ref=e398] [cursor=pointer]
+    - generic [ref=e126]:
+      - banner [ref=e127]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: chat
+          - generic [ref=e130]:
+            - heading "AI Assistant" [level=1] [ref=e399]
+            - paragraph [ref=e132]: STAIR Code-ToC AST retrieval
+        - generic [ref=e133]:
+          - button "New Session" [ref=e134] [cursor=pointer]
+          - button "Deploy" [ref=e137] [cursor=pointer]
+          - button [ref=e140] [cursor=pointer]
+      - main [ref=e144]:
+        - generic [ref=e400]:
+          - generic [ref=e401]:
+            - generic [ref=e402]:
+              - generic [ref=e403]:
+                - heading "Parameters" [level=3] [ref=e406]
+                - generic [ref=e407]: Qwen2.5-Coder-7B
+              - generic [ref=e408]:
+                - text: System Prompt
+                - textbox "System prompt context…" [ref=e409]: You are Oxide-Tech Local Agent — expert in embedded systems, bare-metal no_std Rust, PCB design, and high-performance local AI computing.
+              - generic [ref=e410]:
+                - generic [ref=e411]:
+                  - generic [ref=e412]: Temperature
+                  - generic [ref=e413]: "0.20"
+                - slider [ref=e414] [cursor=pointer]: "0.2"
+                - generic [ref=e415]:
+                  - generic [ref=e416]: Deterministic (0.0)
+                  - generic [ref=e417]: Creative (1.5)
+              - generic [ref=e418]:
+                - generic [ref=e419]:
+                  - generic [ref=e420]: Top-P
+                  - generic [ref=e421]: "0.95"
+                - slider [ref=e422] [cursor=pointer]: "0.95"
+              - generic [ref=e423]:
+                - generic [ref=e424]:
+                  - generic [ref=e425]: Max Tokens
+                  - generic [ref=e426]: "4096"
+                - slider [ref=e427] [cursor=pointer]: "4096"
+            - generic [ref=e428]:
+              - button "Reset Defaults" [ref=e429] [cursor=pointer]
+              - generic [ref=e433]: Candle Runner
+          - generic [ref=e434]:
+            - generic [ref=e435]:
+              - generic [ref=e436]:
+                - generic [ref=e438]: Qwen2.5-Coder-7B
+                - generic [ref=e439]: · Playground Mode
+              - button "Clear Session" [ref=e440] [cursor=pointer]
+            - generic [ref=e441]:
+              - generic [ref=e442]:
+                - generic [ref=e443]:
+                  - generic [ref=e444]: Qwen2.5-Coder-7B
+                  - generic [ref=e445]: 09:29 AM
+                  - button "Copy content" [ref=e446] [cursor=pointer]
+                - generic [ref=e450]: Welcome to **Oxide-Tech Playground**. Connected to local CUDA inference engine. Ready for embedded firmware tasks, systems code generation, and low-latency testing.
+              - generic [ref=e463]:
+                - generic [ref=e464]:
+                  - generic [ref=e465]: You
+                  - generic [ref=e466]: 09:44 AM
+                - generic [ref=e467]: Write an embedded Rust GPIO driver for STM32F401
+              - generic [ref=e468]:
+                - generic [ref=e469]:
+                  - generic [ref=e470]: Qwen2.5-Coder-7B
+                  - generic [ref=e471]: 09:44 AM
+                  - button "Copy content" [ref=e472] [cursor=pointer]
+                - generic [ref=e476]: "⚠️ **Runtime Error**: Failed to fetch"
+            - generic [ref=e453]:
+              - button "Attach context file or prompt" [ref=e454] [cursor=pointer]
+              - textbox "Ask a question, test prompts, generate Rust kernels… (Enter to send)" [active] [ref=e457]
+              - button [disabled] [ref=e458] [cursor=pointer]
+      - status "system telemetry" [ref=e339]:
+        - generic [ref=e340]:
+          - generic [ref=e342]: "vLLM Sidecar: Running"
+          - generic [ref=e343]: Local CUDA
+        - generic [ref=e344]:
+          - generic [ref=e345]:
+            - generic [ref=e346]: "VRAM:"
+            - generic [ref=e347]: 22.8GB / 24GB
+          - generic [ref=e374]:
+            - generic [ref=e375]: "Tokens/sec:"
+            - generic [ref=e376]: "69.4"
+        - generic [ref=e377]:
+          - generic [ref=e378]:
+            - generic [ref=e379]: "LAN:"
+            - generic [ref=e380]: Visible
+          - generic [ref=e381]:
+            - generic [ref=e382]: "Tunnel:"
+            - generic [ref=e383]: Inactive
+  - generic [aria-hidden] [ref=e462]: "0"

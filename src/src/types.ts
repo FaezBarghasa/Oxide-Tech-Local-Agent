@@ -138,7 +138,7 @@ export interface PhaseInfo {
   tag: string;
   title: string;
   description: string;
-  status: 'COMPLETE' | 'IN PROGRESS' | 'PENDING';
+  status: 'COMPLETE' | 'IN PROGRESS' | 'PENDING' | 'ACTIVE';
   progress: number;
   color: 'cyan' | 'purple' | 'emerald' | 'amber' | 'rose' | 'orange';
   duration: string;
