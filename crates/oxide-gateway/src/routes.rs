@@ -271,15 +271,9 @@ pub async fn agent_think(
 
     let mut messages = Vec::new();
     if let Some(sys) = &req.system_prompt {
-        messages.push(ChatMessage {
-            role: "system".to_string(),
-            content: sys.clone(),
-        });
+        messages.push(ChatMessage::new_text(oxide_core::Role::System, sys));
     }
-    messages.push(ChatMessage {
-        role: "user".to_string(),
-        content: prompt.clone(),
-    });
+    messages.push(ChatMessage::new_text(oxide_core::Role::User, prompt.clone()));
 
     if let Some(provider) = state.models.get(&model_name) {
         let (tx, mut rx) = mpsc::channel::<String>(256);

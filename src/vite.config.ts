@@ -21,5 +21,17 @@ export default defineConfig(() => {
       port: 1420,
       strictPort: process.env.TAURI_DEV === 'true',
     },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-charts': ['recharts'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-motion': ['motion'],
+          },
+        },
+      },
+    },
   };
 });
