@@ -47,7 +47,7 @@ export const MobileCompanionModal: React.FC<MobileCompanionModalProps> = ({
           Scan with your smartphone camera to establish a zero-trust, sovereign P2P WebRTC connection. No cloud relay or VPN required.
         </div>
 
-        {/* Optical QR Pairing Mock Visualizer */}
+        {/* Optical QR Pairing Visualizer */}
         <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg border-2 border-cyan-500/40">
           <div className="w-48 h-48 bg-slate-950 rounded flex flex-col items-center justify-center p-2 text-center text-white text-[10px] select-none">
             <div className="w-40 h-40 border border-cyan-400/40 flex flex-col items-center justify-center gap-1 p-2 bg-slate-900">
