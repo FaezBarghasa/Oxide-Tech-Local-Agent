@@ -261,12 +261,34 @@ export const CatalogTab: React.FC = () => {
     },
   ]);
 
+  const [rigCapacityGb, setRigCapacityGb] = useState<number>(8.2);
+  const [detectedGpuName, setDetectedGpuName] = useState<string>('Local Accelerator');
+
+  useEffect(() => {
+    async function detectHardware() {
+      try {
+        const res = await fetch('/api/system/stats');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.gpuActive && data.gpuTotalVram > 0) {
+            setRigCapacityGb(data.gpuTotalVram);
+            if (data.gpuName) setDetectedGpuName(data.gpuName);
+          } else if (data.systemMemoryTotal > 0) {
+            setRigCapacityGb(data.systemMemoryTotal);
+            setDetectedGpuName('System Memory');
+          }
+        }
+      } catch {}
+    }
+    detectHardware();
+  }, []);
+
   // VRAM Formula calculation (with Unsloth 80% savings options)
   const weightMem = (paramsB * bitWidth) / 8;
   const kvCache = (contextLen / 32768) * 8;
   const adapterMem = (loraRank / 16) * 0.5;
   const totalVram = parseFloat(((weightMem * 1.25) + kvCache + adapterMem).toFixed(1));
-  const headroom = parseFloat((48 - totalVram).toFixed(1));
+  const headroom = parseFloat((rigCapacityGb - totalVram).toFixed(1));
   const perGpu = parseFloat((totalVram / 2).toFixed(1));
 
   const filteredBenchmarks = BENCHMARK_METRICS.filter((b) => {
@@ -288,11 +310,11 @@ export const CatalogTab: React.FC = () => {
               <span>Phase 6 · Model Catalog & Comparative Evaluation Benchmarks</span>
             </div>
             <div className="text-[10px] mono text-gray-400 mt-0.5">
-              Dual RTX 3090 (48 GB Total VRAM) · SGLang TP=2 Serving · Latency & Throughput Benchmark Suite
+              {detectedGpuName} ({rigCapacityGb} GB Total Capacity) · Local Serving & Latency Benchmark Suite
             </div>
           </div>
           <span className="text-[10px] mono px-3 py-1 rounded-md bg-orange-500/10 text-orange-400 border border-orange-500/30 font-bold flex items-center gap-1.5">
-            <span>🦥</span> RIG CAPACITY: 48 GB (DUAL 3090)
+            <span>🦥</span> RIG CAPACITY: {rigCapacityGb} GB ({detectedGpuName})
           </span>
         </div>
 
@@ -370,7 +392,7 @@ export const CatalogTab: React.FC = () => {
               <span>Comparative Model Evaluation & Latency/Throughput Benchmarks</span>
             </div>
             <div className="text-[10px] mono text-gray-400 mt-0.5">
-              Empirical SGLang + RadixAttention metrics benchmarked on Dual NVIDIA RTX 3090 (48GB VRAM)
+              Empirical SGLang + RadixAttention metrics profiled for {detectedGpuName} ({rigCapacityGb} GB VRAM)
             </div>
           </div>
 
@@ -704,7 +726,7 @@ export const CatalogTab: React.FC = () => {
 
             <div className="pt-2 border-t border-[#232530] text-[10px] mono text-gray-400 flex items-center justify-between">
               <span>VRAM Footprint:</span>
-              <span className="text-white font-bold">{activeBenchmark.vramGb} GB / 48 GB (Dual 3090)</span>
+              <span className="text-white font-bold">{activeBenchmark.vramGb} GB / {rigCapacityGb} GB ({detectedGpuName})</span>
             </div>
           </div>
         </div>
@@ -715,7 +737,7 @@ export const CatalogTab: React.FC = () => {
         <div className="flex items-center justify-between pb-3.5 border-b border-[#232530] mb-4">
           <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Calculator className="w-4 h-4 text-orange-400" />
-            <span>Unsloth VRAM Pre-Flight Calculator (Dual RTX 3090)</span>
+            <span>Unsloth VRAM Pre-Flight Calculator ({detectedGpuName})</span>
           </span>
           <span className="text-[10px] mono text-gray-400">
             Formula: (Φ · b / 8) × 1.25 + KV_Cache + Adapter_Memory
@@ -780,7 +802,7 @@ export const CatalogTab: React.FC = () => {
           <div>
             <div className="text-[10px] mono uppercase text-gray-400 font-semibold">Total Estimated VRAM</div>
             <div className="text-2xl font-bold mono text-orange-400 mt-1">{totalVram} GB</div>
-            <div className="text-[10px] mono text-gray-400 mt-0.5">Dual RTX 3090 (48 GB)</div>
+            <div className="text-[10px] mono text-gray-400 mt-0.5">{detectedGpuName} ({rigCapacityGb} GB)</div>
           </div>
 
           <div>

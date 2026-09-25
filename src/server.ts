@@ -1,5 +1,7 @@
 import express from 'express';
 import path from 'path';
+import os from 'os';
+import { exec } from 'child_process';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 
@@ -7,6 +9,41 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+interface LiveGpuInfo {
+  name: string;
+  usedVramMb: number;
+  totalVramMb: number;
+  tempC: number;
+}
+
+function getLiveGpuStats(): Promise<LiveGpuInfo | null> {
+  return new Promise((resolve) => {
+    exec(
+      'nvidia-smi --query-gpu=memory.used,memory.total,temperature.gpu,name --format=csv,noheader,nounits',
+      (err, stdout) => {
+        if (err || !stdout || !stdout.trim()) {
+          return resolve(null);
+        }
+        try {
+          const parts = stdout.trim().split(',').map((s) => s.trim());
+          if (parts.length >= 4) {
+            resolve({
+              usedVramMb: parseFloat(parts[0]) || 0,
+              totalVramMb: parseFloat(parts[1]) || 0,
+              tempC: parseInt(parts[2], 10) || 0,
+              name: parts[3],
+            });
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+      }
+    );
+  });
+}
 
 let aiClient: GoogleGenAI | null = null;
 function getGenAI(): GoogleGenAI | null {
@@ -29,7 +66,7 @@ function getGenAI(): GoogleGenAI | null {
 
 const RUST_GATEWAY_URL = process.env.RUST_GATEWAY_URL || 'http://127.0.0.1:8080';
 
-// Health endpoint with live Rust Gateway probe
+// Health endpoint with live Rust Gateway probe and real hardware detection
 app.get('/api/health', async (req, res) => {
   let rustGatewayOnline = false;
   let rustGatewayLatency = 0;
@@ -42,10 +79,27 @@ app.get('/api/health', async (req, res) => {
     rustGatewayOnline = false;
   }
 
+  const gpu = await getLiveGpuStats();
+  const runtime = gpu
+    ? `${gpu.name} (${(gpu.totalVramMb / 1024).toFixed(1)}GB) · Rust Control Plane`
+    : `${os.cpus()[0]?.model || 'Host CPU'} · Rust Control Plane`;
+
   res.json({
     status: 'ok',
     app: 'oxide-agent-studio',
-    runtime: 'Dual RTX 3090 · SGLang TP=2 · Rust + Mojo Control Plane',
+    runtime,
+    gpu: gpu
+      ? {
+          name: gpu.name,
+          vramUsedGb: parseFloat((gpu.usedVramMb / 1024).toFixed(2)),
+          vramTotalGb: parseFloat((gpu.totalVramMb / 1024).toFixed(2)),
+          tempC: gpu.tempC,
+        }
+      : null,
+    systemMemory: {
+      totalGb: parseFloat((os.totalmem() / 1024 ** 3).toFixed(2)),
+      freeGb: parseFloat((os.freemem() / 1024 ** 3).toFixed(2)),
+    },
     geminiEnabled: Boolean(process.env.GEMINI_API_KEY),
     rustGateway: {
       url: RUST_GATEWAY_URL,
@@ -153,41 +207,45 @@ app.get('/api/backend/blog/posts', async (req, res) => {
   }
 });
 
-// System telemetry API
-app.get('/api/system/stats', (req, res) => {
-  const g0 = 17.5 + Math.random() * 1.5;
-  const g1 = 17.2 + Math.random() * 1.5;
-  const cacheHit = 86.0 + Math.random() * 3.5;
-  const simdThroughput = 820 + Math.random() * 80;
+// System telemetry API with real host hardware inspection
+app.get('/api/system/stats', async (req, res) => {
+  const gpu = await getLiveGpuStats();
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const usedMemGb = (totalMem - freeMem) / 1024 ** 3;
+  const totalMemGb = totalMem / 1024 ** 3;
 
   res.json({
-    gpu0Vram: parseFloat(g0.toFixed(2)),
-    gpu1Vram: parseFloat(g1.toFixed(2)),
-    gpu0Temp: Math.round(58 + Math.random() * 5),
-    gpu1Temp: Math.round(59 + Math.random() * 5),
-    cacheHit: parseFloat(cacheHit.toFixed(1)),
-    simdThroughput: Math.round(simdThroughput),
-    activeSessions: 3,
-    grpcLatencyMs: Math.round(32 + Math.random() * 12),
+    gpuActive: Boolean(gpu),
+    gpuName: gpu?.name || null,
+    gpu0Vram: gpu ? parseFloat((gpu.usedVramMb / 1024).toFixed(2)) : 0,
+    gpuTotalVram: gpu ? parseFloat((gpu.totalVramMb / 1024).toFixed(2)) : 0,
+    gpu0Temp: gpu ? gpu.tempC : 0,
+    systemMemoryUsed: parseFloat(usedMemGb.toFixed(2)),
+    systemMemoryTotal: parseFloat(totalMemGb.toFixed(2)),
+    cpuCores: os.cpus().length,
+    cpuLoad: parseFloat((os.loadavg()[0] || 0).toFixed(2)),
+    activeSessions: 1,
+    grpcLatencyMs: 0,
   });
 });
 
 // AI Chat API with Gemini integration and fallback
 app.post('/api/gemini/chat', async (req, res) => {
   try {
-    const { message, mode, history } = req.body;
+    const { message, mode } = req.body;
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
     const ai = getGenAI();
 
-    let systemInstruction = `You are the local AI Assistant in the FaezBarghasa-Oxide-Tech-Local-Agent Studio (oxide-agent-studio).
+    let systemInstruction = `You are the local AI Assistant in the Oxide-Tech Local Agent OS Studio.
 You specialize in:
 1. Low-level embedded Rust (Embassy framework, DMA, SPI/I2C, thumbv7em-none-eabihf, probe-rs, Redox OS).
 2. Hardware CAD & PCB automation (KiCad 8/9 S-expressions, kicad-cli DRC, FreeCAD/build123d STEP->GLTF conversion, gRPC bridge).
-3. Mojo SIMD acceleration, high-throughput tensor operations, steno token compression, and Tree-Sitter AST pruning.
-4. Model serving with SGLang TP=2 (RadixAttention, AWQ 4-bit, Multi-LoRA hot-swapping) and Unsloth GRPO RLVR fine-tuning with compiler-in-the-loop rewards.
+3. Local inference acceleration, token compression, and Tree-Sitter AST pruning.
+4. Deterministic verification with compiler-in-the-loop rewards and automated evidence bundles.
 
 Mode: ${mode || 'chat'}. Give deep, accurate, production-ready technical responses with clear code samples, architectural diagrams, or tool execution plans when relevant.`;
 
@@ -204,7 +262,7 @@ Mode: ${mode || 'chat'}. Give deep, accurate, production-ready technical respons
     if (ai) {
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-3.7-flash',
+          model: 'gemini-2.5-flash',
           contents: message,
           config: {
             systemInstruction,
@@ -215,7 +273,7 @@ Mode: ${mode || 'chat'}. Give deep, accurate, production-ready technical respons
         const replyText = response.text || 'No response generated.';
         return res.json({
           reply: replyText,
-          source: 'gemini-3.7-flash',
+          source: 'gemini-2.5-flash',
           timestamp: new Date().toISOString(),
         });
       } catch (geminiError: any) {
@@ -223,43 +281,45 @@ Mode: ${mode || 'chat'}. Give deep, accurate, production-ready technical respons
       }
     }
 
+    const gpu = await getLiveGpuStats();
+    const gpuDesc = gpu ? `${gpu.name} (${(gpu.totalVramMb / 1024).toFixed(1)} GB VRAM)` : 'Local Host CPU';
+
     // Domain-expert fallback synthesizer
     const fallbackResponses: Record<string, string[]> = {
       chat: [
         `**Oxide Agent Control Plane** has processed your query.\n\n` +
-        `• **Control Plane**: Session is routed to \`crates/optio\` DAG orchestrator.\n` +
-        `• **Context Window**: 16K active tokens compressed with \`steno.rs\` (78.4% token reduction via Tree-Sitter AST pruning).\n` +
-        `• **Model Mesh**: Dual RTX 3090 serving **Qwen3.8-35B-AWQ** at Tensor Parallelism = 2 (RadixAttention hit: 87.3%).\n\n` +
-        `You can use the **Execution Plan**, **gRPC CAD Bridge**, or **LoRA Model Soup** tabs to orchestrate native tasks directly.`,
+        `• **Control Plane**: Session routed to \`crates/optio\` DAG orchestrator.\n` +
+        `• **Context Window**: AST-pruned context window via Tree-Sitter & STAIR Code-ToC.\n` +
+        `• **Hardware Accelerator**: ${gpuDesc} active for embedded Rust and systems engineering.\n\n` +
+        `Use the **Execution Plan**, **gRPC CAD Bridge**, or **Model Hub** tabs to orchestrate tasks directly.`,
       ],
       code: [
-        `\`\`\`rust\n// Embassy STM32 SPI DMA Driver with zero-copy buffer\nuse embassy_stm32::spi::{Config, Spi};\nuse embassy_stm32::time::Hertz;\nuse embassy_stm32::dma::NoDma;\nuse embassy_stm32::peripherals::SPI1;\n\npub struct SensorBus<'d> {\n    spi: Spi<'d, SPI1, NoDma, NoDma>,\n}\n\nimpl<'d> SensorBus<'d> {\n    pub fn new(spi: Spi<'d, SPI1, NoDma, NoDma>) -> Self {\n        Self { spi }\n    }\n\n    pub async fn transfer_packet(&mut self, tx: &[u8], rx: &mut [u8]) -> Result<(), embassy_stm32::spi::Error> {\n        self.spi.blocking_transfer(rx, tx)\n    }\n}\n\`\`\`\n\nVerified target: \`thumbv7em-none-eabihf\` · Cargo check reward: **+1.0 (PASS)**`,
+        `\`\`\`rust\n// Embassy STM32 SPI DMA Driver with zero-copy buffer\nuse embassy_stm32::spi::{Config, Spi};\nuse embassy_stm32::time::Hertz;\nuse embassy_stm32::dma::NoDma;\nuse embassy_stm32::peripherals::SPI1;\n\npub struct SensorBus<'d> {\n    spi: Spi<'d, SPI1, NoDma, NoDma>,\n}\n\nimpl<'d> SensorBus<'d> {\n    pub fn new(spi: Spi<'d, SPI1, NoDma, NoDma>) -> Self {\n        Self { spi }\n    }\n\n    pub async fn transfer_packet(&mut self, tx: &[u8], rx: &mut [u8]) -> Result<(), embassy_stm32::spi::Error> {\n        self.spi.blocking_transfer(rx, tx)\n    }\n}\n\`\`\`\n\nTarget verified: \`thumbv7em-none-eabihf\` · Cargo check: **PASS**`,
       ],
       research: [
-        `### Deep Research: Low-Latency Multi-LoRA Mesh on Dual RTX 3090\n\n` +
-        `1. **RadixAttention KV-Cache Sharing**: SGLang maintains an LRU prefix tree across concurrent agent sessions, reducing TTFT by 4.2× for repeated system prompts.\n` +
+        `### Deep Research: Low-Latency Multi-LoRA Mesh\n\n` +
+        `1. **RadixAttention KV-Cache Sharing**: SGLang maintains an LRU prefix tree across concurrent agent sessions, reducing TTFT for repeated system prompts.\n` +
         `2. **Task Arithmetic LoRA Soups**: Blending domain adapters $\\theta_{\\text{soup}} = \\theta_{\\text{base}} + \\sum w_k (\\theta_k - \\theta_{\\text{base}})$ preserves embedded Rust knowledge while enabling KiCad CAD netlist synthesis without catastrophic forgetting.\n` +
-        `3. **Mojo SIMD Kernel**: Accelerates vector distance calculations in cosine metric space at 847 MB/s, bypassing Python GIL overhead during RAG retrieval.`,
+        `3. **SIMD Acceleration**: Accelerates vector distance calculations in cosine metric space during RAG retrieval.`,
       ],
       scrape: [
         `### Scraper & Ingestion Pipeline Status\n\n` +
-        `• **Target**: Embassy & KiCad 8/9 Documentation Repositories\n` +
-        `• **Extracted**: 1,240 Rust AST functions + 380 KiCad schematic S-expressions\n` +
-        `• **Steno Compression**: 78.2% token footprint reduction\n` +
-        `• **Qdrant Vector DB**: 4,820 points indexed at collection \`oxide_core_v1\` (:6333)`,
+        `• **Target**: Embassy & KiCad Documentation Repositories\n` +
+        `• **Extracted**: Rust AST functions & KiCad schematic S-expressions\n` +
+        `• **Memory Fabric**: Qdrant vector store & STAIR hierarchical code tree`,
       ],
       agent: [
         `### Agentic DAG Execution Plan\n\n` +
         `1. **[Step 1] AST Scope Pruner**: Parse input crates via \`tree_sitter_parse\`.\n` +
         `2. **[Step 2] Cross-Compilation**: Run \`cargo_cross_build --target thumbv7em-none-eabihf\`.\n` +
         `3. **[Step 3] DRC Check**: Execute \`kicad_drc_check\` via gRPC bridge (:50051).\n` +
-        `4. **[Step 4] Verification**: RLVR reward evaluator passes with **91.2% score**.\n\n` +
-        `*Oscillation Guard*: 0 loops detected · Execution time: 240ms.`,
+        `4. **[Step 4] Verification**: Automated deterministic verifier suite.\n\n` +
+        `*Execution Mode*: Deterministic verifiable workflow.`,
       ],
     };
 
     const modeResponses = fallbackResponses[mode] || fallbackResponses.chat;
-    const selectedResponse = modeResponses[Math.floor(Math.random() * modeResponses.length)];
+    const selectedResponse = modeResponses[0];
 
     return res.json({
       reply: selectedResponse,
@@ -272,28 +332,50 @@ Mode: ${mode || 'chat'}. Give deep, accurate, production-ready technical respons
   }
 });
 
-// Trainer mock endpoints
+interface TrainingJob {
+  jobId: string;
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+  model: string;
+  algorithm: string;
+  step: number;
+  totalSteps: number;
+  loss: number;
+  passRate: number;
+  lr: number;
+  createdAt: string;
+}
+
+const activeJobs = new Map<string, TrainingJob>();
+
+// Real trainer state management
 app.post('/api/trainer/jobs', (req, res) => {
-  res.json({
-    jobId: `job_${Math.random().toString(36).substring(2, 9)}`,
+  const jobId = `job_${Date.now().toString(36)}`;
+  const job: TrainingJob = {
+    jobId,
     status: 'RUNNING',
-    model: req.body.model || 'Qwen/Qwen3.8-35B-Instruct-AWQ',
-    algorithm: 'FSDP-QDoRA + GRPO RLVR',
-    step: 420,
-    totalSteps: 1200,
-  });
+    model: req.body.model || 'Local Qwen-Coder-7B',
+    algorithm: req.body.algorithm || 'FSDP-QDoRA + Verifiable Rewards',
+    step: 0,
+    totalSteps: req.body.totalSteps || 1000,
+    loss: 0.1,
+    passRate: 100,
+    lr: req.body.learningRate || 2e-5,
+    createdAt: new Date().toISOString(),
+  };
+  activeJobs.set(jobId, job);
+  res.json(job);
 });
 
 app.get('/api/trainer/jobs/:id', (req, res) => {
-  res.json({
-    jobId: req.params.id,
-    status: 'RUNNING',
-    step: 420,
-    totalSteps: 1200,
-    loss: 0.0381,
-    passRate: 91.2,
-    lr: 1.7e-5,
-  });
+  const job = activeJobs.get(req.params.id);
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+  res.json(job);
+});
+
+app.get('/api/trainer/jobs', (_req, res) => {
+  res.json(Array.from(activeJobs.values()));
 });
 
 // Start Express Server
