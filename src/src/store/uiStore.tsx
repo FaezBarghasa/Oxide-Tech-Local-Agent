@@ -13,6 +13,8 @@ interface UIState {
   setMobileCompanionOpen: (v: boolean) => void;
   hitlOpen: boolean;
   setHitlOpen: (v: boolean) => void;
+  hitlPendingCount: number;
+  setHitlPendingCount: (n: number) => void;
   toasts: { id: number; msg: string }[];
   toast: (msg: string) => void;
 }
@@ -25,6 +27,7 @@ export function UIProvider({ children, initialTab }: { children: React.ReactNode
   const [deployModel, setDeployModel] = useState<string | null>(null);
   const [mobileCompanionOpen, setMobileCompanionOpen] = useState(false);
   const [hitlOpen, setHitlOpen] = useState(false);
+  const [hitlPendingCount, setHitlPendingCount] = useState(2);
   const [toasts, setToasts] = useState<{ id: number; msg: string }[]>([]);
   const toast = useCallback((msg: string) => {
     const id = toastId++;
@@ -46,6 +49,8 @@ export function UIProvider({ children, initialTab }: { children: React.ReactNode
         setMobileCompanionOpen,
         hitlOpen,
         setHitlOpen,
+        hitlPendingCount,
+        setHitlPendingCount,
         toasts,
         toast,
       }}

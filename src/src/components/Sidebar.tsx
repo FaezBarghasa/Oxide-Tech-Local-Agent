@@ -81,7 +81,7 @@ const navSections: NavSection[] = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => {
-  const { sidebarCollapsed, toggleSidebar, setMobileCompanionOpen, setHitlOpen } = useUI();
+  const { sidebarCollapsed, toggleSidebar, setMobileCompanionOpen, setHitlOpen, hitlPendingCount } = useUI();
 
   return (
     <aside
@@ -194,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onSelectTab }) => 
           {!sidebarCollapsed && (
             <>
               <span className="truncate">HITL Gate</span>
-              <span className="ml-auto text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">2 Pending</span>
+              <span className="ml-auto text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">{hitlPendingCount} Pending</span>
             </>
           )}
         </button>

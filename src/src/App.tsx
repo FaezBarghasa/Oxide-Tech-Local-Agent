@@ -83,6 +83,7 @@ function Shell() {
     setMobileCompanionOpen,
     hitlOpen,
     setHitlOpen,
+    setHitlPendingCount,
   } = useUI();
   const [hitlRequests, setHitlRequests] = React.useState<HitlActionRequest[]>(INITIAL_HITL_REQUESTS);
 
@@ -99,12 +100,14 @@ function Shell() {
 
   const handleHitlApprove = (id: string) => {
     setHitlRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'APPROVED' } : r)));
+    setHitlPendingCount((prev) => Math.max(0, prev - 1));
     toast(`Authorized operation: ${id}`);
     setHitlOpen(false);
   };
 
   const handleHitlReject = (id: string, reason?: string) => {
     setHitlRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'REJECTED' } : r)));
+    setHitlPendingCount((prev) => Math.max(0, prev - 1));
     toast(`Rejected operation: ${id}${reason ? ` (${reason})` : ''}`);
     setHitlOpen(false);
   };

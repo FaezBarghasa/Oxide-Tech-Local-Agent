@@ -1,0 +1,124 @@
+- generic [ref=f4e3]:
+  - complementary [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - generic [ref=f4e6]:
+        - img "Oxide-Tech" [ref=f4e8]
+        - generic [ref=f4e11]:
+          - generic [ref=f4e12]:
+            - text: Oxide-Tech
+            - generic [ref=f4e13]: OS
+          - generic [ref=f4e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f4e15] [cursor=pointer]
+    - navigation [ref=f4e18]:
+      - generic [ref=f4e19]:
+        - generic [ref=f4e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f4e21] [cursor=pointer]:
+          - generic [ref=f4e29]: Dashboard
+          - generic [ref=f4e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f4e31] [cursor=pointer]:
+          - generic [ref=f4e35]: Playground
+          - generic [ref=f4e36]: Chat & testing
+      - generic [ref=f4e37]:
+        - generic [ref=f4e38]: Compute
+        - button "Model Hub Universal loader" [ref=f4e39] [cursor=pointer]:
+          - generic [ref=f4e51]: Model Hub
+          - generic [ref=f4e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f4e53] [cursor=pointer]:
+          - generic [ref=f4e57]: Engines
+          - generic [ref=f4e58]: Candle / vLLM / SGLang
+      - generic [ref=f4e59]:
+        - generic [ref=f4e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f4e61] [cursor=pointer]:
+          - generic [ref=f4e67]: Gateway
+          - generic [ref=f4e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f4e69] [cursor=pointer]:
+          - generic [ref=f4e73]: Agents
+          - generic [ref=f4e74]: MCP tool sandboxes
+      - generic [ref=f4e75]:
+        - generic [ref=f4e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f4e77] [cursor=pointer]:
+          - generic [ref=f4e83]: Datasets
+          - generic [ref=f4e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f4e85] [cursor=pointer]:
+          - generic [ref=f4e89]: Export
+          - generic [ref=f4e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [ref=f4e91] [cursor=pointer]:
+          - generic [ref=f4e101]: Memory
+          - generic [ref=f4e102]: STAIR & compaction
+        - button "Graph Code topology & AST" [ref=f4e103] [cursor=pointer]:
+          - generic [ref=f4e110]: Graph
+          - generic [ref=f4e111]: Code topology & AST
+      - generic [ref=f4e112]:
+        - generic [ref=f4e113]: System
+        - button "Diagnostics Hardware doctor" [ref=f4e114] [cursor=pointer]:
+          - generic [ref=f4e120]: Diagnostics
+          - generic [ref=f4e121]: Hardware doctor
+        - button "RE-Forge Binary disassembly & PTX" [active] [ref=f4e122] [cursor=pointer]:
+          - generic [ref=f4e129]: RE-Forge
+          - generic [ref=f4e130]: Binary disassembly & PTX
+        - button "Settings Preferences" [ref=f4e131] [cursor=pointer]:
+          - generic [ref=f4e136]: Settings
+          - generic [ref=f4e137]: Preferences
+    - generic [ref=f4e138]:
+      - button "Mobile Companion P2P" [ref=f4e139] [cursor=pointer]:
+        - generic [ref=f4e142]: Mobile Companion
+        - generic [ref=f4e143]: P2P
+      - button "HITL Gate 2 Pending" [ref=f4e144] [cursor=pointer]:
+        - generic [ref=f4e147]: HITL Gate
+        - generic [ref=f4e148]: 2 Pending
+    - generic [ref=f4e152]:
+      - generic [ref=f4e153]: Cosmic Workstation
+      - generic [ref=f4e154]: Offline-First · Pop!_OS
+  - generic [ref=f4e155]:
+    - banner [ref=f4e156]:
+      - generic [ref=f4e157]:
+        - generic [ref=f4e158]: reforge
+        - generic [ref=f4e159]:
+          - heading "RE-Forge" [level=1] [ref=f4e720]
+          - paragraph [ref=f4e161]: Binary disassembly & PTX
+      - generic [ref=f4e162]:
+        - button "HITL Gate" [ref=f4e163] [cursor=pointer]
+        - button "Mobile" [ref=f4e168] [cursor=pointer]
+        - button "New Session" [ref=f4e172] [cursor=pointer]
+        - button "Deploy" [ref=f4e176] [cursor=pointer]
+        - button "⌘K" [ref=f4e179] [cursor=pointer]
+    - main [ref=f4e184]:
+      - generic [ref=f4e722]:
+        - generic [ref=f4e723]:
+          - generic [ref=f4e724]:
+            - generic [ref=f4e725]: RE-Forge Studio · Binary & GPU Reverse Engineering
+            - generic [ref=f4e732]: ARM Cortex-M IVT, RTOS detection, Shannon entropy, CUDA PTX lifter & Safe-Rust decompilation
+          - button "Analyze & Decompile" [ref=f4e733] [cursor=pointer]
+        - generic [ref=f4e737]:
+          - generic [ref=f4e738]:
+            - generic [ref=f4e739]: Target Binary, Firmware (.bin/.hex) or PTX File Path
+            - textbox "/path/to/binary.elf" [ref=f4e741]: /home/jrad/RustroverProjects/Oxide-Tech-Local-Agent/target/release/oxide-tech-local-agent
+          - generic [ref=f4e742]:
+            - generic [ref=f4e743]:
+              - generic [ref=f4e744]: Target Architecture
+              - combobox [ref=f4e745] [cursor=pointer]:
+                - option "Auto-Detect" [selected]
+                - option "ARM Cortex-M (Embedded)"
+                - option "x86_64 Native (ELF/PE)"
+                - option "NVIDIA CUDA PTX"
+            - generic [ref=f4e746] [cursor=pointer]:
+              - checkbox "Decompile" [checked] [ref=f4e747]
+              - text: Decompile
+    - status "system telemetry" [ref=f4e379]:
+      - 'button "vLLM Sidecar: Running Local CUDA" [ref=f4e380] [cursor=pointer]':
+        - generic [ref=f4e382]: "vLLM Sidecar: Running"
+        - generic [ref=f4e383]: Local CUDA
+      - generic [ref=f4e384]:
+        - 'button "VRAM: 22.6GB / 24GB" [ref=f4e748] [cursor=pointer]':
+          - generic [ref=f4e386]: "VRAM:"
+          - generic [ref=f4e387]: 22.6GB / 24GB
+        - generic [ref=f4e414]:
+          - generic [ref=f4e415]: "Tokens/sec:"
+          - generic [ref=f4e416]: "41.5"
+      - generic [ref=f4e417]:
+        - 'button "LAN: Visible" [ref=f4e418] [cursor=pointer]':
+          - generic [ref=f4e419]: "LAN:"
+          - generic [ref=f4e420]: Visible
+        - 'button "Tunnel: Inactive" [ref=f4e421] [cursor=pointer]':
+          - generic [ref=f4e422]: "Tunnel:"
+          - generic [ref=f4e423]: Inactive

@@ -1,0 +1,241 @@
+- generic [ref=f4e3]:
+  - complementary [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - generic [ref=f4e6]:
+        - img "Oxide-Tech" [ref=f4e8]
+        - generic [ref=f4e11]:
+          - generic [ref=f4e12]:
+            - text: Oxide-Tech
+            - generic [ref=f4e13]: OS
+          - generic [ref=f4e14]: Local AI Studio
+      - button "Collapse sidebar" [ref=f4e15] [cursor=pointer]
+    - navigation [ref=f4e18]:
+      - generic [ref=f4e19]:
+        - generic [ref=f4e20]: Overview
+        - button "Dashboard System & telemetry" [ref=f4e21] [cursor=pointer]:
+          - generic [ref=f4e29]: Dashboard
+          - generic [ref=f4e30]: System & telemetry
+        - button "Playground Chat & testing" [ref=f4e31] [cursor=pointer]:
+          - generic [ref=f4e35]: Playground
+          - generic [ref=f4e36]: Chat & testing
+      - generic [ref=f4e37]:
+        - generic [ref=f4e38]: Compute
+        - button "Model Hub Universal loader" [ref=f4e39] [cursor=pointer]:
+          - generic [ref=f4e51]: Model Hub
+          - generic [ref=f4e52]: Universal loader
+        - button "Engines Candle / vLLM / SGLang" [ref=f4e53] [cursor=pointer]:
+          - generic [ref=f4e57]: Engines
+          - generic [ref=f4e58]: Candle / vLLM / SGLang
+      - generic [ref=f4e59]:
+        - generic [ref=f4e60]: Network
+        - button "Gateway OpenAI API & Keys" [ref=f4e61] [cursor=pointer]:
+          - generic [ref=f4e67]: Gateway
+          - generic [ref=f4e68]: OpenAI API & Keys
+        - button "Agents MCP tool sandboxes" [ref=f4e69] [cursor=pointer]:
+          - generic [ref=f4e73]: Agents
+          - generic [ref=f4e74]: MCP tool sandboxes
+      - generic [ref=f4e75]:
+        - generic [ref=f4e76]: Tooling
+        - button "Datasets Formatting & recipes" [ref=f4e77] [cursor=pointer]:
+          - generic [ref=f4e83]: Datasets
+          - generic [ref=f4e84]: Formatting & recipes
+        - button "Export GGUF & weight soups" [ref=f4e85] [cursor=pointer]:
+          - generic [ref=f4e89]: Export
+          - generic [ref=f4e90]: GGUF & weight soups
+        - button "Memory STAIR & compaction" [ref=f4e91] [cursor=pointer]:
+          - generic [ref=f4e101]: Memory
+          - generic [ref=f4e102]: STAIR & compaction
+        - button "Graph Code topology & AST" [active] [ref=f4e103] [cursor=pointer]:
+          - generic [ref=f4e110]: Graph
+          - generic [ref=f4e111]: Code topology & AST
+      - generic [ref=f4e112]:
+        - generic [ref=f4e113]: System
+        - button "Diagnostics Hardware doctor" [ref=f4e114] [cursor=pointer]:
+          - generic [ref=f4e120]: Diagnostics
+          - generic [ref=f4e121]: Hardware doctor
+        - button "RE-Forge Binary disassembly & PTX" [ref=f4e122] [cursor=pointer]:
+          - generic [ref=f4e129]: RE-Forge
+          - generic [ref=f4e130]: Binary disassembly & PTX
+        - button "Settings Preferences" [ref=f4e131] [cursor=pointer]:
+          - generic [ref=f4e136]: Settings
+          - generic [ref=f4e137]: Preferences
+    - generic [ref=f4e138]:
+      - button "Mobile Companion P2P" [ref=f4e139] [cursor=pointer]:
+        - generic [ref=f4e142]: Mobile Companion
+        - generic [ref=f4e143]: P2P
+      - button "HITL Gate 2 Pending" [ref=f4e144] [cursor=pointer]:
+        - generic [ref=f4e147]: HITL Gate
+        - generic [ref=f4e148]: 2 Pending
+    - generic [ref=f4e152]:
+      - generic [ref=f4e153]: Cosmic Workstation
+      - generic [ref=f4e154]: Offline-First · Pop!_OS
+  - generic [ref=f4e155]:
+    - banner [ref=f4e156]:
+      - generic [ref=f4e157]:
+        - generic [ref=f4e158]: graph
+        - generic [ref=f4e159]:
+          - heading "Knowledge Graph" [level=1] [ref=f4e549]
+          - paragraph [ref=f4e161]: Relational topology & AST
+      - generic [ref=f4e162]:
+        - button "HITL Gate" [ref=f4e163] [cursor=pointer]
+        - button "Mobile" [ref=f4e168] [cursor=pointer]
+        - button "New Session" [ref=f4e172] [cursor=pointer]
+        - button "Deploy" [ref=f4e176] [cursor=pointer]
+        - button "⌘K" [ref=f4e179] [cursor=pointer]
+    - main [ref=f4e184]:
+      - generic [ref=f4e550]:
+        - generic [ref=f4e552]:
+          - generic [ref=f4e561]:
+            - heading "Graph Engineering Layer Structural Skeleton Active" [level=1] [ref=f4e562]:
+              - text: Graph Engineering Layer
+              - generic [ref=f4e563]: Structural Skeleton Active
+            - paragraph [ref=f4e564]: SurrealDB v3 multi-modal code graph, semantic-structural hybrid indexing, impact propagation, and subgraph context pruning.
+          - generic [ref=f4e565]:
+            - generic [ref=f4e566]:
+              - generic [ref=f4e567]: AST NODES
+              - generic [ref=f4e568]: 1,482
+            - generic [ref=f4e569]:
+              - generic [ref=f4e570]: DIRECTED EDGES
+              - generic [ref=f4e571]: 3,940
+            - generic [ref=f4e572]:
+              - generic [ref=f4e573]: TOKEN SAVINGS
+              - generic [ref=f4e574]: 76.4%
+        - generic [ref=f4e575]:
+          - generic [ref=f4e576]:
+            - generic [ref=f4e577]:
+              - generic [ref=f4e578]:
+                - heading "Multi-Modal Code Graph" [level=2] [ref=f4e584]
+                - generic [ref=f4e585]:
+                  - button "All Modalities" [ref=f4e586]
+                  - button "ast" [ref=f4e587]
+                  - button "calls" [ref=f4e588]
+                  - button "deps" [ref=f4e589]
+                  - button "data" [ref=f4e590]
+              - generic [ref=f4e591]:
+                - generic [ref=f4e592] [cursor=pointer]:
+                  - generic [ref=f4e593]:
+                    - generic [ref=f4e594]:
+                      - generic [ref=f4e595]: Function
+                      - generic [ref=f4e596]: handle_login
+                    - generic [ref=f4e597]:
+                      - generic [ref=f4e598]: L45-L78
+                      - generic [ref=f4e599]: "Blast Radius: 4"
+                  - generic [ref=f4e600]: "pub async fn handle_login(req: Json<LoginReq>) -> HttpResponse"
+                  - generic [ref=f4e601]:
+                    - generic [ref=f4e602]: workspace/gateway/src/routes.rs
+                    - generic [ref=f4e603]: "Qdrant: vec-auth-091"
+                - generic [ref=f4e604] [cursor=pointer]:
+                  - generic [ref=f4e605]:
+                    - generic [ref=f4e606]:
+                      - generic [ref=f4e607]: Function
+                      - generic [ref=f4e608]: verify_password
+                    - generic [ref=f4e609]:
+                      - generic [ref=f4e610]: L112-L138
+                      - generic [ref=f4e611]: "Blast Radius: 2"
+                  - generic [ref=f4e612]: "pub fn verify_password(hash: &str, raw: &str) -> bool"
+                  - generic [ref=f4e613]:
+                    - generic [ref=f4e614]: crates/auth/src/service.rs
+                    - generic [ref=f4e615]: "Qdrant: vec-auth-092"
+                - generic [ref=f4e616] [cursor=pointer]:
+                  - generic [ref=f4e617]:
+                    - generic [ref=f4e618]:
+                      - generic [ref=f4e619]: Struct
+                      - generic [ref=f4e620]: SurrealClient
+                    - generic [ref=f4e621]:
+                      - generic [ref=f4e622]: L18-L62
+                      - generic [ref=f4e623]: "Blast Radius: 14"
+                  - generic [ref=f4e624]: "pub struct SurrealClient { db: Arc<Surreal<Db>> }"
+                  - generic [ref=f4e625]:
+                    - generic [ref=f4e626]: workspace/memory/src/lib.rs
+                    - generic [ref=f4e627]: "Qdrant: vec-db-001"
+                - generic [ref=f4e628] [cursor=pointer]:
+                  - generic [ref=f4e629]:
+                    - generic [ref=f4e630]:
+                      - generic [ref=f4e631]: Function
+                      - generic [ref=f4e632]: verify_firmware_qemu
+                    - generic [ref=f4e633]:
+                      - generic [ref=f4e634]: L34-L89
+                      - generic [ref=f4e635]: "Blast Radius: 3"
+                  - generic [ref=f4e636]: "pub async fn verify_firmware_qemu(elf: &Path, arch: &str) -> Result<bool>"
+                  - generic [ref=f4e637]:
+                    - generic [ref=f4e638]: workspace/verifier/src/qemu_firmware.rs
+                    - generic [ref=f4e639]: "Qdrant: vec-verif-412"
+                - generic [ref=f4e640] [cursor=pointer]:
+                  - generic [ref=f4e641]:
+                    - generic [ref=f4e642]:
+                      - generic [ref=f4e643]: Struct
+                      - generic [ref=f4e644]: TaskDag
+                    - generic [ref=f4e645]:
+                      - generic [ref=f4e646]: L22-L75
+                      - generic [ref=f4e647]: "Blast Radius: 6"
+                  - generic [ref=f4e648]: "pub struct TaskDag { pub nodes: HashMap<String, TaskNode> }"
+                  - generic [ref=f4e649]:
+                    - generic [ref=f4e650]: workspace/router/src/supervisor.rs
+                    - generic [ref=f4e651]: "Qdrant: vec-dag-108"
+            - generic [ref=f4e652]:
+              - generic [ref=f4e653]:
+                - heading "Graph-Based Context Pruning" [level=3] [ref=f4e661]
+                - generic [ref=f4e662]:
+                  - generic [ref=f4e663]: "Hop Depth:"
+                  - button "1-Hop" [ref=f4e664]
+                  - button "2-Hop" [ref=f4e665]
+                  - button "3-Hop" [ref=f4e666]
+              - generic [ref=f4e667]:
+                - generic [ref=f4e668]:
+                  - generic [ref=f4e669]: RAW FILE TOKEN DUMP
+                  - generic [ref=f4e670]: 3,850 tokens
+                  - generic [ref=f4e671]: Full multi-file contents
+                - generic [ref=f4e672]:
+                  - generic [ref=f4e673]: PRUNED SUBGRAPH
+                  - generic [ref=f4e674]: 420 tokens (-89.1%)
+                  - generic [ref=f4e675]: 100% typing & caller fidelity
+              - generic [ref=f4e676]: "### Topology-Aware Subgraph Context **Target**: `SurrealClient` (Struct) - Callers: fetch_user_by_id, save_chat_turn, query_ast_graph - Callees: none - File: workspace/memory/src/lib.rs"
+          - generic [ref=f4e678]:
+            - heading "Impact Analysis & Propagation" [level=2] [ref=f4e682]
+            - generic [ref=f4e683]:
+              - generic [ref=f4e684]:
+                - generic [ref=f4e685]: Target Symbol
+                - generic [ref=f4e686]: SurrealClient
+              - generic [ref=f4e687]:
+                - generic [ref=f4e688]: Risk Level
+                - generic [ref=f4e689]: HIGH RISK
+              - generic [ref=f4e690]:
+                - generic [ref=f4e691]: Blast Radius
+                - generic [ref=f4e692]: 14 downstream nodes
+            - generic [ref=f4e693]:
+              - heading "Predictive Test Selection" [level=3] [ref=f4e694]
+              - generic [ref=f4e697]:
+                - generic [ref=f4e698]:
+                  - generic [ref=f4e699]: cargo test -p memory --test surreal_test
+                  - generic [ref=f4e700]: Affected
+                - generic [ref=f4e701]:
+                  - generic [ref=f4e702]: cargo test -p knowledge --test code_graph_test
+                  - generic [ref=f4e703]: Affected
+                - generic [ref=f4e704]:
+                  - generic [ref=f4e705]: cargo test -p gateway --test routes_test
+                  - generic [ref=f4e706]: Clean
+            - generic [ref=f4e707]:
+              - heading "Call Path Traversal" [level=3] [ref=f4e708]
+              - generic [ref=f4e713]:
+                - generic [ref=f4e714]: "1. API Entry: api_router (routes.rs)"
+                - generic [ref=f4e715]: "↳ 2. Calls: handle_login"
+                - generic [ref=f4e716]: "↳ 3. Calls: verify_password & fetch_user"
+                - generic [ref=f4e717]: "↳ 4. Target: SurrealClient::query"
+    - status "system telemetry" [ref=f4e379]:
+      - 'button "vLLM Sidecar: Running Local CUDA" [ref=f4e380] [cursor=pointer]':
+        - generic [ref=f4e382]: "vLLM Sidecar: Running"
+        - generic [ref=f4e383]: Local CUDA
+      - generic [ref=f4e384]:
+        - 'button "VRAM: 23.8GB / 24GB" [ref=f4e718] [cursor=pointer]':
+          - generic [ref=f4e386]: "VRAM:"
+          - generic [ref=f4e387]: 23.8GB / 24GB
+        - generic [ref=f4e414]:
+          - generic [ref=f4e415]: "Tokens/sec:"
+          - generic [ref=f4e416]: "64.4"
+      - generic [ref=f4e417]:
+        - 'button "LAN: Visible" [ref=f4e418] [cursor=pointer]':
+          - generic [ref=f4e419]: "LAN:"
+          - generic [ref=f4e420]: Visible
+        - 'button "Tunnel: Inactive" [ref=f4e421] [cursor=pointer]':
+          - generic [ref=f4e422]: "Tunnel:"
+          - generic [ref=f4e423]: Inactive
