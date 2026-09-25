@@ -15,61 +15,16 @@ export const ReForgeTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      if (desktop.isDesktop) {
-        const res = await desktop.reforgeAnalyzeFile({
-          file_path: filePath,
-          arch,
-          decompile,
-        });
-        setResult(res);
-      } else {
-        // Mock fallback for web mode
-        setTimeout(() => {
-          setResult({
-            domain: 'Native Executable / Shared Object',
-            file_size: 4289120,
-            format: 'ELF 64-bit LSB pie executable, x86-64',
-            entry_point: '0x0004a210',
-            arm_vector_table: null,
-            rtos: null,
-            avg_entropy: 6.42,
-            entropy_chunks: [
-              { offset: 0, entropy: 4.12 },
-              { offset: 4096, entropy: 5.89 },
-              { offset: 8192, entropy: 6.74 },
-              { offset: 12288, entropy: 7.82 },
-            ],
-            ptx_analysis: null,
-            functions: [
-              {
-                name: 're_forge::analyzer::BinaryAnalyzer::analyze_file',
-                start_address: '0x0005b100',
-                instructions: [
-                  { address: '0x0005b100', mnemonic: 'push rbp', length: 1, is_call: false, is_branch: false, is_return: false },
-                  { address: '0x0005b101', mnemonic: 'mov rbp, rsp', length: 3, is_call: false, is_branch: false, is_return: false },
-                  { address: '0x0005b104', mnemonic: 'sub rsp, 0x80', length: 4, is_call: false, is_branch: false, is_return: false },
-                  { address: '0x0005b108', mnemonic: 'call 0x0004f800', length: 5, is_call: true, is_branch: false, is_return: false },
-                ]
-              }
-            ],
-            total_instructions: 18452,
-            decompiled_code: `// ── Recovered Function: re_forge::analyzer::BinaryAnalyzer::analyze_file ──
-pub fn analyze_file(path: &Path) -> Result<BinaryAnalyzer, Box<dyn std::error::Error>> {
-    // Neural AST reconstruction from x86_64 ELF basic blocks
-    let raw_bytes = std::fs::read(path)?;
-    let parsed = goblin::Object::parse(&raw_bytes)?;
-    Ok(BinaryAnalyzer::from_goblin(parsed))
-}`,
-          });
-          setLoading(false);
-        }, 500);
-      }
+      const res = await desktop.reforgeAnalyzeFile({
+        file_path: filePath,
+        arch,
+        decompile,
+      });
+      setResult(res);
     } catch (err: any) {
       setError(err?.message || String(err));
     } finally {
-      if (desktop.isDesktop) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 

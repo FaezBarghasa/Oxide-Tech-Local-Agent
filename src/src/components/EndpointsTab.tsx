@@ -36,27 +36,58 @@ export const EndpointsTab: React.FC = () => {
     { method: 'GET', path: '/api/nexus/soups', desc: 'List available model soup checkpoints & test scores' },
   ];
 
-  const handleTestEndpoint = (method: string, path: string) => {
+  const handleTestEndpoint = async (method: string, path: string) => {
     setActiveEndpoint(`${method} ${path}`);
-    setResponseView(
-      JSON.stringify(
-        {
-          status: 'OK',
-          code: 200,
-          endpoint: path,
-          method,
-          timestamp: new Date().toISOString(),
-          data: {
-            success: true,
-            cluster: 'Dual RTX 3090 · SGLang TP=2',
-            latency_ms: Math.round(18 + Math.random() * 20),
-            payload: { message: `Simulated response from ${path}` },
+    setResponseView('Dispatching live probe to endpoint...');
+    const start = performance.now();
+    try {
+      const cleanPath = path.replace(/\{[^}]+\}/g, 'live_test');
+      const res = await fetch(cleanPath, {
+        method: method === 'DEL' ? 'DELETE' : method,
+        headers: { 'Content-Type': 'application/json' },
+        body: method !== 'GET' ? JSON.stringify({ ping: true, test: true }) : undefined,
+        signal: AbortSignal.timeout(5000),
+      });
+      const elapsed = Math.round(performance.now() - start);
+      let payloadData: any = null;
+      try {
+        payloadData = await res.json();
+      } catch {
+        payloadData = { text: await res.text().catch(() => '') };
+      }
+      setResponseView(
+        JSON.stringify(
+          {
+            status: res.statusText || (res.ok ? 'OK' : 'HTTP Error'),
+            code: res.status,
+            endpoint: path,
+            method,
+            timestamp: new Date().toISOString(),
+            latency_ms: elapsed,
+            data: payloadData,
           },
-        },
-        null,
-        2
-      )
-    );
+          null,
+          2
+        )
+      );
+    } catch (err: any) {
+      const elapsed = Math.round(performance.now() - start);
+      setResponseView(
+        JSON.stringify(
+          {
+            status: 'Offline / Network Exception',
+            code: 503,
+            endpoint: path,
+            method,
+            timestamp: new Date().toISOString(),
+            latency_ms: elapsed,
+            error: err?.message || String(err),
+          },
+          null,
+          2
+        )
+      );
+    }
   };
 
   const methodColors: Record<string, string> = {

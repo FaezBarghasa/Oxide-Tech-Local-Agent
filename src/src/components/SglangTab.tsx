@@ -1,37 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cpu, RefreshCw, Layers, CheckCircle2, Play, HardDrive, Zap } from 'lucide-react';
 
 export const SglangTab: React.FC = () => {
-  const [cacheHit, setCacheHit] = useState(87.3);
-  const [activeEndpoint, setActiveEndpoint] = useState('/generate');
+  const [cacheHit] = useState(87.3);
+  const [activeEndpoint] = useState('/generate');
   const [payload, setPayload] = useState('{"prompt": "fn test_spi()", "temperature": 0.2, "max_tokens": 128}');
   const [apiResponse, setApiResponse] = useState<string | null>(null);
   const [isCalling, setIsCalling] = useState(false);
+  const [gpuName, setGpuName] = useState<string>('Local GPU');
 
-  const handleCallApi = () => {
+  useEffect(() => {
+    fetch('/api/system/stats')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.gpuName) setGpuName(data.gpuName);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCallApi = async () => {
     setIsCalling(true);
     setApiResponse(null);
-    setTimeout(() => {
+    const start = performance.now();
+    try {
+      let bodyObj = { prompt: 'fn test_spi()', temperature: 0.2, max_tokens: 128 };
+      try {
+        bodyObj = JSON.parse(payload);
+      } catch {}
+
+      const res = await fetch('/api/sglang/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj),
+      });
+      const data = await res.json();
+      const elapsed = Math.round(performance.now() - start);
+      if (data.meta_info) {
+        data.meta_info.latency_ms = elapsed;
+      }
+      setApiResponse(JSON.stringify(data, null, 2));
+    } catch (err: any) {
+      setApiResponse(JSON.stringify({ error: err.message || String(err) }, null, 2));
+    } finally {
       setIsCalling(false);
-      setApiResponse(
-        JSON.stringify(
-          {
-            text: 'pub fn test_spi() -> Result<(), embassy_stm32::spi::Error> {\n    let mut spi = Spi::new(p.SPI1, ...);\n    Ok(())\n}',
-            meta_info: {
-              id: 'gen_' + Math.random().toString(36).substring(2, 8),
-              finish_reason: 'stop',
-              prompt_tokens: 14,
-              completion_tokens: 38,
-              cached_tokens: 12,
-              radix_cache_hit: true,
-              latency_ms: 124,
-            },
-          },
-          null,
-          2
-        )
-      );
-    }, 600);
+    }
   };
 
   return (
@@ -42,7 +54,7 @@ export const SglangTab: React.FC = () => {
           <div>
             <div className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <Cpu className="w-4 h-4 text-orange-400" />
-              <span>SGLang TP=2 Serving Engine · Unsloth Optimized</span>
+              <span>High-Throughput Local Serving Engine · RadixAttention</span>
             </div>
             <div className="text-[10px] mono text-gray-400 mt-0.5">
               Qwen/Qwen2.5-32B (4-bit QDoRA) · RadixAttention LRU Tree · Multi-LoRA Multi-Tenant
@@ -50,7 +62,7 @@ export const SglangTab: React.FC = () => {
           </div>
           <span className="text-[10px] mono px-3 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            SGLang :8080 ONLINE
+            Gateway :8080 ONLINE
           </span>
         </div>
 
@@ -63,9 +75,9 @@ export const SglangTab: React.FC = () => {
           </div>
 
           <div className="bg-[#181a24] border border-[#262838] p-3 rounded-lg">
-            <div className="text-[10px] mono uppercase text-gray-400 font-semibold">TP Cluster</div>
-            <div className="text-base font-bold mono text-amber-400 mt-0.5">TP=2</div>
-            <div className="text-[9px] mono text-gray-400">Dual RTX 3090</div>
+            <div className="text-[10px] mono uppercase text-gray-400 font-semibold">Accelerator</div>
+            <div className="text-xs font-bold mono text-amber-400 mt-0.5 truncate" title={gpuName}>{gpuName}</div>
+            <div className="text-[9px] mono text-gray-400">RadixAttention VRAM</div>
           </div>
 
           <div className="bg-[#181a24] border border-[#262838] p-3 rounded-lg">
