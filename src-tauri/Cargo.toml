@@ -27,7 +27,7 @@ tracing-subscriber = { workspace = true }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { workspace = true }
 toml = { workspace = true }
-gateway = { path = "../crates/gateway" }
+oxide-gateway = { path = "../crates/oxide-gateway" }
 common = { path = "../crates/common" }
 re-forge = { path = "../crates/re-forge" }
 verifier = { path = "../crates/verifier" }

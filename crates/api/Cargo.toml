@@ -20,7 +20,7 @@ sandbox = { path = "../sandbox" }
 vllm-client = { path = "../vllm-client" }
 qdrant-service = { path = "../qdrant-service" }
 config-loader = { path = "../config-loader" }
-gateway-router = { path = "../gateway-router" }
+oxide-gateway = { path = "../oxide-gateway" }
 rag-pipeline = { path = "../rag-pipeline" }
 h3 = { workspace = true }
 h3-quinn = { workspace = true }

@@ -5,9 +5,11 @@ edition = "2024"
 
 [dependencies]
 oxide-core = { path = "../oxide-core" }
+common = { path = "../common" }
 oxide-state = { path = "../oxide-state" }
 oxide-engines = { path = "../oxide-engines" }
 oxide-security = { path = "../oxide-security" }
+vllm-client = { path = "../vllm-client" }
 config-loader = { path = "../config-loader" }
 reqwest = { workspace = true }
 actix-web = { workspace = true }

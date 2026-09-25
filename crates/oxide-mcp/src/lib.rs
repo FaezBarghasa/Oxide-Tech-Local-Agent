@@ -1,4 +1,13 @@
+pub mod handler;
+
 use serde::{Deserialize, Serialize};
+
+pub use handler::{
+    AnalyzeCompilerFailureInput, ApplyDiffInput, AutonomousCodeReviewInput, BlenderMeshInput,
+    CargoCheckInput, CargoClippyInput, FetchCrateDocsInput, KiCadSchematicInput, ListSymbolsInput,
+    LiveDocsScrapeInput, McpServer, ProbeRsFlashInput, ProbeRsReadRttInput, QdrantSearchInput,
+    QemuBootInput, QemuUartInput, ReadFileInput, RenodeLoadInput, WriteFileInput,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpToolDefinition {

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tracing::{info, warn};
 
 use config_loader::AppConfig;
-use gateway_router::GatewayRouter;
+use oxide_gateway::GatewayRouter;
 use rag_pipeline::RagPipeline;
 use sandbox::execute_in_sandbox;
 use surrealdb_service::client::SurrealClient;

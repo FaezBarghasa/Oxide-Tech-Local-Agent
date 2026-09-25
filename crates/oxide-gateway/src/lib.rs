@@ -73,6 +73,7 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
             .wrap(actix_middleware::Compress::default())
             // Public endpoints
             .route("/health", web::get().to(routes::health_ready))
+            .route("/health/live", web::get().to(routes::health_ready))
             .route("/health/ready", web::get().to(routes::health_ready))
             .route("/metrics", web::get().to(routes::metrics))
             // Protected OpenAI-compatible /v1 scope
@@ -91,4 +92,19 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
     .bind(&bind_addr)?
     .run()
     .await
+}
+
+pub async fn run_gateway_server(cfg: common::config::AppConfig) -> std::io::Result<()> {
+    let state = match oxide_state::AppState::new("ws://127.0.0.1:8000").await {
+        Ok(s) => s,
+        Err(_) => {
+            tracing::info!(
+                "SurrealDB daemon not detected at ws://127.0.0.1:8000, initializing embedded mem:// state"
+            );
+            oxide_state::AppState::new("mem://")
+                .await
+                .map_err(|e| std::io::Error::other(e.to_string()))?
+        }
+    };
+    run_gateway(state, &cfg.gateway.host, cfg.gateway.port).await
 }

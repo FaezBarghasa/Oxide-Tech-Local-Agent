@@ -1,4 +1,4 @@
-use memory::{EphemeralMemory, TemporalCommit, TemporalGitMemory};
+use oxide_state::{EphemeralMemory, TemporalCommit, TemporalGitMemory};
 
 #[test]
 fn test_ephemeral_memory_ring_buffer_and_editor_state() {
