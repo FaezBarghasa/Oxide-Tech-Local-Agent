@@ -16,54 +16,23 @@ export const VerificationTab: React.FC = () => {
     setError(null);
     setExportMsg(null);
     try {
-      if (desktop.isDesktop) {
-        const res = await desktop.verifierRunSuite({
-          workspace_path: workspacePath,
-        });
-        setBundle(res);
-      } else {
-        // Fallback for browser mock
-        setTimeout(() => {
-          setBundle({
-            task_id: 'task-live-verification-01',
-            timestamp: Date.now(),
-            git_diff: `diff --git a/src-tauri/src/main.rs b/src-tauri/src/main.rs
---- a/src-tauri/src/main.rs
-+++ b/src-tauri/src/main.rs
-@@ -40,6 +40,7 @@
-+            doctor::doctor_run_diagnostics,
-+            reforge_ipc::reforge_analyze_file,
-+            verifier_ipc::verifier_run_suite,`,
-            verified_success: true,
-            hitl_decision: 'Verified via Desktop Automated Suite',
-            reports: [
-              { stage: 'cargo check --workspace', passed: true, stdout: 'Finished dev [unoptimized + debuginfo]', stderr: '', duration_ms: 1420 },
-              { stage: 'formal-verify Z3 SMT proofs', passed: true, stdout: 'All 8 theorems proven', stderr: '', duration_ms: 210 },
-              { stage: 'deterministic evidence signing', passed: true, stdout: 'Signed bundle SHA-256: 8f4a1c0b...', stderr: '', duration_ms: 45 },
-            ]
-          });
-          setIsRunning(false);
-        }, 800);
-      }
+      const res = await desktop.verifierRunSuite({
+        workspace_path: workspacePath,
+      });
+      setBundle(res);
       setLastRunTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     } catch (err: any) {
       setError(err?.message || String(err));
     } finally {
-      if (desktop.isDesktop) {
-        setIsRunning(false);
-      }
+      setIsRunning(false);
     }
   };
 
   const handleExport = async () => {
     if (!bundle) return;
     try {
-      if (desktop.isDesktop) {
-        const res = await desktop.verifierExportEvidence(exportPath);
-        setExportMsg(`Evidence bundle successfully exported to: ${res}`);
-      } else {
-        setExportMsg(`Evidence bundle exported to: ${exportPath} (browser simulated)`);
-      }
+      const res = await desktop.verifierExportEvidence(exportPath);
+      setExportMsg(`Evidence bundle successfully exported to: ${res}`);
       setTimeout(() => setExportMsg(null), 4000);
     } catch (err: any) {
       setError(err?.message || String(err));

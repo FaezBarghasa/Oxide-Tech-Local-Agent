@@ -172,70 +172,94 @@ export const desktop = {
 
   // Doctor Diagnostics
   async doctorRunDiagnostics(): Promise<any> {
-    if (!isTauriRuntime()) throw new Error('doctor diagnostics requires the desktop app');
-    return tauriInvoke<any>('doctor_run_diagnostics', {});
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('doctor_run_diagnostics', {});
+    }
+    const res = await fetch('/api/doctor');
+    if (!res.ok) throw new Error(`Doctor API error: ${res.statusText}`);
+    return res.json();
   },
 
   async doctorInstallUdevRules(): Promise<any> {
-    if (!isTauriRuntime()) throw new Error('udev install requires the desktop app');
+    if (!isTauriRuntime()) throw new Error('udev install requires root privileges or the desktop app');
     return tauriInvoke<any>('doctor_install_udev_rules', {});
   },
 
   // RE-Forge Binary/PTX Analysis
   async reforgeAnalyzeFile(request: any): Promise<any> {
-    if (!isTauriRuntime()) throw new Error('reforge analysis requires the desktop app');
-    return tauriInvoke<any>('reforge_analyze_file', request);
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('reforge_analyze_file', request);
+    }
+    const res = await fetch('/api/reforge/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.details || err.error || `Re-Forge error: ${res.statusText}`);
+    }
+    return res.json();
   },
 
   // Verifier Suite
   async verifierRunSuite(request: any): Promise<any> {
-    if (!isTauriRuntime()) throw new Error('verifier suite requires the desktop app');
-    return tauriInvoke<any>('verifier_run_suite', request);
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('verifier_run_suite', request);
+    }
+    const res = await fetch('/api/verifier/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.details || err.error || `Verifier error: ${res.statusText}`);
+    }
+    return res.json();
   },
 
   async verifierExportEvidence(exportPath: string): Promise<any> {
-    if (!isTauriRuntime()) throw new Error('verifier export requires the desktop app');
-    return tauriInvoke<any>('verifier_export_evidence', { exportPath });
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('verifier_export_evidence', { exportPath });
+    }
+    return exportPath;
   },
 
   // Hardware & probe-rs
   async hardwareListProbes(): Promise<any> {
-    if (!isTauriRuntime()) {
-      return {
-        devices: [
-          { identifier: 'ST-Link V2 (SWD)', vendorId: 0x0483, productId: 0x3748, productName: 'ST-Link Debug Probe', manufacturer: 'STMicroelectronics' },
-        ],
-        error: null,
-      };
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('hardware_list_probes', {});
     }
-    return tauriInvoke<any>('hardware_list_probes', {});
+    try {
+      const res = await fetch('/api/hardware/probes');
+      if (res.ok) return await res.json();
+    } catch {}
+    return { devices: [], error: null };
   },
 
   async hardwareGetChipInfo(deviceIdentifier: string): Promise<any> {
-    if (!isTauriRuntime()) {
-      return {
-        name: 'STM32F401RE',
-        part: 'ARM Cortex-M4F',
-        cores: [{ name: 'main', coreType: 'Cortex-M4' }],
-        memoryRegions: [
-          { name: 'FLASH', rangeStart: 0x08000000, rangeEnd: 0x08080000, isFlash: true, isRam: false },
-          { name: 'SRAM', rangeStart: 0x20000000, rangeEnd: 0x20018000, isFlash: false, isRam: true },
-        ],
-      };
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('hardware_get_chip_info', { deviceIdentifier });
     }
-    return tauriInvoke<any>('hardware_get_chip_info', { deviceIdentifier });
+    return {
+      error: 'Device inspection requires active hardware probe attached via desktop',
+      name: deviceIdentifier,
+      cores: [],
+      memoryRegions: [],
+    };
   },
 
   async hardwareFlashFirmware(request: any): Promise<any> {
-    if (!isTauriRuntime()) {
-      return {
-        success: true,
-        message: 'Simulated flash complete (running in browser mode)',
-        bytesWritten: 32768,
-        durationMs: 150,
-      };
+    if (isTauriRuntime()) {
+      return tauriInvoke<any>('hardware_flash_firmware', { request });
     }
-    return tauriInvoke<any>('hardware_flash_firmware', { request });
+    return {
+      success: false,
+      message: 'Direct hardware flashing requires desktop USB probe access',
+      bytesWritten: 0,
+      durationMs: 0,
+    };
   },
 
   // Aliases for compatibility

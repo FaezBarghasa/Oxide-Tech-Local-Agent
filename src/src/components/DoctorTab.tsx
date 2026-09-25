@@ -26,12 +26,8 @@ export const DoctorTab: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      if (desktop.isDesktop) {
-        const result = await desktop.doctorRunDiagnostics();
-        setDoctorResult(result);
-      } else {
-        throw new Error('Diagnostics requires the desktop application');
-      }
+      const result = await desktop.doctorRunDiagnostics();
+      setDoctorResult(result);
     } catch (err: any) {
       setError(err?.message || String(err));
     } finally {
