@@ -59,7 +59,7 @@ fn format_bytes(bytes: u64) -> String {
 }
 
 /// Scan disk for .gguf model files
-fn scan_local_gguf_models() -> Vec<ModelInfo> {
+fn scan_default_local_gguf_models() -> Vec<ModelInfo> {
     let mut models = Vec::new();
     let search_dirs = [
         std::env::var("HOME")
@@ -184,7 +184,7 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut local_ggufs = scan_local_gguf_models();
+    let mut local_ggufs = scan_default_local_gguf_models();
     let mut ollama_models = query_ollama_models(&client).await;
     let mut sglang_models = query_sglang_models(&client).await;
 
