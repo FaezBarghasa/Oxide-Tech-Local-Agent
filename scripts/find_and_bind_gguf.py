@@ -22,8 +22,8 @@ GGUF_MAGIC = 0x46554747  # 'GGUF'
 def inspect_gguf(path: Path):
     try:
         with open(path, "rb") as f:
-            header = f.read(16)
-            if len(header) < 16:
+            header = f.read(24)
+            if len(header) < 24:
                 return None
             magic, version, tensor_count, metadata_kv_count = struct.unpack("<IIQQ", header)
             if magic == GGUF_MAGIC:
