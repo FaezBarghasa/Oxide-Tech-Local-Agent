@@ -4,5 +4,12 @@
 /src-tauri/binaries/
 /src-tauri/target/
 cert.pem
-.gitignore
 key.pem
+.playwright-mcp/
+__pycache__/
+*.pyc
+.idea/
+.omo/
+.agentic/
+.goopspec/
+
