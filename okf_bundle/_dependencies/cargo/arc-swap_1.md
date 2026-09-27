@@ -1,0 +1,32 @@
+---
+okf_version: "0.2"
+type: Dependency
+title: arc-swap
+description: Dependency from crates/oxide-network/Cargo.toml
+resource: crates/oxide-network/Cargo.toml
+tags:
+  - "lang:manifest"
+  - "type:Dependency"
+  - "module:crates"
+  - "domain:oxide-network"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+  - "version:1.7"
+  - "ecosystem:cargo"
+  - "manifest:Cargo.toml"
+timestamp: "2026-09-27T08:05:34Z"
+concept_id: _dependencies/cargo/arc-swap_1
+language: manifest
+---
+
+# arc-swap
+
+Dependency from crates/oxide-network/Cargo.toml
+
+| Field | Value |
+|-------|-------|
+| Ecosystem | `cargo` |
+| Version constraint | `1.7` |
+| Source manifest | `crates/oxide-network/Cargo.toml` |
+| Dev dependency | `no` |
+| Used by | 0 module(s) |

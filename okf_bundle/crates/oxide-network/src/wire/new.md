@@ -1,0 +1,37 @@
+---
+okf_version: "0.2"
+type: Function
+title: new
+resource: crates/oxide-network/src/wire.rs
+tags:
+  - "lang:rust"
+  - "type:Function"
+  - "module:crates"
+  - "domain:oxide-network"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+timestamp: "2026-09-27T08:09:34Z"
+concept_id: crates/oxide-network/src/wire/new
+language: rust
+---
+
+# new
+
+## Signature
+
+```rust
+impl PacketHeader { pub fn new(packet_type: PacketType, packet_id: u32, payload_len: u16) -> Self }
+```
+
+## Visibility
+
+- `pub`
+
+## Source
+Lines 41–51 in `crates/oxide-network/src/wire.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [wire](/crates/oxide-network/src/wire.md) |

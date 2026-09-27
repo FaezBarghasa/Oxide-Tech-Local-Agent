@@ -1,0 +1,37 @@
+---
+okf_version: "0.2"
+type: Function
+title: switch_adapter
+resource: crates/vllm-client/src/lora_hot_swap.rs
+tags:
+  - "lang:rust"
+  - "type:Function"
+  - "module:crates"
+  - "domain:vllm-client"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+timestamp: "2026-09-08T12:56:54Z"
+concept_id: crates/vllm-client/src/lora_hot_swap/switch_adapter_1
+language: rust
+---
+
+# switch_adapter
+
+## Signature
+
+```rust
+pub fn switch_adapter(&mut self, name: &str) -> Result<PathBuf>
+```
+
+## Visibility
+
+- `pub`
+
+## Source
+Lines 31–40 in `crates/vllm-client/src/lora_hot_swap.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [lora_hot_swap](/crates/vllm-client/src/lora_hot_swap.md) |

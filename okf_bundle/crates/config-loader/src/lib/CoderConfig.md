@@ -1,0 +1,53 @@
+---
+okf_version: "0.2"
+type: Class
+title: CoderConfig
+description: "[derive(Debug, Deserialize, Clone)]"
+resource: crates/config-loader/src/lib.rs
+tags:
+  - "lang:rust"
+  - "type:Class"
+  - "module:crates"
+  - "domain:config-loader"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+timestamp: "2026-09-21T11:45:48Z"
+concept_id: crates/config-loader/src/lib/CoderConfig
+language: rust
+---
+
+# CoderConfig
+
+[derive(Debug, Deserialize, Clone)]
+
+## Signature
+
+```rust
+pub struct CoderConfig
+```
+
+## Decorators
+
+- `derive(Debug, Deserialize, Clone)`
+
+## Visibility
+
+- `pub`
+
+## Docstring
+
+[derive(Debug, Deserialize, Clone)]
+
+## Methods
+
+- `online`
+- `local`
+
+## Source
+Lines 197–200 in `crates/config-loader/src/lib.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [lib](/crates/config-loader/src/lib.md) |

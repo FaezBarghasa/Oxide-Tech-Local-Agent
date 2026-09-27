@@ -1,0 +1,44 @@
+---
+okf_version: "0.2"
+type: Function
+title: is_clean
+description: Returns true if there are no ERC errors.
+resource: crates/circuit-forge/src/erc.rs
+tags:
+  - "lang:rust"
+  - "type:Function"
+  - "module:crates"
+  - "domain:circuit-forge"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+timestamp: "2026-09-24T15:31:54Z"
+concept_id: crates/circuit-forge/src/erc/is_clean_1
+language: rust
+---
+
+# is_clean
+
+Returns true if there are no ERC errors.
+
+## Signature
+
+```rust
+pub fn is_clean(&self) -> bool
+```
+
+## Visibility
+
+- `pub`
+
+## Docstring
+
+Returns true if there are no ERC errors.
+
+## Source
+Lines 26–28 in `crates/circuit-forge/src/erc.rs`
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [erc](/crates/circuit-forge/src/erc.md) |

@@ -1,0 +1,26 @@
+---
+okf_version: "0.2"
+type: Module
+title: codegen
+resource: crates/visual-forge/src/codegen.rs
+tags:
+  - "lang:rust"
+  - "type:Module"
+  - "module:crates"
+  - "domain:visual-forge"
+  - "git:branch:master"
+  - "git:repo:Oxide-Tech-Local-Agent"
+timestamp: "2026-09-08T20:01:01Z"
+concept_id: crates/visual-forge/src/codegen
+language: rust
+---
+
+# codegen
+
+## Relationships
+
+| Type | Target |
+|------|--------|
+| related | [VisualMatchCodegen](/crates/visual-forge/src/codegen/VisualMatchCodegen.md) |
+| related | [generate_macro](/crates/visual-forge/src/codegen/generate_macro.md) |
+| related | [generate_macro](/crates/visual-forge/src/codegen/generate_macro.md) |

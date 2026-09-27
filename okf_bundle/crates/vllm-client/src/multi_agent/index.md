@@ -1,0 +1,100 @@
+# multi_agent
+
+## Classs
+
+- [AgentBuilder](AgentBuilder.md) — Ergonomic builder for constructing `AgentRecord`s.
+- [AgentMessage](AgentMessage.md) — A message sent from one agent to another within the coordinator.
+- [AgentRecord](AgentRecord.md) — A registered agent within the multi-agent coordinator.
+- [AgentRole](AgentRole.md) — Logical role a registered agent plays in the multi-agent system.
+- [AgentThread](AgentThread.md) — Running record of messages exchanged in a multi-agent conversation.
+- [EchoProvider](EchoProvider.md) — Deterministic mock provider that echoes its system prompt + the user message.
+- [MultiAgentCoordinator](MultiAgentCoordinator.md) — Central coordinator for multi-agent message passing and orchestration.
+- [PeerDialogueResult](PeerDialogueResult.md) — Result of a peer dialogue execution, including consensus evaluation.
+
+## Functions
+
+- [as_chat_history_for](as_chat_history_for.md) — Build a simple `Vec<ChatMessage>` for a specific recipient (their view).
+- [as_chat_history_for](as_chat_history_for_1.md) — Build a simple `Vec<ChatMessage>` for a specific recipient (their view).
+- [as_str](as_str.md)
+- [as_str](as_str_1.md)
+- [broadcast](broadcast.md) — Broadcast a message to all agents and collect their replies in parallel.
+- [broadcast](broadcast_1.md) — Broadcast a message to all agents and collect their replies in parallel.
+- [build](build.md)
+- [build](build_1.md)
+- [build_loop_runner](build_loop_runner.md) — Build an `AgenticLoopRunner` for this agent on demand.
+- [build_loop_runner](build_loop_runner_1.md) — Build an `AgenticLoopRunner` for this agent on demand.
+- [capabilities](capabilities.md)
+- [capabilities](capabilities_1.md)
+- [chat_completion](chat_completion.md)
+- [chat_completion](chat_completion_1.md)
+- [complete](complete.md) — Run a single non-agentic completion (no tool loop).
+- [complete](complete_1.md) — Run a single non-agentic completion (no tool loop).
+- [default](default.md)
+- [default](default_1.md)
+- [health](health.md)
+- [health](health_1.md)
+- [list_agents](list_agents.md) — List all registered agents (id → role).
+- [list_agents](list_agents_1.md) — List all registered agents (id → role).
+- [make_echo_agent](make_echo_agent.md)
+- [max_turns](max_turns.md)
+- [max_turns](max_turns_1.md)
+- [new](new.md)
+- [new](new_1.md)
+- [new](new_2.md)
+- [new](new_3.md)
+- [new](new_4.md)
+- [new](new_5.md)
+- [new](new_6.md)
+- [new](new_7.md)
+- [new_thread](new_thread.md) — Create a new conversation thread and return its ID.
+- [new_thread](new_thread_1.md) — Create a new conversation thread and return its ID.
+- [provider](provider.md)
+- [provider](provider_1.md)
+- [provider_name](provider_name.md)
+- [provider_name](provider_name_1.md)
+- [push](push.md)
+- [push](push_1.md)
+- [register](register.md) — Register an agent with the coordinator.
+- [register](register_1.md) — Register an agent with the coordinator.
+- [run_chain](run_chain.md) — **Sequential chain**: Pass the task through agents A → B → C → …,
+- [run_chain](run_chain_1.md) — **Sequential chain**: Pass the task through agents A → B → C → …,
+- [run_chain_with_dtx](run_chain_with_dtx.md) — **Sequential chain with DTX**: Executes run_chain with an explicit or generated DTX trace token.
+- [run_chain_with_dtx](run_chain_with_dtx_1.md) — **Sequential chain with DTX**: Executes run_chain with an explicit or generated DTX trace token.
+- [run_peer_dialogue](run_peer_dialogue.md) — **Peer dialogue**: Two agents exchange messages for up to `max_rounds`
+- [run_peer_dialogue](run_peer_dialogue_1.md) — **Peer dialogue**: Two agents exchange messages for up to `max_rounds`
+- [run_peer_dialogue_with_eval](run_peer_dialogue_with_eval.md) — **Peer dialogue with structured consensus evaluation**:
+- [run_peer_dialogue_with_eval](run_peer_dialogue_with_eval_1.md) — **Peer dialogue with structured consensus evaluation**:
+- [run_supervisor_worker_verifier](run_supervisor_worker_verifier.md) — **Supervisor–Worker–Verifier** pattern:
+- [run_supervisor_worker_verifier](run_supervisor_worker_verifier_1.md) — **Supervisor–Worker–Verifier** pattern:
+- [run_supervisor_worker_verifier_with_dtx](run_supervisor_worker_verifier_with_dtx.md) — **Supervisor–Worker–Verifier with DTX**:
+- [run_supervisor_worker_verifier_with_dtx](run_supervisor_worker_verifier_with_dtx_1.md) — **Supervisor–Worker–Verifier with DTX**:
+- [send](send.md) — Send a message to a specific agent and get its reply.
+- [send](send_1.md) — Send a message to a specific agent and get its reply.
+- [stream_chat](stream_chat.md)
+- [stream_chat](stream_chat_1.md)
+- [subscribe_events](subscribe_events.md) — Subscribe to the live EventBus stream of all inter-agent messages.
+- [subscribe_events](subscribe_events_1.md) — Subscribe to the live EventBus stream of all inter-agent messages.
+- [system_prompt](system_prompt.md)
+- [system_prompt](system_prompt_1.md)
+- [test_agent_builder](test_agent_builder.md) — [tokio::test]
+- [test_broadcast_reaches_all](test_broadcast_reaches_all.md) — [tokio::test]
+- [test_chain_two_agents](test_chain_two_agents.md) — [tokio::test]
+- [test_peer_dialogue_terminates](test_peer_dialogue_terminates.md) — [tokio::test]
+- [test_peer_dialogue_with_eval](test_peer_dialogue_with_eval.md) — [tokio::test]
+- [test_register_and_list](test_register_and_list.md) — [tokio::test]
+- [test_send_and_reply](test_send_and_reply.md) — [tokio::test]
+- [test_swv_with_dtx](test_swv_with_dtx.md) — [tokio::test]
+- [thread_dtx_messages](thread_dtx_messages.md) — Retrieve all messages associated with a specific DTX transaction ID across a thread.
+- [thread_dtx_messages](thread_dtx_messages_1.md) — Retrieve all messages associated with a specific DTX transaction ID across a thread.
+- [thread_history](thread_history.md) — Retrieve the full message history for a thread.
+- [thread_history](thread_history_1.md) — Retrieve the full message history for a thread.
+- [tool_executor](tool_executor.md)
+- [tool_executor](tool_executor_1.md)
+- [tools](tools.md)
+- [tools](tools_1.md)
+- [with_dtx](with_dtx.md)
+- [with_dtx](with_dtx_1.md)
+- [with_payload](with_payload.md)
+- [with_payload](with_payload_1.md)
+- [with_thread](with_thread.md)
+- [with_thread](with_thread_1.md)
