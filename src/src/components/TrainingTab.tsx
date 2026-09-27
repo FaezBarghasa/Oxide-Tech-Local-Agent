@@ -58,7 +58,9 @@ export const TrainingTab: React.FC = () => {
   const [rewardScore, setRewardScore] = useState(0.912);
   const [passRate, setPassRate] = useState(91.2);
   const [lr, setLr] = useState(1.7e-5);
+  const [selectedModel, setSelectedModel] = useState('Ornith-1.5-9B-Q4_K_M.gguf');
   const [chartView, setChartView] = useState<'combined' | 'loss' | 'reward'>('combined');
+
   const [activeMetrics, setActiveMetrics] = useState({
     loss: true,
     reward: true,

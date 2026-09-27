@@ -14,8 +14,9 @@ interface UIState {
   hitlOpen: boolean;
   setHitlOpen: (v: boolean) => void;
   hitlPendingCount: number;
-  setHitlPendingCount: (n: number) => void;
+  setHitlPendingCount: (n: number | ((prev: number) => number)) => void;
   toasts: { id: number; msg: string }[];
+
   toast: (msg: string) => void;
 }
 const Ctx = createContext<UIState | null>(null);

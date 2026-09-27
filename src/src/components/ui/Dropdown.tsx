@@ -4,12 +4,13 @@ import { createPortal } from 'react-dom';
 interface DropdownContextValue {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  triggerRef: React.RefObject<HTMLButtonElement>;
-  contentRef: React.RefObject<HTMLDivElement>;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
   value: string;
   onValueChange: (value: string) => void;
   disabled: boolean;
 }
+
 
 const DropdownContext = createContext<DropdownContextValue | null>(null);
 
@@ -94,10 +95,11 @@ export const DropdownTrigger = forwardRef<HTMLButtonElement, DropdownTriggerProp
     return (
       <button
         ref={(el) => {
-          triggerRef.current = el;
+          (triggerRef as any).current = el;
           if (typeof ref === 'function') ref(el);
-          else if (ref) ref.current = el;
+          else if (ref) (ref as any).current = el;
         }}
+
         type="button"
         disabled={disabled}
         aria-haspopup="listbox"
@@ -164,10 +166,11 @@ export const DropdownContent = forwardRef<HTMLDivElement, DropdownContentProps>(
     const content = (
       <div
         ref={(el) => {
-          contentRef.current = el;
+          (contentRef as any).current = el;
           if (typeof ref === 'function') ref(el);
-          else if (ref) ref.current = el;
+          else if (ref) (ref as any).current = el;
         }}
+
         id="dropdown-content"
         role="listbox"
         aria-orientation="vertical"

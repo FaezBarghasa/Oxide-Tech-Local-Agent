@@ -3,8 +3,9 @@ import { Cpu, RefreshCw, Layers, CheckCircle2, Play, HardDrive, Zap } from 'luci
 
 export const SglangTab: React.FC = () => {
   const [cacheHit] = useState(87.3);
-  const [activeEndpoint] = useState('/generate');
+  const [activeEndpoint, setActiveEndpoint] = useState('/generate');
   const [payload, setPayload] = useState('{"prompt": "fn test_spi()", "temperature": 0.2, "max_tokens": 128}');
+
   const [apiResponse, setApiResponse] = useState<string | null>(null);
   const [isCalling, setIsCalling] = useState(false);
   const [gpuName, setGpuName] = useState<string>('Local GPU');

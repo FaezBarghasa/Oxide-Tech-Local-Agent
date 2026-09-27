@@ -86,7 +86,7 @@ export interface ChatMessage {
 export interface ModelInfo {
   id: string;
   name: string;
-  fmt: 'AWQ' | 'NF4' | 'BF16' | 'GGUF' | 'Safetensors';
+  fmt: 'AWQ' | 'NF4' | 'BF16' | 'GGUF' | 'Safetensors' | '4-bit';
   params: number;
   tp: number;
   vram: number;
@@ -162,7 +162,14 @@ export interface DoctorResult {
   failed: number;
   ready: boolean;
   timestamp: string;
+  nvidiaGpu?: {
+    passed: boolean;
+    version: string;
+    error: string | null;
+  };
+  summary?: string;
 }
+
 
 export interface UdevInstallResult {
   success: boolean;

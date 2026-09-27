@@ -56,8 +56,9 @@ export const MobileControlApp: React.FC = () => {
 
     try {
       // Trigger local biometric hardware authentication (FaceID / TouchID)
-      if (window.navigator?.credentials?.get) {
+      if (typeof window.navigator?.credentials?.get === 'function') {
         const assertion = await navigator.credentials.get({
+
           publicKey: {
             challenge: new Uint8Array(32),
             timeout: 60000,

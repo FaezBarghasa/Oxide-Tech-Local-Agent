@@ -20,7 +20,7 @@ export function StatusBar() {
         if (desktop.isDesktop) {
           const doc = await desktop.doctorRunDiagnostics();
           const gpu = doc.checks.find(
-            (c) => c.name.toLowerCase().includes('gpu') || c.name.toLowerCase().includes('nvidia')
+            (c: any) => c.name.toLowerCase().includes('gpu') || c.name.toLowerCase().includes('nvidia')
           );
           if (gpu && gpu.passed && mounted) {
             setGpuName(gpu.version.split(',')[0].trim());

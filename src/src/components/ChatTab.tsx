@@ -110,7 +110,7 @@ export const ChatTab: React.FC = () => {
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               meta: {
                 model: selectedModel,
-                tokens: result.tokens_used,
+                tokens: result.tokens_used ?? undefined,
               },
             },
           ]);

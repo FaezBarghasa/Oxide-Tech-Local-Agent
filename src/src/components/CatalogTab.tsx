@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ModelInfo } from '../types';
+
 import { useUI } from '../store/uiStore';
 import {
   Boxes,
@@ -549,7 +550,9 @@ export const CatalogTab: React.FC = () => {
                       name="Standard Throughput"
                       fill="#f97316"
                       radius={[4, 4, 0, 0]}
-                      onClick={(data) => setSelectedModelId(data.id)}
+                      onClick={(data: any) => {
+                        if (data && data.id) setSelectedModelId(data.id);
+                      }}
                       cursor="pointer"
                     >
                       {filteredBenchmarks.map((entry) => (
@@ -565,7 +568,10 @@ export const CatalogTab: React.FC = () => {
                       name="Radix KV Cache"
                       fill="#10b981"
                       radius={[4, 4, 0, 0]}
-                      onClick={(data) => setSelectedModelId(data.id)}
+                      onClick={(data: any) => {
+                        if (data && data.id) setSelectedModelId(data.id);
+                      }}
+
                       cursor="pointer"
                     >
                       {filteredBenchmarks.map((entry) => (
@@ -616,7 +622,9 @@ export const CatalogTab: React.FC = () => {
                       name="TTFT (ms)"
                       fill="#f59e0b"
                       radius={[4, 4, 0, 0]}
-                      onClick={(data) => setSelectedModelId(data.id)}
+                      onClick={(data: any) => {
+                        if (data && data.id) setSelectedModelId(data.id);
+                      }}
                       cursor="pointer"
                     >
                       {filteredBenchmarks.map((entry) => (
@@ -667,7 +675,10 @@ export const CatalogTab: React.FC = () => {
                       name="DRC Accuracy %"
                       fill="#10b981"
                       radius={[4, 4, 0, 0]}
-                      onClick={(data) => setSelectedModelId(data.id)}
+                      onClick={(data: any) => {
+                        if (data && data.id) setSelectedModelId(data.id);
+                      }}
+
                       cursor="pointer"
                     >
                       {filteredBenchmarks.map((entry) => (
