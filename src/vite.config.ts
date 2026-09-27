@@ -8,7 +8,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       },
     },
     server: {
@@ -25,10 +25,10 @@ export default defineConfig(() => {
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-charts': ['recharts'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-motion': ['motion'],
+          manualChunks(id) {
+            if (id.includes('node_modules/recharts')) return 'vendor-charts';
+            if (id.includes('node_modules/lucide-react')) return 'vendor-icons';
+            if (id.includes('node_modules/motion')) return 'vendor-motion';
           },
         },
       },

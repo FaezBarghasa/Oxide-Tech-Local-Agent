@@ -2,3 +2,5 @@ allowBuilds:
   '@google/genai': true
   esbuild: true
   protobufjs: true
+minimumReleaseAgeExclude:
+  - '@tauri-apps/api@2.12.0'
