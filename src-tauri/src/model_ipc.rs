@@ -592,3 +592,177 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscoveredGgufModel {
+    pub path: String,
+    pub name: String,
+    pub size_gb: f64,
+    pub version: u32,
+    pub tensors: u64,
+    pub metadata_entries: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EngineStatusEntry {
+    pub engine: String,
+    pub port: u16,
+    pub status: String,
+    pub latency_ms: Option<u64>,
+    pub active_backend: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TieredCacheMetrics {
+    pub pinned_vram_pages: usize,
+    pub ddr5_host_pages: usize,
+    pub total_mappings: usize,
+    pub compaction_active: bool,
+}
+
+const GGUF_MAGIC: u32 = 0x46554747;
+
+fn inspect_gguf_file(path: &std::path::Path) -> Option<DiscoveredGgufModel> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(path).ok()?;
+    let mut header = [0u8; 24];
+    if file.read_exact(&mut header).is_err() {
+        return None;
+    }
+    let magic = u32::from_le_bytes([header[0], header[1], header[2], header[3]]);
+    if magic != GGUF_MAGIC {
+        return None;
+    }
+    let version = u32::from_le_bytes([header[4], header[5], header[6], header[7]]);
+    let tensors = u64::from_le_bytes(header[8..16].try_into().ok()?);
+    let metadata_entries = u64::from_le_bytes(header[16..24].try_into().ok()?);
+    let size_bytes = path.metadata().map(|m| m.len()).unwrap_or(0);
+    let size_gb = (size_bytes as f64) / (1024.0 * 1024.0 * 1024.0);
+
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "unnamed.gguf".to_string());
+
+    Some(DiscoveredGgufModel {
+        path: path.display().to_string(),
+        name,
+        size_gb: (size_gb * 100.0).round() / 100.0,
+        version,
+        tensors,
+        metadata_entries,
+    })
+}
+
+#[tauri::command]
+pub async fn scan_local_gguf_models(
+    custom_paths: Vec<String>,
+) -> std::result::Result<Vec<DiscoveredGgufModel>, String> {
+    let mut discovered = Vec::new();
+    let mut search_dirs: Vec<PathBuf> = Vec::new();
+
+    if let Ok(home) = std::env::var("HOME") {
+        search_dirs.push(PathBuf::from(&home).join(".cache/huggingface/hub"));
+        search_dirs.push(PathBuf::from(&home).join("models"));
+        search_dirs.push(PathBuf::from(&home).join(".local/share/nomic.ai/GPT4All"));
+        search_dirs.push(PathBuf::from(&home).join(".ollama/models"));
+    }
+    search_dirs.push(PathBuf::from("/opt/models"));
+    search_dirs.push(PathBuf::from("."));
+
+    for custom in custom_paths {
+        search_dirs.push(PathBuf::from(custom));
+    }
+
+    for dir in search_dirs {
+        if !dir.exists() {
+            continue;
+        }
+        if let Ok(entries) = std::fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("gguf") {
+                    if let Some(m) = inspect_gguf_file(&p) {
+                        discovered.push(m);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(discovered)
+}
+
+#[tauri::command]
+pub async fn get_engine_matrix_status() -> std::result::Result<Vec<EngineStatusEntry>, String> {
+    let mut entries = Vec::new();
+
+    // Check LLaMA.cpp (8081)
+    let llama_status = probe_tcp_port(8081).await;
+    entries.push(EngineStatusEntry {
+        engine: "LLaMA.cpp Paged DDR5".to_string(),
+        port: 8081,
+        status: if llama_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        latency_ms: llama_status,
+        active_backend: llama_status.is_some(),
+    });
+
+    // Check vLLM (8000)
+    let vllm_status = probe_tcp_port(8000).await;
+    entries.push(EngineStatusEntry {
+        engine: "vLLM High-Throughput".to_string(),
+        port: 8000,
+        status: if vllm_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        latency_ms: vllm_status,
+        active_backend: false,
+    });
+
+    // Check SGLang (30000)
+    let sglang_status = probe_tcp_port(30000).await;
+    entries.push(EngineStatusEntry {
+        engine: "SGLang RadixAttention".to_string(),
+        port: 30000,
+        status: if sglang_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        latency_ms: sglang_status,
+        active_backend: false,
+    });
+
+    // In-Process Candle is always available
+    entries.push(EngineStatusEntry {
+        engine: "In-Process Candle".to_string(),
+        port: 0,
+        status: "ONLINE".to_string(),
+        latency_ms: Some(1),
+        active_backend: llama_status.is_none(),
+    });
+
+    Ok(entries)
+}
+
+async fn probe_tcp_port(port: u16) -> Option<u64> {
+    use std::time::Instant;
+    let t0 = Instant::now();
+    let addr = format!("127.0.0.1:{}", port);
+    if let Ok(Ok(_)) = tokio::time::timeout(
+        std::time::Duration::from_millis(200),
+        tokio::net::TcpStream::connect(&addr),
+    ).await {
+        Some(t0.elapsed().as_millis() as u64)
+    } else {
+        None
+    }
+}
+
+#[tauri::command]
+pub async fn get_tiered_cache_metrics() -> std::result::Result<TieredCacheMetrics, String> {
+    Ok(TieredCacheMetrics {
+        pinned_vram_pages: 0,
+        ddr5_host_pages: 0,
+        total_mappings: 0,
+        compaction_active: false,
+    })
+}
+

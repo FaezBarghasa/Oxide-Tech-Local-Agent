@@ -89,12 +89,16 @@ fn run_desktop(config: Option<String>) {
             doctor::doctor_run_diagnostics,
             doctor::doctor_install_udev_rules,
             // Hardware & probe-rs
+            hardware_ipc::get_system_telemetry,
             hardware_ipc::hardware_list_probes,
             hardware_ipc::hardware_get_chip_info,
             hardware_ipc::hardware_flash_firmware,
             // Model & Unsloth-Style Execution
             model_ipc::model_list_available,
             model_ipc::model_run_prompt,
+            model_ipc::scan_local_gguf_models,
+            model_ipc::get_engine_matrix_status,
+            model_ipc::get_tiered_cache_metrics,
             // RE-Forge
             reforge_ipc::reforge_analyze_file,
             // Verifier

@@ -381,7 +381,89 @@ export const desktop = {
     }
     return tauriInvoke<RunPromptResponse>('model_run_prompt', { req });
   },
+
+  async getSystemTelemetry(): Promise<SystemTelemetryPayload> {
+    if (!isTauriRuntime()) {
+      return {
+        gpuMode: 'Integrated/CPU Mode',
+        vramUsedBytes: null,
+        vramTotalBytes: null,
+        vramTemperatureC: null,
+        ramAvailableBytes: 0,
+        ramTotalBytes: 0,
+        cpuLoadPercent: 0,
+        activeProcessesCount: 0,
+        daemonStatus: 'ONLINE / SOVEREIGN',
+      };
+    }
+    return tauriInvoke<SystemTelemetryPayload>('get_system_telemetry', {});
+  },
+
+  async scanLocalGgufModels(customPaths: string[] = []): Promise<DiscoveredGgufModel[]> {
+    if (!isTauriRuntime()) return [];
+    return tauriInvoke<DiscoveredGgufModel[]>('scan_local_gguf_models', { customPaths });
+  },
+
+  async getEngineMatrixStatus(): Promise<EngineStatusEntry[]> {
+    if (!isTauriRuntime()) {
+      return [
+        { engine: 'In-Process Candle', port: 0, status: 'ONLINE', latencyMs: 1, activeBackend: true },
+        { engine: 'LLaMA.cpp Paged DDR5', port: 8081, status: 'STOPPED', latencyMs: null, activeBackend: false },
+        { engine: 'vLLM High-Throughput', port: 8000, status: 'STOPPED', latencyMs: null, activeBackend: false },
+        { engine: 'SGLang RadixAttention', port: 30000, status: 'STOPPED', latencyMs: null, activeBackend: false },
+      ];
+    }
+    return tauriInvoke<EngineStatusEntry[]>('get_engine_matrix_status', {});
+  },
+
+  async getTieredCacheMetrics(): Promise<TieredCacheMetrics> {
+    if (!isTauriRuntime()) {
+      return {
+        pinnedVramPages: 0,
+        ddr5HostPages: 0,
+        totalMappings: 0,
+        compactionActive: false,
+      };
+    }
+    return tauriInvoke<TieredCacheMetrics>('get_tiered_cache_metrics', {});
+  },
 };
+
+export interface SystemTelemetryPayload {
+  gpuMode: string;
+  vramUsedBytes: number | null;
+  vramTotalBytes: number | null;
+  vramTemperatureC: number | null;
+  ramAvailableBytes: number;
+  ramTotalBytes: number;
+  cpuLoadPercent: number;
+  activeProcessesCount: number;
+  daemonStatus: string;
+}
+
+export interface DiscoveredGgufModel {
+  path: string;
+  name: string;
+  sizeGb: number;
+  version: number;
+  tensors: number;
+  metadataEntries: number;
+}
+
+export interface EngineStatusEntry {
+  engine: string;
+  port: number;
+  status: string;
+  latencyMs: number | null;
+  activeBackend: boolean;
+}
+
+export interface TieredCacheMetrics {
+  pinnedVramPages: number;
+  ddr5HostPages: number;
+  totalMappings: number;
+  compactionActive: boolean;
+}
 
 export interface ModelInfo {
   id: string;
@@ -422,4 +504,5 @@ export interface RunPromptResponse {
   error: string | null;
 }
 type usize = number;
+
 

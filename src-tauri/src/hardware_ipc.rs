@@ -63,6 +63,25 @@ pub struct MemoryRegionDto {
     pub is_ram: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemTelemetryPayload {
+    pub gpu_mode: String,
+    pub vram_used_bytes: Option<u64>,
+    pub vram_total_bytes: Option<u64>,
+    pub vram_temperature_c: Option<f32>,
+    pub ram_available_bytes: u64,
+    pub ram_total_bytes: u64,
+    pub cpu_load_percent: f32,
+    pub active_processes_count: usize,
+    pub daemon_status: String,
+}
+
+#[tauri::command]
+pub async fn get_system_telemetry() -> std::result::Result<SystemTelemetryPayload, String> {
+    fetch_real_system_telemetry().map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub async fn hardware_list_probes() -> std::result::Result<ProbeDevicesResult, String> {
     list_probe_devices().map_err(|e| e.to_string())
@@ -80,6 +99,71 @@ pub async fn hardware_flash_firmware(
     request: FlashRequest,
 ) -> std::result::Result<FlashResult, String> {
     flash_firmware(request).map_err(|e| e.to_string())
+}
+
+fn fetch_real_system_telemetry() -> Result<SystemTelemetryPayload> {
+    // Read RAM from /proc/meminfo if on Linux
+    let mut ram_total = 0u64;
+    let mut ram_available = 0u64;
+
+    if let Ok(content) = std::fs::read_to_string("/proc/meminfo") {
+        for line in content.lines() {
+            if line.starts_with("MemTotal:") {
+                if let Some(val) = line.split_whitespace().nth(1) {
+                    ram_total = val.parse::<u64>().unwrap_or(0) * 1024;
+                }
+            } else if line.starts_with("MemAvailable:") {
+                if let Some(val) = line.split_whitespace().nth(1) {
+                    ram_available = val.parse::<u64>().unwrap_or(0) * 1024;
+                }
+            }
+        }
+    }
+
+    // Attempt to probe NVIDIA GPU if available
+    let mut gpu_mode = "Integrated/CPU Mode".to_string();
+    let mut vram_used = None;
+    let mut vram_total = None;
+    let mut vram_temp = None;
+
+    if let Ok(output) = std::process::Command::new("nvidia-smi")
+        .args(["--query-gpu=memory.used,memory.total,temperature.gpu", "--format=csv,noheader,nounits"])
+        .output()
+    {
+        if output.status.success() {
+            let out_str = String::from_utf8_lossy(&output.stdout);
+            if let Some(first_line) = out_str.lines().next() {
+                let parts: Vec<&str> = first_line.split(',').map(|s| s.trim()).collect();
+                if parts.len() >= 3 {
+                    gpu_mode = "NVIDIA Dedicated GPU".to_string();
+                    vram_used = parts[0].parse::<u64>().ok().map(|m| m * 1024 * 1024);
+                    vram_total = parts[1].parse::<u64>().ok().map(|m| m * 1024 * 1024);
+                    vram_temp = parts[2].parse::<f32>().ok();
+                }
+            }
+        }
+    }
+
+    let proc_count = std::fs::read_dir("/proc")
+        .map(|entries| {
+            entries
+                .filter_map(|e| e.ok())
+                .filter(|e| e.file_name().to_string_lossy().chars().all(|c| c.is_ascii_digit()))
+                .count()
+        })
+        .unwrap_or(0);
+
+    Ok(SystemTelemetryPayload {
+        gpu_mode,
+        vram_used_bytes: vram_used,
+        vram_total_bytes: vram_total,
+        vram_temperature_c: vram_temp,
+        ram_available_bytes: ram_available,
+        ram_total_bytes: ram_total,
+        cpu_load_percent: 0.0,
+        active_processes_count: proc_count,
+        daemon_status: "ONLINE / SOVEREIGN".to_string(),
+    })
 }
 
 pub fn list_probe_devices() -> Result<ProbeDevicesResult> {
