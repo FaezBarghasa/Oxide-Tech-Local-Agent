@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PKG_NAME="oxide-tech-local-agent"
-PKG_VERSION="0.5.1"
+PKG_VERSION="0.6.0"
 TARGET_DIR="${ROOT_DIR}/target"
 OUTPUT_DIR="${TARGET_DIR}/debian"
 STAGE_DIR="${OUTPUT_DIR}/stage"
