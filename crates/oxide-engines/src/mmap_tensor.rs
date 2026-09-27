@@ -5,6 +5,8 @@ use std::path::Path;
 use std::ptr::NonNull;
 use std::sync::Arc;
 
+
+
 /// GGUF tensor quantization formats including mixed-precision Importance Matrix (IMatrix) types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -265,6 +267,76 @@ impl AlignedTensorMap {
         self.element_count == 0
     }
 }
+
+/// Hardened tensor memory mapping satisfying AVX-512 and ARM NEON cacheline alignment invariants (>= 64 bytes).
+pub struct HardenedTensorMap {
+    pub file: File,
+    pub mmap: memmap2::Mmap,
+    pub aligned_offset: usize,
+    pub element_count: usize,
+}
+
+impl HardenedTensorMap {
+    /// Load generic typed tensor slice enforcing >= 64-byte SIMD alignment and shared advisory read lock.
+    pub fn load_aligned<T: Copy>(path: &Path, offset: usize, count: usize) -> Result<Self, OxideError> {
+        let file = File::open(path)
+            .map_err(|e| OxideError::Engine(format!("Failed to open tensor file: {}", e)))?;
+
+        // Enforce shared advisory read locking across processes
+        file.lock_shared()
+            .map_err(|e| OxideError::Engine(format!("File locking failed: {}", e)))?;
+
+        let mmap = unsafe {
+            MmapOptions::new()
+                .map(&file)
+                .map_err(|e| OxideError::Engine(format!("mmap failed: {}", e)))?
+        };
+
+        let align_req = std::mem::align_of::<T>().max(64);
+        let raw_ptr = unsafe { mmap.as_ptr().add(offset) };
+
+        if (raw_ptr as usize) % align_req != 0 {
+            return Err(OxideError::Engine(format!(
+                "Memory alignment invariant violated: address {:p} not aligned to {}",
+                raw_ptr, align_req
+            )));
+        }
+
+        let required_bytes = count
+            .checked_mul(std::mem::size_of::<T>())
+            .ok_or_else(|| OxideError::Engine("Arithmetic overflow computing byte bounds".to_string()))?;
+
+        if offset.checked_add(required_bytes).map_or(true, |end| end > mmap.len()) {
+            return Err(OxideError::Engine(
+                "Requested slice bounds exceed memory map capacity".into(),
+            ));
+        }
+
+        Ok(Self {
+            file,
+            mmap,
+            aligned_offset: offset,
+            element_count: count,
+        })
+    }
+
+    #[inline(always)]
+    pub fn as_slice<T>(&self) -> &[T] {
+        unsafe {
+            let ptr = self.mmap.as_ptr().add(self.aligned_offset) as *const T;
+            std::slice::from_raw_parts(ptr, self.element_count)
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.element_count
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.element_count == 0
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
