@@ -30,6 +30,7 @@ pub mod mock;
 pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
+pub mod tiered_kv_cache;
 
 pub use decision_engine::{
     CandidateVectorCache, DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput,
@@ -39,6 +40,9 @@ pub use grammar::{GbnfCompiler, GrammarRule};
 pub use mobile::MobileDecisionEngine;
 pub use polymorphic::{
     EngineCapabilities, EngineError, InferenceChunk, InferenceRequest, PolymorphicInferenceProvider,
+};
+pub use tiered_kv_cache::{
+    KvCacheConfig, KvMemoryTier, KvPage, KvTierMetrics, TieredKvCacheManager,
 };
 
 pub use candle_provider::CandleProvider;

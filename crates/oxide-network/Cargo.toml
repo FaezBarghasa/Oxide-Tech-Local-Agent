@@ -10,3 +10,14 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
+blake3 = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+dashmap = { workspace = true }
+quinn = { workspace = true }
+rustls = { workspace = true }
+arc-swap = "1.7"
+bytes = "1.12"
+ring = "0.17"
+zerocopy = { version = "0.8", features = ["derive"] }

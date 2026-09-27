@@ -7151,12 +7151,23 @@ dependencies = [
 name = "oxide-network"
 version = "0.1.0"
 dependencies = [
+ "arc-swap",
+ "blake3",
+ "bytes",
+ "chrono",
+ "dashmap",
  "mdns-sd",
  "oxide-core",
+ "quinn",
+ "ring",
+ "rustls 0.23.40",
  "serde",
  "serde_json",
+ "thiserror 2.0.18",
  "tokio",
  "tracing",
+ "uuid",
+ "zerocopy",
 ]
 
 [[package]]
