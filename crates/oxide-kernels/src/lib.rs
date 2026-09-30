@@ -10,7 +10,7 @@ pub mod ternary;
 
 pub use autotune::{GpuAutotuner, KernelConfig, NvidiaArch};
 pub use avx512_compress::{Avx512Compressor, CompressedBlockInt8};
-pub use fused_cross_entropy::{ChunkedCrossEntropyKernel, FusedCrossEntropyOp};
+pub use fused_cross_entropy::{ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, FusedCrossEntropyOp};
 pub use fused_lora::{FusedLoRAForwardBackwardOp, LoRALinearKernel, QLoraNf4Dequant};
 pub use fused_swiglu::{FusedSwiGLUKernel, SwiGLUBackwardOp};
 pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
