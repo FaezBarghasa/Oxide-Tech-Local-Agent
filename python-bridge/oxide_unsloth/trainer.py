@@ -5,7 +5,7 @@ Includes GRPO, SFT, DPO, and ORPO Trainers with Physical Verifiers and Fused Los
 
 import math
 import os
-from typing import List, Callable, Dict, Any, Optional, Union
+from typing import List, Callable, Dict, Any, Optional, Union, Tuple
 
 try:
     import torch

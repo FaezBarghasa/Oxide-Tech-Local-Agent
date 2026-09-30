@@ -24,6 +24,17 @@ from oxide_unsloth.kernels import (
 )
 
 
+class TestFallbackKernels:
+    def test_kernel_interfaces_callable(self):
+        if not HAS_TORCH:
+            assert fast_cross_entropy_loss(None, None) == 0.0
+            assert fast_lora_forward(None, None, None) is None
+            assert fast_swiglu(None, None) is None
+            assert fast_rms_layernorm(None, None) is None
+            assert fast_rope_embedding(None, None, None, None) == (None, None)
+            assert fast_geglu(None, None) is None
+
+
 @pytest.mark.skipif(not HAS_TORCH, reason="PyTorch not available")
 class TestFusedKernels:
     def test_fast_lora_forward_and_backward(self):
