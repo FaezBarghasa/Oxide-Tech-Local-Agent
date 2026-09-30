@@ -505,4 +505,107 @@ export interface RunPromptResponse {
 }
 type usize = number;
 
+export interface TrainerJobRequest {
+  model: string;
+  kind: string;
+  lora_rank: number;
+  lora_alpha: number;
+  epochs: number;
+  learning_rate: number;
+  batch_size: number;
+  dataset_path?: string | null;
+  export_gguf: boolean;
+}
+
+export interface TrainerJobStatus {
+  job_id: string;
+  status: string;
+  step: number;
+  total_steps: number;
+  loss: number;
+  reward: number;
+  pass_rate: number;
+  lr: number;
+  message: string;
+}
+
+export interface HarvestTrajectoriesResponse {
+  total_harvested: number;
+  pass_count: number;
+  dataset_path: string;
+  format: string;
+}
+
+export interface GgufExportResponse {
+  gguf_path: string;
+  quantization: string;
+  modelfile_path: string;
+  file_size_mb: number;
+}
+
+export async function trainerStartJob(req: TrainerJobRequest): Promise<TrainerJobStatus> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<TrainerJobStatus>('trainer_start_job', { req });
+  }
+  const res = await fetch('/api/trainer/jobs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req),
+  });
+  return res.json();
+}
+
+export async function trainerGetJobStatus(): Promise<TrainerJobStatus | null> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<TrainerJobStatus | null>('trainer_get_job_status', {});
+  }
+  const res = await fetch('/api/trainer/jobs');
+  const jobs = await res.json();
+  return jobs.length > 0 ? jobs[jobs.length - 1] : null;
+}
+
+export async function trainerAbortJob(): Promise<string> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<string>('trainer_abort_job', {});
+  }
+  return 'Job aborted';
+}
+
+export async function trainerHarvestTrajectories(
+  minConfidence?: number,
+  formatType?: string
+): Promise<HarvestTrajectoriesResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<HarvestTrajectoriesResponse>('trainer_harvest_trajectories', {
+      minConfidence,
+      formatType,
+    });
+  }
+  const res = await fetch('/api/trainer/harvest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ minConfidence, formatType }),
+  });
+  return res.json();
+}
+
+export async function trainerExportGguf(
+  baseModel: string,
+  quantization?: string
+): Promise<GgufExportResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<GgufExportResponse>('trainer_export_gguf', {
+      baseModel,
+      quantization,
+    });
+  }
+  const res = await fetch('/api/trainer/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ baseModel, quantization }),
+  });
+  return res.json();
+}
+
+
 

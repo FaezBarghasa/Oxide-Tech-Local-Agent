@@ -32,6 +32,9 @@ common = { path = "../crates/common" }
 re-forge = { path = "../crates/re-forge" }
 verifier = { path = "../crates/verifier" }
 config-loader = { path = "../crates/config-loader" }
+model-trainer = { path = "../crates/model-trainer" }
+agent-journal = { path = "../crates/agent-journal" }
+oxide-kernels = { path = "../crates/oxide-kernels" }
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }
 probe-rs = { version = "0.32", features = ["default"], optional = true }
 

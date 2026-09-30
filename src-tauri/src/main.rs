@@ -99,6 +99,11 @@ fn run_desktop(config: Option<String>) {
             model_ipc::scan_local_gguf_models,
             model_ipc::get_engine_matrix_status,
             model_ipc::get_tiered_cache_metrics,
+            model_ipc::trainer_start_job,
+            model_ipc::trainer_get_job_status,
+            model_ipc::trainer_abort_job,
+            model_ipc::trainer_harvest_trajectories,
+            model_ipc::trainer_export_gguf,
             // RE-Forge
             reforge_ipc::reforge_analyze_file,
             // Verifier

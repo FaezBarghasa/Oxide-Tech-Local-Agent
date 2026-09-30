@@ -7237,12 +7237,15 @@ dependencies = [
 name = "oxide-tech-local-agent"
 version = "0.5.0"
 dependencies = [
+ "agent-journal",
  "anyhow",
  "chrono",
  "common",
  "config-loader",
  "mimalloc",
+ "model-trainer",
  "oxide-gateway",
+ "oxide-kernels",
  "probe-rs",
  "re-forge",
  "reqwest 0.12.28",
