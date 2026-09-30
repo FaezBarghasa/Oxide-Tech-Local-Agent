@@ -6069,6 +6069,7 @@ dependencies = [
  "blake3",
  "chrono",
  "memmap2",
+ "oxide-kernels",
  "oxide-protocol",
  "serde",
  "serde_json",

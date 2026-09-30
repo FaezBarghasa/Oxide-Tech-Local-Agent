@@ -1,5 +1,6 @@
 pub mod autotune;
 pub mod avx512_compress;
+pub mod flash_attention;
 pub mod fused_cross_entropy;
 pub mod fused_lora;
 pub mod fused_swiglu;
@@ -10,6 +11,7 @@ pub mod ternary;
 
 pub use autotune::{GpuAutotuner, KernelConfig, NvidiaArch};
 pub use avx512_compress::{Avx512Compressor, CompressedBlockInt8};
+pub use flash_attention::FlashAttentionKernel;
 pub use fused_cross_entropy::{ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, FusedCrossEntropyOp};
 pub use fused_lora::{FusedLoRAForwardBackwardOp, LoRALinearKernel, QLoraNf4Dequant};
 pub use fused_swiglu::{FusedSwiGLUKernel, SwiGLUBackwardOp};

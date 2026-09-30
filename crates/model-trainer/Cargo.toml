@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 oxide-protocol = { path = "../oxide-protocol" }
+oxide-kernels = { path = "../oxide-kernels" }
 agent-journal = { path = "../agent-journal" }
 tokio = { workspace = true }
 serde = { workspace = true }

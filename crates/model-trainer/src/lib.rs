@@ -509,6 +509,9 @@ pub mod ddr5_offload;
 pub mod distributed;
 pub mod gguf_exporter;
 pub mod hf_hub;
+pub mod lora_engine;
+pub mod optimizer;
+pub mod rewards;
 pub mod rl_engine;
 pub mod vram_guard;
 
@@ -518,6 +521,12 @@ pub use distributed::{
 };
 pub use gguf_exporter::GgufExporter;
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
+pub use lora_engine::LoRATrainingEngine;
+pub use optimizer::{AdamWConfig, AdamWOptimizer, AdamWState};
+pub use rewards::{
+    EdaDrcReward, EmbeddedTimingReward, MathReasoningReward, MemorySafetyReward,
+    RustCompilerReward, SpiceSimulationReward,
+};
 pub use rl_engine::{DpoLoss, GrpoEngine, MultiDomainReward, OrpoLoss, PreferenceSample};
 pub use vram_guard::{VramAction, VramGuard};
 
