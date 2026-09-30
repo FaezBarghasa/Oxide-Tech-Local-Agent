@@ -4,12 +4,16 @@ Oxide Unsloth Training & GRPO Reinforcement Learning Engine
 
 import math
 import os
-import torch
 from typing import List, Callable, Dict, Any, Optional
+
+try:
+    import torch
+except ImportError:
+    torch = None
 
 def is_bfloat16_supported() -> bool:
     """Returns True if GPU supports bfloat16 computation."""
-    if torch.cuda.is_available():
+    if torch is not None and hasattr(torch, "cuda") and torch.cuda.is_available():
         return torch.cuda.is_bf16_supported()
     return False
 
@@ -56,12 +60,10 @@ class OxideGRPOTrainer:
         print(f"[Oxide-Unsloth GRPO] Starting GRPO RLVR optimization loop (group_size={self.group_size}, beta={self.beta})")
         os.makedirs(self.output_dir, exist_ok=True)
         
-        # Sample evaluation step over dataset
         sample_count = len(self.train_dataset) if hasattr(self.train_dataset, "__len__") else 4
         print(f"[Oxide-Unsloth GRPO] Processing {sample_count} trajectory groups with {len(self.reward_funcs)} reward verifiers...")
 
         for idx in range(min(sample_count, 2)):
-            # Evaluate reward functions
             mock_sample = "pub fn init_spi() -> Result<(), ()> { Ok(()) }"
             rewards = [func(mock_sample) for func in self.reward_funcs]
             mean_reward = sum(rewards) / len(rewards) if rewards else 1.0

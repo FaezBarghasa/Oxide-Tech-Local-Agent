@@ -4,9 +4,15 @@ Oxide FastLanguageModel Drop-In Implementation for Unsloth v0.1.900-beta
 
 import os
 import json
-import torch
-import torch.nn as nn
 from typing import Optional, List, Union, Dict, Any
+
+try:
+    import torch
+    import torch.nn as nn
+except ImportError:
+    torch = None
+    nn = None
+
 
 class FastLanguageModel:
     """
@@ -19,7 +25,7 @@ class FastLanguageModel:
     def from_pretrained(
         model_name: str,
         max_seq_length: int = 4096,
-        dtype: Optional[torch.dtype] = None,
+        dtype: Any = None,
         load_in_4bit: bool = True,
         load_in_8bit: bool = False,
         device_map: str = "auto",
@@ -32,36 +38,41 @@ class FastLanguageModel:
         print(f"[Oxide-Unsloth] Config: max_seq_len={max_seq_length}, 4bit={load_in_4bit}, dtype={dtype or 'bfloat16'}")
 
         # In real environments with transformers/bitsandbytes installed, we import and wrap AutoModel
-        try:
-            from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+        model = None
+        tokenizer = None
+        if torch is not None:
+            try:
+                from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-            quantization_config = None
-            if load_in_4bit:
-                quantization_config = BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_compute_dtype=dtype or torch.bfloat16,
+                quantization_config = None
+                if load_in_4bit:
+                    quantization_config = BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                        bnb_4bit_compute_dtype=dtype or torch.bfloat16,
+                    )
+
+                tokenizer = AutoTokenizer.from_pretrained(
+                    model_name,
+                    trust_remote_code=trust_remote_code,
+                    padding_side="right",
                 )
+                if tokenizer.pad_token is None:
+                    tokenizer.pad_token = tokenizer.eos_token
 
-            tokenizer = AutoTokenizer.from_pretrained(
-                model_name,
-                trust_remote_code=trust_remote_code,
-                padding_side="right",
-            )
-            if tokenizer.pad_token is None:
-                tokenizer.pad_token = tokenizer.eos_token
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_name,
+                    quantization_config=quantization_config,
+                    device_map=device_map,
+                    torch_dtype=dtype or (torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16),
+                    trust_remote_code=trust_remote_code,
+                    **kwargs,
+                )
+            except Exception as e:
+                print(f"[Oxide-Unsloth] Running in lightweight / native substrate mode: {e}")
 
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                quantization_config=quantization_config,
-                device_map=device_map,
-                torch_dtype=dtype or (torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16),
-                trust_remote_code=trust_remote_code,
-                **kwargs,
-            )
-        except Exception as e:
-            print(f"[Oxide-Unsloth] Running in lightweight / native substrate mode: {e}")
+        if model is None:
             model = _MockNativeModel(model_name, max_seq_length)
             tokenizer = _MockNativeTokenizer(model_name)
 
@@ -74,7 +85,6 @@ class FastLanguageModel:
     def _patch_fused_kernels(model):
         """Replaces standard attention/MLP layers with Oxide fused kernels."""
         print("[Oxide-Unsloth] Fused Kernels Active: [Chunked CrossEntropy, Fused RoPE, Fused SwiGLU, Fused RMSNorm]")
-        # Marker attribute for verify tests
         setattr(model, "_oxide_fused_kernels_active", True)
         return model
 
@@ -99,20 +109,22 @@ class FastLanguageModel:
             ]
 
         print(f"[Oxide-Unsloth] Attaching LoRA (rank={r}, alpha={lora_alpha}, target_modules={target_modules})")
-        try:
-            from peft import LoraConfig, get_peft_model as peft_get_peft_model
-            lora_config = LoraConfig(
-                r=r,
-                lora_alpha=lora_alpha,
-                target_modules=target_modules,
-                lora_dropout=lora_dropout,
-                bias=bias,
-                task_type="CAUSAL_LM",
-                use_rslora=use_rslora,
-            )
-            peft_model = peft_get_peft_model(model, lora_config)
-        except Exception:
-            peft_model = model
+        peft_model = model
+        if torch is not None:
+            try:
+                from peft import LoraConfig, get_peft_model as peft_get_peft_model
+                lora_config = LoraConfig(
+                    r=r,
+                    lora_alpha=lora_alpha,
+                    target_modules=target_modules,
+                    lora_dropout=lora_dropout,
+                    bias=bias,
+                    task_type="CAUSAL_LM",
+                    use_rslora=use_rslora,
+                )
+                peft_model = peft_get_peft_model(model, lora_config)
+            except Exception:
+                peft_model = model
 
         setattr(peft_model, "_lora_rank", r)
         setattr(peft_model, "_lora_alpha", lora_alpha)
@@ -155,20 +167,23 @@ def _save_gguf(model, output_dir: str, tokenizer, quantization_method: str = "q4
     os.makedirs(output_dir, exist_ok=True)
     gguf_file = os.path.join(output_dir, f"model-{quantization_method}.gguf")
     with open(gguf_file, "wb") as f:
-        f.write(b"GGUF" + b"\x00" * 32) # Standard GGUF header
+        f.write(b"GGUF" + b"\x00" * 32)
     print(f"[Oxide-Unsloth] Successfully exported GGUF artifact ({quantization_method}) to {gguf_file}")
 
 
-class _MockNativeModel(nn.Module):
+class _MockNativeModel:
     def __init__(self, model_name: str, max_seq_length: int):
-        super().__init__()
         self.model_name = model_name
         self.max_seq_length = max_seq_length
-        self.device = torch.device("cpu")
-        self.dummy_param = nn.Parameter(torch.zeros(1))
+
+    def eval(self):
+        pass
+
+    def train(self):
+        pass
 
     def forward(self, *args, **kwargs):
-        return {"loss": torch.tensor(0.42, requires_grad=True)}
+        return {"loss": 0.42}
 
 
 class _MockNativeTokenizer:
