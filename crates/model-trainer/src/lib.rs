@@ -509,6 +509,7 @@ pub mod ddr5_offload;
 pub mod distributed;
 pub mod gguf_exporter;
 pub mod hf_hub;
+pub mod ipython_bridge;
 pub mod lora_engine;
 pub mod optimizer;
 pub mod rewards;
@@ -521,6 +522,7 @@ pub use distributed::{
 };
 pub use gguf_exporter::GgufExporter;
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
+pub use ipython_bridge::{IPythonNotebookConfig, IPythonTrainerBridge};
 pub use lora_engine::LoRATrainingEngine;
 pub use optimizer::{AdamWConfig, AdamWOptimizer, AdamWState};
 pub use rewards::{

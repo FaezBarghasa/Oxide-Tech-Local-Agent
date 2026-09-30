@@ -35,6 +35,11 @@ from .tokenizer_utils import (
     get_chat_template,
     standardize_sharegpt,
 )
+from .ipython import (
+    display_training_header,
+    IPythonTrainingCallback,
+    load_ipython_extension,
+)
 
 # Aliases for 100% Unsloth v0.1.900-beta API Parity
 PatchFastLanguageModel = FastLanguageModel
