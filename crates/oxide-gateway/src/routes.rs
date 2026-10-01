@@ -110,20 +110,57 @@ pub async fn chat_completions(
         context_len: messages.len(),
     });
 
-    // Spawn inference on async runtime or emit synthetic response if no engine loaded
+    let model_for_spawn = model_name.clone();
+    // Spawn inference on async runtime or forward to local llama-server / ollama
     actix_web::rt::spawn(async move {
         if let Some(p) = provider {
             if let Err(e) = p.generate(messages, params, tx).await {
                 tracing::error!("Inference error: {:?}", e);
             }
         } else {
-            let last_user_msg = messages
-                .iter()
-                .rfind(|m| m.role == oxide_core::Role::User)
-                .map(|m| m.text_content())
-                .unwrap_or_else(|| "Hello from Oxide Universal AI Gateway".to_string());
-            let reply = format!("Oxide Gateway [{}/{}]: {}", target_provider, upstream_model, last_user_msg);
-            let _ = tx.send(reply).await;
+            // Check if local llama-server is active on 8081
+            let client = reqwest::Client::new();
+            let llama_url = "http://127.0.0.1:8081/v1/chat/completions";
+            let body = serde_json::json!({
+                "model": model_for_spawn,
+                "messages": messages,
+                "temperature": params.temperature,
+                "top_p": params.top_p,
+                "max_tokens": params.max_tokens,
+                "stream": true,
+            });
+
+            if let Ok(resp) = client.post(llama_url).json(&body).send().await {
+                if resp.status().is_success() {
+                    let mut stream = resp.bytes_stream();
+                    while let Some(item) = stream.next().await {
+                        if let Ok(bytes) = item {
+                            let text = String::from_utf8_lossy(&bytes);
+                            for line in text.lines() {
+                                let line = line.trim();
+                                if line.starts_with("data: ") {
+                                    let data = line.trim_start_matches("data: ").trim();
+                                    if data == "[DONE]" || data.is_empty() {
+                                        break;
+                                    }
+                                    if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
+                                        && let Some(content) = v["choices"][0]["delta"]["content"].as_str()
+                                        && tx.send(content.to_string()).await.is_err()
+                                    {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
+            }
+
+            let _ = tx.send(format!(
+                "Error: No inference provider loaded for model '{}' and no active llama-server at http://127.0.0.1:8081.",
+                model_for_spawn
+            )).await;
         }
     });
 
@@ -460,15 +497,45 @@ pub async fn agent_think(
             timestamp: chrono::Utc::now().to_rfc3339(),
         })
     } else {
-        HttpResponse::Ok().json(ThinkResponse {
-            status: "success".to_string(),
-            reply: format!(
-                "Oxide Local Agent Synthesizer: Processed prompt ({} characters). Connected to local workstation engine.",
-                prompt.len()
-            ),
-            model: "local-synthesizer".to_string(),
-            timestamp: chrono::Utc::now().to_rfc3339(),
-        })
+        // Attempt to dispatch to local llama-server on port 8081
+        let client = reqwest::Client::new();
+        let llama_url = "http://127.0.0.1:8081/v1/chat/completions";
+        let body = serde_json::json!({
+            "model": model_name,
+            "messages": messages,
+            "temperature": req.temperature.unwrap_or(0.7),
+            "max_tokens": req.max_tokens.unwrap_or(2048),
+            "stream": false,
+        });
+
+        if let Ok(resp) = client.post(llama_url).json(&body).send().await {
+            if resp.status().is_success() {
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    let reply = json
+                        .get("choices")
+                        .and_then(|c| c.as_array())
+                        .and_then(|a| a.first())
+                        .and_then(|choice| choice.get("message"))
+                        .and_then(|m| m.get("content"))
+                        .and_then(|c| c.as_str())
+                        .unwrap_or("")
+                        .to_string();
+
+                    return HttpResponse::Ok().json(ThinkResponse {
+                        status: "success".to_string(),
+                        reply,
+                        model: model_name,
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                    });
+                }
+            }
+        }
+
+        HttpResponse::ServiceUnavailable().json(serde_json::json!({
+            "status": "error",
+            "error": format!("Model '{}' is not loaded in memory and no active llama-server was found on port 8081.", model_name),
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        }))
     }
 }
 

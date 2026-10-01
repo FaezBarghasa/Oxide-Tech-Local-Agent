@@ -57,8 +57,16 @@ export const ChatTab: React.FC = () => {
   const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   // Model & Sampling Parameters
-  const [selectedModel, setSelectedModel] = useState('qwen2.5-coder:7b');
-  const [selectedProvider, setSelectedProvider] = useState('ollama');
+  const [availableModels, setAvailableModels] = useState<Array<{ id: string; name: string; provider: string }>>([
+    { id: 'local/Ternary-Bonsai-2-27B-Abliterated-PTQ1_0.gguf', name: 'Ternary Bonsai 2 27B (Local GGUF)', provider: 'local_gguf' },
+    { id: 'local/DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf', name: 'DeepSeek R1 Qwen3 8B (Local GGUF)', provider: 'local_gguf' },
+    { id: 'local/Ornith-1.5-9B-Q4_K_M.gguf', name: 'Ornith 1.5 9B (Local GGUF)', provider: 'local_gguf' },
+    { id: 'local/gemma4-v2-Q3_K_M.gguf', name: 'Gemma 4 v2 (Local GGUF)', provider: 'local_gguf' },
+    { id: 'local/gemma-4-e2b-it.Q8_0.gguf', name: 'Gemma 4 e2b IT (Local GGUF)', provider: 'local_gguf' },
+    { id: 'qwen2.5-coder:7b', name: 'Qwen 2.5 Coder 7B', provider: 'ollama' },
+  ]);
+  const [selectedModel, setSelectedModel] = useState('local/Ternary-Bonsai-2-27B-Abliterated-PTQ1_0.gguf');
+  const [selectedProvider, setSelectedProvider] = useState('local_gguf');
   const [temperature, setTemperature] = useState(0.2);
   const [topP, setTopP] = useState(0.95);
   const [repetitionPenalty, setRepetitionPenalty] = useState(1.1);
@@ -71,6 +79,29 @@ export const ChatTab: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function loadModels() {
+      try {
+        const res = await desktop.modelListAvailable();
+        if (res && res.models && res.models.length > 0) {
+          const list = res.models.map((m) => ({
+            id: m.path ? `local/${m.name}` : m.id,
+            name: m.name,
+            provider: m.provider,
+          }));
+          setAvailableModels(list);
+          if (res.active_model) {
+            setSelectedModel(res.active_model);
+            setSelectedProvider(res.active_provider);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic models from desktop bridge:', err);
+      }
+    }
+    loadModels();
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -353,13 +384,21 @@ export const ChatTab: React.FC = () => {
             </div>
             <select
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 focus:outline-none"
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedModel(val);
+                const found = availableModels.find((m) => m.id === val || m.name === val);
+                if (found) {
+                  setSelectedProvider(found.provider);
+                }
+              }}
+              className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 focus:outline-none max-w-[150px] truncate"
             >
-              <option value="qwen2.5-coder:7b">Qwen 2.5 Coder 7B</option>
-              <option value="deepseek-r1:8b">DeepSeek R1 8B</option>
-              <option value="llama3.2:3b">Llama 3.2 3B</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              {availableModels.map((m) => (
+                <option key={m.id} value={m.id} className="bg-[#18181b] text-zinc-200">
+                  {m.name}
+                </option>
+              ))}
             </select>
           </div>
 

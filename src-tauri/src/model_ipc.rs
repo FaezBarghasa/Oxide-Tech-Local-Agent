@@ -58,50 +58,67 @@ fn format_bytes(bytes: u64) -> String {
     }
 }
 
+static LLAMA_SERVER_LOCK: std::sync::LazyLock<tokio::sync::Mutex<()>> =
+    std::sync::LazyLock::new(|| tokio::sync::Mutex::new(()));
+static CURRENT_RUNNING_MODEL: std::sync::LazyLock<tokio::sync::RwLock<Option<String>>> =
+    std::sync::LazyLock::new(|| tokio::sync::RwLock::new(None));
+static LLAMA_CHILD_PID: std::sync::LazyLock<tokio::sync::RwLock<Option<u32>>> =
+    std::sync::LazyLock::new(|| tokio::sync::RwLock::new(None));
+
+/// Recursively scan directories for .gguf model files
+fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: usize, models: &mut Vec<ModelInfo>) {
+    if current_depth > max_depth || !dir.exists() {
+        return;
+    }
+
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                scan_dir_recursive(&path, max_depth, current_depth + 1, models);
+            } else if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
+                let file_name = path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
+                let file_size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+
+                models.push(ModelInfo {
+                    id: format!("local:{}", file_name),
+                    name: file_name.clone(),
+                    provider: "local_gguf".to_string(),
+                    size_formatted: format_bytes(file_size),
+                    path: Some(path.display().to_string()),
+                    is_running: true,
+                    context_length: 32768,
+                    description: format!("Local GGUF ({}) in {}", format_bytes(file_size), path.parent().map(|p| p.display().to_string()).unwrap_or_default()),
+                });
+            }
+        }
+    }
+}
+
 /// Scan disk for .gguf model files
 fn scan_default_local_gguf_models() -> Vec<ModelInfo> {
     let mut models = Vec::new();
     let search_dirs = [
-        std::env::var("HOME")
-            .ok()
-            .map(|h| PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("huggingface").join("hub")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".ollama").join("models")),
         Some(PathBuf::from("/var/lib/oxide-tech/models")),
-        std::env::var("HOME")
-            .ok()
-            .map(|h| PathBuf::from(h).join(".cache").join("models")),
+        Some(PathBuf::from("/opt/models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("models")),
         Some(PathBuf::from("/tmp/models")),
     ];
 
     for dir in search_dirs.into_iter().flatten() {
-        if !dir.exists() {
-            continue;
-        }
-        if let Ok(entries) = std::fs::read_dir(&dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
-                    let file_name = path
-                        .file_name()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string();
-                    let file_size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-
-                    models.push(ModelInfo {
-                        id: format!("local:{}", file_name),
-                        name: file_name.clone(),
-                        provider: "local_gguf".to_string(),
-                        size_formatted: format_bytes(file_size),
-                        path: Some(path.display().to_string()),
-                        is_running: true,
-                        context_length: 32768,
-                        description: format!("Local GGUF in {}", dir.display()),
-                    });
-                }
-            }
-        }
+        scan_dir_recursive(&dir, 3, 0, &mut models);
     }
 
+    // Deduplicate by path
+    models.sort_by(|a, b| a.name.cmp(&b.name));
+    models.dedup_by(|a, b| a.path == b.path);
     models
 }
 
@@ -177,6 +194,101 @@ async fn query_sglang_models(client: &reqwest::Client) -> Vec<ModelInfo> {
     models
 }
 
+/// Ensure llama-server is running on port 8081 for the given GGUF model path
+async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), String> {
+    let _guard = LLAMA_SERVER_LOCK.lock().await;
+
+    // Check if server is already running and loaded with this model
+    let is_already_serving = {
+        let current = CURRENT_RUNNING_MODEL.read().await;
+        current.as_deref() == Some(model_path)
+    };
+
+    if is_already_serving && probe_tcp_port(port).await.is_some() {
+        return Ok(());
+    }
+
+    info!(
+        model_path = %model_path,
+        port = %port,
+        "Launching native llama-server engine for local inference"
+    );
+
+    // Terminate existing server if running
+    {
+        let mut pid_guard = LLAMA_CHILD_PID.write().await;
+        if let Some(pid) = pid_guard.take() {
+            let _ = std::process::Command::new("kill")
+                .arg(pid.to_string())
+                .output();
+            tokio::time::sleep(Duration::from_millis(300)).await;
+        }
+    }
+
+    // Locate llama-server executable
+    let server_bin = if std::path::Path::new("/usr/local/bin/llama-server").exists() {
+        "/usr/local/bin/llama-server"
+    } else {
+        "llama-server"
+    };
+
+    let child = std::process::Command::new(server_bin)
+        .arg("-m")
+        .arg(model_path)
+        .arg("--port")
+        .arg(port.to_string())
+        .arg("--host")
+        .arg("127.0.0.1")
+        .arg("-c")
+        .arg("8192")
+        .arg("-ngl")
+        .arg("99")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn llama-server: {}. Ensure llama.cpp is installed.", e))?;
+
+    let child_pid = child.id();
+    {
+        let mut pid_guard = LLAMA_CHILD_PID.write().await;
+        *pid_guard = Some(child_pid);
+    }
+
+    // Poll health check until server is ready (up to 30 seconds for large models)
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_millis(500))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let health_url = format!("http://127.0.0.1:{}/health", port);
+    let mut ready = false;
+
+    for _ in 0..60 {
+        tokio::time::sleep(Duration::from_millis(500)).await;
+        if let Ok(resp) = client.get(&health_url).send().await {
+            if resp.status().is_success() {
+                ready = true;
+                break;
+            }
+        }
+    }
+
+    if !ready {
+        return Err(format!(
+            "llama-server timed out loading model `{}`. Check system VRAM and model file integrity.",
+            model_path
+        ));
+    }
+
+    {
+        let mut current = CURRENT_RUNNING_MODEL.write().await;
+        *current = Some(model_path.to_string());
+    }
+
+    info!("Native llama-server successfully initialized on port {}", port);
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn model_list_available() -> Result<ModelListResponse, String> {
     let client = reqwest::Client::builder()
@@ -191,70 +303,36 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
     let gguf_count = local_ggufs.len();
     let ollama_count = ollama_models.len();
 
-    // Built-in presets for local/cloud inference if user has keys or endpoints
-    let standard_presets = vec![
-        ModelInfo {
-            id: "preset:qwen2.5-coder:7b".to_string(),
-            name: "Qwen 2.5 Coder 7B (Recommended)".to_string(),
-            provider: "ollama".to_string(),
-            size_formatted: "4.7 GB".to_string(),
-            path: None,
-            is_running: false,
-            context_length: 32768,
-            description: "Top-tier embedded, systems, and Rust code generation".to_string(),
-        },
-        ModelInfo {
-            id: "preset:deepseek-r1:8b".to_string(),
-            name: "DeepSeek R1 8B (Reasoning)".to_string(),
-            provider: "ollama".to_string(),
-            size_formatted: "4.9 GB".to_string(),
-            path: None,
-            is_running: false,
-            context_length: 16384,
-            description: "High-level chain-of-thought planning & verifier synthesis".to_string(),
-        },
-        ModelInfo {
-            id: "preset:llama3.2:3b".to_string(),
-            name: "Llama 3.2 3B (Lightweight)".to_string(),
-            provider: "ollama".to_string(),
-            size_formatted: "2.0 GB".to_string(),
-            path: None,
-            is_running: false,
-            context_length: 8192,
-            description: "Fast token generation on CPU / low-VRAM laptops".to_string(),
-        },
-        ModelInfo {
-            id: "cloud:gemini-2.5-flash".to_string(),
-            name: "Gemini 2.5 Flash (Cloud)".to_string(),
-            provider: "cloud".to_string(),
-            size_formatted: "Cloud API".to_string(),
-            path: None,
-            is_running: true,
-            context_length: 1048576,
-            description: "Google Gemini API with massive 1M token context".to_string(),
-        },
-        ModelInfo {
-            id: "cloud:groq-llama-3.3-70b".to_string(),
-            name: "Groq Llama 3.3 70B (Cloud)".to_string(),
-            provider: "cloud".to_string(),
-            size_formatted: "Cloud API".to_string(),
-            path: None,
-            is_running: true,
-            context_length: 131072,
-            description: "Ultra-fast LPU inference (500+ tokens/sec)".to_string(),
-        },
-    ];
-
     let mut all_models = Vec::new();
     all_models.append(&mut local_ggufs);
     all_models.append(&mut ollama_models);
     all_models.append(&mut sglang_models);
 
-    // If no local models discovered yet, add standard presets
-    for p in standard_presets {
-        if !all_models.iter().any(|m| m.id == p.id || m.name == p.name) {
-            all_models.push(p);
-        }
+    // Only include cloud models if the user has configured API keys
+    if std::env::var("GEMINI_API_KEY").is_ok() || std::env::var("GOOGLE_API_KEY").is_ok() {
+        all_models.push(ModelInfo {
+            id: "cloud:gemini-2.5-flash".to_string(),
+            name: "Gemini 2.5 Flash (Cloud API)".to_string(),
+            provider: "cloud".to_string(),
+            size_formatted: "Cloud API".to_string(),
+            path: None,
+            is_running: true,
+            context_length: 1048576,
+            description: "Google Gemini Cloud Endpoint (Configured via API Key)".to_string(),
+        });
+    }
+
+    if std::env::var("GROQ_API_KEY").is_ok() {
+        all_models.push(ModelInfo {
+            id: "cloud:groq-llama-3.3-70b".to_string(),
+            name: "Groq Llama 3.3 70B (Cloud API)".to_string(),
+            provider: "cloud".to_string(),
+            size_formatted: "Cloud API".to_string(),
+            path: None,
+            is_running: true,
+            context_length: 131072,
+            description: "Groq Cloud Fast LPU Endpoint".to_string(),
+        });
     }
 
     let (active_model, active_provider) =
@@ -263,7 +341,7 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
         } else if let Some(first) = all_models.first() {
             (first.name.clone(), first.provider.clone())
         } else {
-            ("qwen2.5-coder:7b".to_string(), "ollama".to_string())
+            ("none".to_string(), "local_gguf".to_string())
         };
 
     Ok(ModelListResponse {
@@ -281,11 +359,11 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
     info!(
         model = %req.model,
         provider = %req.provider,
-        "Agent executing prompt with selected model"
+        "Agent executing prompt with verified model engine"
     );
 
     let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(120))
+        .timeout(Duration::from_secs(180))
         .build()
         .map_err(|e| format!("HTTP client error: {}", e))?;
 
@@ -303,13 +381,128 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
     };
 
     let temp = req.temperature.unwrap_or(0.2);
-
     let provider = req.provider.to_lowercase();
     let model_name = req.model.trim();
 
-    if provider == "ollama" || model_name.starts_with("ollama:") || provider == "local_gguf" {
+    // Check if this is a local GGUF model
+    let is_local_gguf = provider == "local_gguf" || model_name.starts_with("local:") || model_name.ends_with(".gguf");
+
+    if is_local_gguf {
+        let clean_model = model_name.strip_prefix("local:").unwrap_or(model_name);
+
+        // Find the model's actual file path on disk
+        let all_local = scan_default_local_gguf_models();
+        let target_model = all_local.iter().find(|m| m.name == clean_model || m.id == req.model);
+
+        let model_path = match target_model.and_then(|m| m.path.as_deref()) {
+            Some(p) => p.to_string(),
+            None => {
+                // If clean_model is a direct path
+                if std::path::Path::new(clean_model).exists() {
+                    clean_model.to_string()
+                } else {
+                    return Ok(RunPromptResponse {
+                        text: String::new(),
+                        model: clean_model.to_string(),
+                        provider: "local_gguf".to_string(),
+                        tokens_used: None,
+                        latency_ms: start.elapsed().as_millis() as u64,
+                        error: Some(format!(
+                            "Local model '{}' not found on disk. Place .gguf files in ~/models/ or /opt/models/.",
+                            clean_model
+                        )),
+                    });
+                }
+            }
+        };
+
+        // Ensure native llama-server is serving this model on port 8081
+        if let Err(e) = ensure_llama_server_running(&model_path, 8081).await {
+            return Ok(RunPromptResponse {
+                text: String::new(),
+                model: clean_model.to_string(),
+                provider: "local_gguf".to_string(),
+                tokens_used: None,
+                latency_ms: start.elapsed().as_millis() as u64,
+                error: Some(format!("Failed to start native engine: {}", e)),
+            });
+        }
+
+        // Dispatch prompt to native llama-server OpenAI-compatible endpoint
+        let endpoint = "http://127.0.0.1:8081/v1/chat/completions";
+        let body = serde_json::json!({
+            "model": clean_model,
+            "messages": [
+                { "role": "system", "content": sys_prompt },
+                { "role": "user", "content": full_user_prompt }
+            ],
+            "temperature": temp,
+            "max_tokens": req.max_tokens.unwrap_or(4096),
+            "stream": false
+        });
+
+        match client.post(endpoint).json(&body).send().await {
+            Ok(resp) => {
+                if !resp.status().is_success() {
+                    let status = resp.status();
+                    let err_text = resp.text().await.unwrap_or_default();
+                    return Ok(RunPromptResponse {
+                        text: String::new(),
+                        model: clean_model.to_string(),
+                        provider: "local_gguf".to_string(),
+                        tokens_used: None,
+                        latency_ms: start.elapsed().as_millis() as u64,
+                        error: Some(format!("llama-server HTTP {}: {}", status, err_text)),
+                    });
+                }
+
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    let text = json
+                        .get("choices")
+                        .and_then(|c| c.as_array())
+                        .and_then(|a| a.first())
+                        .and_then(|choice| choice.get("message"))
+                        .and_then(|m| m.get("content"))
+                        .and_then(|c| c.as_str())
+                        .unwrap_or("")
+                        .to_string();
+
+                    let tokens = json
+                        .get("usage")
+                        .and_then(|u| u.get("total_tokens"))
+                        .and_then(|t| t.as_u64())
+                        .map(|t| t as usize);
+
+                    Ok(RunPromptResponse {
+                        text,
+                        model: clean_model.to_string(),
+                        provider: "local_gguf".to_string(),
+                        tokens_used: tokens,
+                        latency_ms: start.elapsed().as_millis() as u64,
+                        error: None,
+                    })
+                } else {
+                    Ok(RunPromptResponse {
+                        text: String::new(),
+                        model: clean_model.to_string(),
+                        provider: "local_gguf".to_string(),
+                        tokens_used: None,
+                        latency_ms: start.elapsed().as_millis() as u64,
+                        error: Some("Failed to parse native llama-server response JSON".to_string()),
+                    })
+                }
+            }
+            Err(e) => Ok(RunPromptResponse {
+                text: String::new(),
+                model: clean_model.to_string(),
+                provider: "local_gguf".to_string(),
+                tokens_used: None,
+                latency_ms: start.elapsed().as_millis() as u64,
+                error: Some(format!("Cannot connect to native engine at port 8081: {}", e)),
+            }),
+        }
+    } else if provider == "ollama" || model_name.starts_with("ollama:") {
         let clean_model = model_name.strip_prefix("ollama:").unwrap_or(model_name);
-        let clean_model = clean_model.strip_prefix("local:").unwrap_or(clean_model);
         let base_url = req
             .base_url
             .as_deref()
@@ -330,11 +523,21 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
             }
         });
 
-        let mut executed = false;
-        let mut final_resp = None;
+        match client.post(&url).json(&body).send().await {
+            Ok(resp) => {
+                if !resp.status().is_success() {
+                    let status = resp.status();
+                    let err_text = resp.text().await.unwrap_or_default();
+                    return Ok(RunPromptResponse {
+                        text: String::new(),
+                        model: clean_model.to_string(),
+                        provider: "ollama".to_string(),
+                        tokens_used: None,
+                        latency_ms: start.elapsed().as_millis() as u64,
+                        error: Some(format!("Ollama HTTP {}: {}", status, err_text)),
+                    });
+                }
 
-        if let Ok(resp) = client.post(&url).json(&body).send().await {
-            if resp.status().is_success() {
                 if let Ok(json) = resp.json::<serde_json::Value>().await {
                     let text = json
                         .get("message")
@@ -348,64 +551,37 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                         .and_then(|c| c.as_u64())
                         .map(|c| c as usize);
 
-                    executed = true;
-                    final_resp = Some(RunPromptResponse {
+                    Ok(RunPromptResponse {
                         text,
                         model: clean_model.to_string(),
                         provider: "ollama".to_string(),
                         tokens_used: eval_count,
                         latency_ms: start.elapsed().as_millis() as u64,
                         error: None,
-                    });
-                }
-            }
-        }
-
-        if executed {
-            return Ok(final_resp.unwrap());
-        }
-
-        // Fallback: Dispatch directly to the embedded Oxide Universal Gateway on :8080
-        let gateway_url = format!("{}/api/agent/think", crate::DEFAULT_GATEWAY_URL);
-        let think_req = serde_json::json!({
-            "prompt": full_user_prompt,
-            "model": Some(clean_model.to_string()),
-            "session_id": Some(format!("sess_{}", uuid::Uuid::now_v7())),
-        });
-
-        if let Ok(resp) = client.post(&gateway_url).json(&think_req).send().await {
-            if resp.status().is_success() {
-                if let Ok(json) = resp.json::<serde_json::Value>().await {
-                    let text = json.get("reply").and_then(|r| r.as_str()).unwrap_or("").to_string();
-                    let model_ret = json.get("model").and_then(|m| m.as_str()).unwrap_or(clean_model).to_string();
-                    let tokens = Some(text.split_whitespace().count() * 4 / 3);
-
-                    return Ok(RunPromptResponse {
-                        text,
-                        model: model_ret,
-                        provider: "oxide-local-gateway".to_string(),
-                        tokens_used: tokens,
+                    })
+                } else {
+                    Ok(RunPromptResponse {
+                        text: String::new(),
+                        model: clean_model.to_string(),
+                        provider: "ollama".to_string(),
+                        tokens_used: None,
                         latency_ms: start.elapsed().as_millis() as u64,
-                        error: None,
-                    });
+                        error: Some("Failed to parse Ollama response JSON".to_string()),
+                    })
                 }
             }
+            Err(e) => Ok(RunPromptResponse {
+                text: String::new(),
+                model: clean_model.to_string(),
+                provider: "ollama".to_string(),
+                tokens_used: None,
+                latency_ms: start.elapsed().as_millis() as u64,
+                error: Some(format!(
+                    "Cannot connect to Ollama at {}: {}. Ensure 'ollama serve' is running or select a Local GGUF model.",
+                    base_url, e
+                )),
+            }),
         }
-
-        // In-Process Direct Synthesizer Fallback
-        Ok(RunPromptResponse {
-            text: format!(
-                "**Oxide-Tech Native Engine (Model: `{}`)**\n\nProcessed local systems prompt successfully.\n\n*Target Workspace:* Active\n*Inference Mode:* Pure-Rust In-Process Runner\n*STAIR Context Attached:* {}\n\nResponse initialized for model `{}`.",
-                clean_model,
-                if req.stair_context.is_some() { "Yes (AST-Indexed)" } else { "No" },
-                clean_model
-            ),
-            model: clean_model.to_string(),
-            provider: "oxide-native".to_string(),
-            tokens_used: Some(64),
-            latency_ms: start.elapsed().as_millis() as u64,
-            error: None,
-        })
     } else if provider == "sglang" || provider == "vllm" {
         let base_url = req
             .base_url
