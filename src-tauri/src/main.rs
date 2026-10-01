@@ -86,11 +86,11 @@ fn run_desktop(config: Option<String>) {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .register_uri_scheme_protocol("oxide", |_app, req| {
-            protocol::handle_oxide_protocol(&req).map_err(|e| {
+            protocol::handle_oxide_protocol(&req).unwrap_or_else(|e| {
                 tauri::http::Response::builder()
                     .status(500)
                     .body(e.to_string().into_bytes())
-                    .unwrap()
+                    .unwrap_or_else(|_| tauri::http::Response::new(Vec::new()))
             })
         })
         .invoke_handler(tauri::generate_handler![

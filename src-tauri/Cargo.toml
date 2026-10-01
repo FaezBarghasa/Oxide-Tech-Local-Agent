@@ -53,5 +53,16 @@ probe-rs = ["dep:probe-rs"]
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[[test]]
+name = "pure_rust_stack_test"
+path = "../tests/pure_rust_stack_test.rs"
+
+[dev-dependencies]
+edge-swarm = { path = "../crates/edge-swarm" }
+mcp-probe-rs = { path = "../crates/mcp-probe-rs" }
+oxide-engines = { path = "../crates/oxide-engines" }
+qdrant-service = { path = "../crates/qdrant-service" }
+surrealdb-service = { path = "../crates/surrealdb-service" }
+
 # Release tuning (opt-level, LTO, strip) is inherited from the workspace root
 # [profile.release]; per-package profiles are ignored in a workspace.
