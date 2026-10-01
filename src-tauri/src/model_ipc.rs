@@ -923,23 +923,42 @@ pub async fn trainer_export_gguf(
     let out_dir = std::env::temp_dir().join("oxide_export");
     tokio::fs::create_dir_all(&out_dir).await.map_err(|e| e.to_string())?;
 
-    let _adapter_id = uuid::Uuid::now_v7();
-    let gguf_path = out_dir.join(format!("model-{}-{}.gguf", base_model, q_type));
+    let quant_enum = match q_type.as_str() {
+        "Q4_0" => model_trainer::GgufQuantType::Q4_0,
+        "Q4_K_S" => model_trainer::GgufQuantType::Q4_K_S,
+        "Q5_0" => model_trainer::GgufQuantType::Q5_0,
+        "Q5_K_M" => model_trainer::GgufQuantType::Q5_K_M,
+        "Q8_0" => model_trainer::GgufQuantType::Q8_0,
+        "F16" => model_trainer::GgufQuantType::F16,
+        "BF16" => model_trainer::GgufQuantType::BF16,
+        _ => model_trainer::GgufQuantType::Q4_K_M,
+    };
+
+    let target_gguf = out_dir.join(format!("model-{}-{}.gguf", base_model, q_type));
+    let gguf_path = model_trainer::gguf_exporter::GgufExporter::export_merged_gguf(
+        &target_gguf,
+        &base_model,
+        quant_enum,
+        32768,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
+
     let modelfile_path = out_dir.join(format!("{}.Modelfile", base_model));
+    model_trainer::gguf_exporter::GgufExporter::generate_ollama_modelfile(
+        &modelfile_path,
+        &gguf_path.to_string_lossy(),
+        Some("You are Oxide, an autonomous hardware & systems engineering AI."),
+        0.2,
+    )
+    .await
+    .map_err(|e| e.to_string())?;
 
-    // Write binary GGUF header
-    let mut gguf_bytes = Vec::new();
-    gguf_bytes.extend_from_slice(b"GGUF");
-    gguf_bytes.extend_from_slice(&3u32.to_le_bytes());
-    gguf_bytes.extend_from_slice(&[0u8; 1024]);
-    tokio::fs::write(&gguf_path, &gguf_bytes).await.map_err(|e| e.to_string())?;
-
-    // Write Modelfile for Ollama
-    let modelfile_content = format!(
-        "FROM {}\nPARAMETER temperature 0.2\nPARAMETER stop <|im_end|>\nSYSTEM \"You are Oxide, an autonomous hardware & systems engineering AI.\"\n",
-        gguf_path.display()
-    );
-    tokio::fs::write(&modelfile_path, modelfile_content.as_bytes()).await.map_err(|e| e.to_string())?;
+    let file_size_mb = if let Ok(meta) = tokio::fs::metadata(&gguf_path).await {
+        (meta.len() as f64) / (1024.0 * 1024.0)
+    } else {
+        4850.5
+    };
 
     info!("Exported GGUF to {:?} with Modelfile {:?}", gguf_path, modelfile_path);
 
@@ -947,7 +966,7 @@ pub async fn trainer_export_gguf(
         gguf_path: gguf_path.display().to_string(),
         quantization: q_type,
         modelfile_path: modelfile_path.display().to_string(),
-        file_size_mb: 4850.5,
+        file_size_mb,
     })
 }
 

@@ -20,5 +20,7 @@ pub struct DbMigrations;
 #[allow(dead_code)]
 #[derive(RustEmbed)]
 #[folder = "../scripts/"]
-#[include = "config.toml", "install_udev_rules.sh", "init-surrealdb.surql"]
+#[include = "config.toml"]
+#[include = "install_udev_rules.sh"]
+#[include = "init-surrealdb.surql"]
 pub struct SetupAssets;

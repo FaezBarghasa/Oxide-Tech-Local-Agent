@@ -4,6 +4,7 @@ use anyhow::Result;
 use std::path::Path;
 
 pub struct MacosSandboxManager {
+    #[allow(dead_code)]
     profile_name: String,
 }
 

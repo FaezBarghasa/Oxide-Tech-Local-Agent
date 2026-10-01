@@ -12,6 +12,7 @@ pub struct WindowsSandboxConfig {
 }
 
 pub struct WindowsSandboxManager {
+    #[allow(dead_code)]
     config: WindowsSandboxConfig,
 }
 
