@@ -429,4 +429,37 @@ mod tests {
         let sum: f32 = probs.iter().sum();
         assert!((sum - 1.0).abs() < 1e-4);
     }
+
+    #[test]
+    fn decision_engine_bench() {
+        let engine = DecisionEngine::new(DecisionDevice::Cpu, 32, 2);
+        let input = DecisionInput {
+            state: "AST parse syntax validation state with 42 symbols".to_string(),
+            criteria: "tool_routing".to_string(),
+            candidates: vec![
+                "code_decompile".to_string(),
+                "netlist_drc".to_string(),
+                "web_scrape".to_string(),
+                "direct_response".to_string(),
+            ],
+        };
+
+        // Warmup
+        let _ = engine.decide(input.clone()).unwrap();
+
+        let iterations = 100;
+        let start = Instant::now();
+        for _ in 0..iterations {
+            let output = engine.decide(input.clone()).expect("Bench decision should succeed");
+            assert!(!output.selected.is_empty());
+            assert!(output.confidence > 0.0);
+        }
+        let total_duration = start.elapsed();
+        let avg_latency = total_duration / (iterations as u32);
+        println!(
+            "\n[SDM Benchmark] Total: {:?} for {} iterations | Avg Latency: {:?} (< 5ms target)",
+            total_duration, iterations, avg_latency
+        );
+        assert!(avg_latency < Duration::from_millis(5), "SDM decision latency must be < 5ms");
+    }
 }

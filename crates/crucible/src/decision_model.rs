@@ -8,7 +8,6 @@
 //!   $$\text{Score}(s, a) = Q(s, a) + c_{\text{puct}} \cdot P(s, a) \cdot \frac{\sqrt{\sum_b N(s, b)}}{1 + N(s, a)}$$
 
 use crate::shadow_state::WorkspaceSnapshot;
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -133,10 +132,10 @@ impl PolicyValueModel for HeuristicDecisionModel {
         }
 
         // Value estimate based on state health
-        let state_value = if state.dirty_files.is_empty() {
+        let state_value = if state.file_digests.is_empty() {
             0.8
         } else {
-            0.4
+            0.5
         };
 
         (priors, state_value)
@@ -239,7 +238,10 @@ impl<M: PolicyValueModel> DecisionGuidedMcts<M> {
         branches
             .into_iter()
             .max_by_key(|b| b.visit_count)
-            .map(|b| (b.action, b.q_value()))
+            .map(|b| {
+                let q = b.q_value();
+                (b.action, q)
+            })
     }
 }
 
@@ -265,7 +267,7 @@ mod tests {
     #[test]
     fn test_dynamic_tool_pruning() {
         let model = HeuristicDecisionModel::default();
-        let state = WorkspaceSnapshot::default();
+        let state = WorkspaceSnapshot::new("test-task", 0);
         let candidates = vec![
             "cargo_check".to_string(),
             "verify_tests".to_string(),
@@ -281,7 +283,7 @@ mod tests {
     #[test]
     fn decision_model_mcts_test() {
         let mcts = DecisionGuidedMcts::default();
-        let state = WorkspaceSnapshot::default();
+        let state = WorkspaceSnapshot::new("test-task", 0);
         let candidates = vec![
             "cargo_check".to_string(),
             "cargo_test".to_string(),
