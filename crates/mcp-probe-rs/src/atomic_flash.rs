@@ -322,4 +322,19 @@ mod tests {
         assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
         assert!(AtomicFlashManager::validate_ed25519_flash_token("short", "STM32F407VG").is_err());
     }
+
+    #[test]
+    fn atomic_flash_in_memory_test() {
+        let raw_firmware = vec![0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02, 0x03, 0x04];
+        let auth_token = "ed25519-sig-auth-stm32f407-valid-tok";
+        let target_chip = "STM32F407VG";
+
+        let verified = VerifiedFirmwarePayload::new(raw_firmware.clone(), target_chip, auth_token).unwrap();
+        assert_eq!(verified.binary_bytes, raw_firmware);
+        assert_eq!(verified.target_chip, target_chip);
+        assert_eq!(verified.auth_token, auth_token);
+
+        let computed = blake3::hash(&raw_firmware);
+        assert_eq!(verified.blake3_digest, *computed.as_bytes());
+    }
 }

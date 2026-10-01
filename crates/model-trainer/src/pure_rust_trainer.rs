@@ -153,4 +153,23 @@ mod tests {
         }
         assert_eq!(trainer.history.len(), 10);
     }
+
+    #[test]
+    fn step_optimization_cycle_leak_test() {
+        let config = PureRustTrainerConfig {
+            max_steps: 20_000,
+            warmup_steps: 100,
+            ..Default::default()
+        };
+        let mut trainer = PureRustTrainer::new(config, 32);
+        let dummy_data = vec![0.5f32; 32];
+
+        // Run 15,000 optimization steps to test memory bounding and activation cleanup
+        for _ in 0..15_000 {
+            let _ = trainer.train_step(&dummy_data, 32, 1);
+        }
+
+        // Must remain bounded <= 10,000 items without memory leak
+        assert!(trainer.history.len() <= 10_000);
+    }
 }

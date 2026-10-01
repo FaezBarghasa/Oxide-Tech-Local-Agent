@@ -58,6 +58,9 @@
           "ca-certificates",
           "bubblewrap"
         ],
+        "recommends": [
+          "podman (>= 4.0.0)"
+        ],
         "section": "utils",
         "priority": "optional",
         "provides": [

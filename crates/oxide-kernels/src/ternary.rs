@@ -1,5 +1,21 @@
 use oxide_core::OxideError;
 
+#[cfg(target_arch = "x86_64")]
+use std::arch::x86_64::*;
+
+/// Unaligned-safe AVX-512 load guard preventing #GP hardware traps on arbitrary offsets
+#[inline(always)]
+#[cfg(target_arch = "x86_64")]
+pub unsafe fn load_simd_512_guarded(ptr: *const u8) -> __m512i {
+    unsafe {
+        if (ptr as usize) & 63 == 0 {
+            _mm512_load_si512(ptr as *const __m512i)
+        } else {
+            _mm512_loadu_si512(ptr as *const __m512i)
+        }
+    }
+}
+
 /// Fast blockwise Walsh-Hadamard Transform and PTQ1_0 Ternary Dequantization Kernel.
 pub struct TernaryHadamardOp {
     pub kernel_name: String,
