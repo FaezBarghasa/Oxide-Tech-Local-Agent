@@ -131,6 +131,39 @@ impl AdapterMapper {
         Ok(())
     }
 
+    /// Portable IEEE 754 binary16 (half-precision) to f32 conversion
+    pub fn f16_to_f32(bits: u16) -> f32 {
+        let sign = ((bits >> 15) & 0x0001) as u32;
+        let exp = ((bits >> 10) & 0x001f) as u32;
+        let mant = (bits & 0x03ff) as u32;
+
+        if exp == 0 {
+            if mant == 0 {
+                // Signed zero
+                f32::from_bits(sign << 31)
+            } else {
+                // Subnormal
+                let mut m = mant;
+                let mut shift = 0;
+                while (m & 0x0400) == 0 {
+                    m <<= 1;
+                    shift += 1;
+                }
+                m &= 0x03ff;
+                let e = 127 - 15 - shift + 1;
+                f32::from_bits((sign << 31) | (e << 23) | (m << 13))
+            }
+        } else if exp == 0x1f {
+            // Infinity or NaN
+            let out_mant = if mant == 0 { 0 } else { 0x007f_ffff };
+            f32::from_bits((sign << 31) | (0xff << 23) | out_mant)
+        } else {
+            // Normalized
+            let e = exp + (127 - 15);
+            f32::from_bits((sign << 31) | (e << 23) | (mant << 13))
+        }
+    }
+
     fn gemv_f16(
         x: &[f32],
         weights: &[u8],
@@ -151,7 +184,7 @@ impl AdapterMapper {
             let row_offset = o * in_dim;
             let mut acc = 0.0f32;
             for i in 0..in_dim {
-                let half_val = half::f16::from_bits(u16_weights[row_offset + i]).to_f32();
+                let half_val = Self::f16_to_f32(u16_weights[row_offset + i]);
                 acc += x[i] * half_val;
             }
             output[o] = acc;
@@ -184,7 +217,7 @@ impl AdapterMapper {
             for b in 0..num_blocks_per_row {
                 let block_start = row_start + b * block_byte_size;
                 let scale_bits = u16::from_le_bytes([weights[block_start], weights[block_start + 1]]);
-                let scale = half::f16::from_bits(scale_bits).to_f32();
+                let scale = Self::f16_to_f32(scale_bits);
 
                 let quant_bytes = &weights[block_start + 2..block_start + 2 + block_size];
                 let in_start = b * block_size;

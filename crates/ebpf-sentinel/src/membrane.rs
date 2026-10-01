@@ -143,11 +143,31 @@ impl Default for SystemMembrane {
 impl SystemMembrane {
     /// Negotiate execution containment tier based on environmental capabilities
     pub fn negotiate() -> Self {
-        let active_tier = if std::env::var("OXIDE_CAP_BPF").map(|v| v == "1").unwrap_or(false) {
+        let has_explicit_cap = std::env::var("OXIDE_CAP_BPF").map(|v| v == "1").unwrap_or(false);
+        let is_root = unsafe {
+            #[cfg(target_os = "linux")]
+            {
+                libc::geteuid() == 0
+            }
+            #[cfg(not(target_os = "linux"))]
+            {
+                false
+            }
+        };
+
+        let active_tier = if has_explicit_cap || is_root {
             IsolationTier::PrivilegedEbpf
         } else if cfg!(target_os = "linux") {
+            tracing::warn!(
+                target: "ebpf_sentinel",
+                "Process lacks CAP_BPF or root privileges; seamlessly falling back to unprivileged Landlock/Seccomp userspace isolation"
+            );
             IsolationTier::LandlockSeccomp
         } else {
+            tracing::warn!(
+                target: "ebpf_sentinel",
+                "Non-Linux environment detected; activating RestrictedWasm isolation tier"
+            );
             IsolationTier::RestrictedWasm
         };
 
