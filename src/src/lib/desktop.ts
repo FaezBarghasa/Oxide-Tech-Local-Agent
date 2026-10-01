@@ -503,6 +503,46 @@ export interface RunPromptResponse {
   latency_ms: number;
   error: string | null;
 }
+export async function modelListAvailable(): Promise<ModelListResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<ModelListResponse>('model_list_available', {});
+  }
+  const res = await fetch('/v1/models');
+  if (res.ok) {
+    const data = await res.json();
+    return {
+      active_model: data.data?.[0]?.id ?? 'qwen2.5-coder:7b',
+      active_provider: 'local',
+      local_gguf_count: data.data?.length ?? 0,
+      ollama_count: 0,
+      models: (data.data ?? []).map((m: any) => ({
+        id: m.id,
+        name: m.id,
+        provider: 'local',
+        size_formatted: 'Local Engine',
+        path: null,
+        is_running: true,
+        context_length: 32768,
+        description: 'Served via Oxide Universal Gateway',
+      })),
+    };
+  }
+  return {
+    active_model: 'qwen2.5-coder:7b',
+    active_provider: 'ollama',
+    local_gguf_count: 0,
+    ollama_count: 0,
+    models: [],
+  };
+}
+
+export async function scanLocalGgufModels(customPaths: string[] = []): Promise<DiscoveredGgufModel[]> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<DiscoveredGgufModel[]>('scan_local_gguf_models', { customPaths });
+  }
+  return [];
+}
+
 type usize = number;
 
 export interface TrainerJobRequest {

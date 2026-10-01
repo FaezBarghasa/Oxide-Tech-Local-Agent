@@ -103,12 +103,12 @@ export const DatasetRecipeTab: React.FC = () => {
       return counts;
     } catch {
       return [
-        { bucket: '< 512', count: 12, maxTokens: 512 },
-        { bucket: '512 - 1K', count: 28, maxTokens: 1024 },
-        { bucket: '1K - 2K', count: 45, maxTokens: 2048 },
-        { bucket: '2K - 4K', count: 18, maxTokens: 4096 },
-        { bucket: '4K - 8K', count: 4, maxTokens: 8192 },
-        { bucket: '> 8K (Truncated)', count: 1, maxTokens: 32768 },
+        { bucket: '< 512', count: 0, maxTokens: 512 },
+        { bucket: '512 - 1K', count: 0, maxTokens: 1024 },
+        { bucket: '1K - 2K', count: 0, maxTokens: 2048 },
+        { bucket: '2K - 4K', count: 0, maxTokens: 4096 },
+        { bucket: '4K - 8K', count: 0, maxTokens: 8192 },
+        { bucket: '> 8K (Truncated)', count: 0, maxTokens: 32768 },
       ];
     }
   }, [rawText]);

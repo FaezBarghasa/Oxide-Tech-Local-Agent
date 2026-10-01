@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ModelInfo } from '../types';
 
 import { useUI } from '../store/uiStore';
+import { modelListAvailable, scanLocalGgufModels } from '../lib/desktop';
 import {
   Boxes,
   Cpu,
@@ -278,6 +279,33 @@ export const CatalogTab: React.FC = () => {
             setRigCapacityGb(data.systemMemoryTotal);
             setDetectedGpuName('System Memory');
           }
+        }
+      } catch {}
+
+      try {
+        const [avail, ggufs] = await Promise.all([
+          modelListAvailable().catch(() => null),
+          scanLocalGgufModels().catch(() => []),
+        ]);
+
+        if (ggufs && ggufs.length > 0) {
+          const discovered: ModelInfo[] = ggufs.map((g) => ({
+            id: `local/${g.name}`,
+            name: `${g.name} (Local GGUF)`,
+            fmt: 'GGUF',
+            params: Math.round(g.sizeGb * 1.5) || 7,
+            tp: 1,
+            vram: Math.round(g.sizeGb * 1.2 * 10) / 10,
+            dl: true,
+            desc: `Local GGUF file discovered at ${g.path} (${g.tensors} tensors, ${g.sizeGb.toFixed(1)} GB)`,
+            tags: ['Local ~/models', 'GGUF', 'Discovered'],
+          }));
+
+          setModels((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const fresh = discovered.filter((d) => !existingIds.has(d.id));
+            return fresh.length > 0 ? [...fresh, ...prev] : prev;
+          });
         }
       } catch {}
     }

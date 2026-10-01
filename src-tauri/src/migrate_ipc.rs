@@ -89,25 +89,6 @@ pub async fn scan_unsloth_data() -> Result<UnslothScanResultDto, String> {
         }
     }
 
-    // Add preset migration options if directory is clean
-    if items.is_empty() {
-        items.push(DiscoveredUnslothItemDto {
-            item_type: "model".to_string(),
-            name: "Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf".to_string(),
-            source_path: format!("{}/models/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf", home),
-            size_formatted: "4.7 GB".to_string(),
-            details: "Standard Unsloth Code Model".to_string(),
-        });
-        items.push(DiscoveredUnslothItemDto {
-            item_type: "model".to_string(),
-            name: "DeepSeek-R1-Distill-Qwen-8B-Q4_K_M.gguf".to_string(),
-            source_path: format!("{}/models/DeepSeek-R1-Distill-Qwen-8B-Q4_K_M.gguf", home),
-            size_formatted: "4.9 GB".to_string(),
-            details: "Reasoning RL Model".to_string(),
-        });
-        found = true;
-    }
-
     let total_models = items.iter().filter(|i| i.item_type == "model").count();
     let total_sessions = items.iter().filter(|i| i.item_type == "session").count();
 
