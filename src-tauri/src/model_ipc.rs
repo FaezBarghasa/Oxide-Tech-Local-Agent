@@ -13,6 +13,12 @@ pub struct ModelInfo {
     pub is_running: bool,
     pub context_length: usize,
     pub description: String,
+    #[serde(default)]
+    pub architecture: Option<String>,
+    #[serde(default)]
+    pub quantization: Option<String>,
+    #[serde(default)]
+    pub tensor_count: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +71,276 @@ static CURRENT_RUNNING_MODEL: std::sync::LazyLock<tokio::sync::RwLock<Option<Str
 static LLAMA_CHILD_PID: std::sync::LazyLock<tokio::sync::RwLock<Option<u32>>> =
     std::sync::LazyLock::new(|| tokio::sync::RwLock::new(None));
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GgufMetadata {
+    pub architecture: String,
+    pub name: Option<String>,
+    pub context_length: usize,
+    pub tensor_count: u64,
+    pub quantization: String,
+    pub chat_template: Option<String>,
+}
+
+pub fn parse_gguf_metadata(path: &std::path::Path) -> Option<GgufMetadata> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut file = std::fs::File::open(path).ok()?;
+
+    let mut magic = [0u8; 4];
+    file.read_exact(&mut magic).ok()?;
+    if &magic != b"GGUF" {
+        return None;
+    }
+
+    let mut buf4 = [0u8; 4];
+    file.read_exact(&mut buf4).ok()?;
+    let version = u32::from_le_bytes(buf4);
+    if version != 2 && version != 3 {
+        return None;
+    }
+
+    let mut buf8 = [0u8; 8];
+    file.read_exact(&mut buf8).ok()?;
+    let tensor_count = u64::from_le_bytes(buf8);
+
+    file.read_exact(&mut buf8).ok()?;
+    let kv_count = u64::from_le_bytes(buf8);
+
+    let mut arch = "unknown".to_string();
+    let mut name = None;
+    let mut context_len = 8192;
+    let mut quant = "unknown".to_string();
+    let mut chat_template = None;
+
+    for _ in 0..kv_count.min(80) {
+        if file.read_exact(&mut buf8).is_err() {
+            break;
+        }
+        let klen = u64::from_le_bytes(buf8) as usize;
+        if klen == 0 || klen > 256 {
+            break;
+        }
+        let mut key_bytes = vec![0u8; klen];
+        if file.read_exact(&mut key_bytes).is_err() {
+            break;
+        }
+        let key = String::from_utf8_lossy(&key_bytes);
+
+        if file.read_exact(&mut buf4).is_err() {
+            break;
+        }
+        let val_type = u32::from_le_bytes(buf4);
+
+        match val_type {
+            0 | 1 | 7 => {
+                let mut b = [0u8; 1];
+                if file.read_exact(&mut b).is_err() {
+                    break;
+                }
+            }
+            2 | 3 => {
+                let mut b = [0u8; 2];
+                if file.read_exact(&mut b).is_err() {
+                    break;
+                }
+            }
+            4 | 5 | 6 => {
+                if file.read_exact(&mut buf4).is_err() {
+                    break;
+                }
+                let val = u32::from_le_bytes(buf4);
+                if key.ends_with(".context_length") {
+                    context_len = val as usize;
+                } else if key == "general.file_type" {
+                    quant = format!("type_{}", val);
+                }
+            }
+            8 => {
+                if file.read_exact(&mut buf8).is_err() {
+                    break;
+                }
+                let slen = u64::from_le_bytes(buf8) as usize;
+                if slen > 16384 {
+                    let _ = file.seek(SeekFrom::Current(slen as i64));
+                } else {
+                    let mut sbytes = vec![0u8; slen];
+                    if file.read_exact(&mut sbytes).is_err() {
+                        break;
+                    }
+                    let sval = String::from_utf8_lossy(&sbytes).to_string();
+                    if key == "general.architecture" {
+                        arch = sval;
+                    } else if key == "general.name" {
+                        name = Some(sval);
+                    } else if key == "tokenizer.chat_template" {
+                        chat_template = Some(sval);
+                    }
+                }
+            }
+            10 | 11 | 12 => {
+                if file.read_exact(&mut buf8).is_err() {
+                    break;
+                }
+                let val = u64::from_le_bytes(buf8);
+                if key.ends_with(".context_length") {
+                    context_len = val as usize;
+                }
+            }
+            9 => {
+                let mut arr_type_buf = [0u8; 4];
+                let mut arr_len_buf = [0u8; 8];
+                if file.read_exact(&mut arr_type_buf).is_err()
+                    || file.read_exact(&mut arr_len_buf).is_err()
+                {
+                    break;
+                }
+                let arr_type = u32::from_le_bytes(arr_type_buf);
+                let arr_len = u64::from_le_bytes(arr_len_buf);
+                let item_size = match arr_type {
+                    0 | 1 | 7 => 1,
+                    2 | 3 => 2,
+                    4 | 5 | 6 => 4,
+                    10 | 11 | 12 => 8,
+                    _ => 0,
+                };
+                if item_size > 0 {
+                    let skip_bytes = arr_len.saturating_mul(item_size);
+                    if file.seek(SeekFrom::Current(skip_bytes as i64)).is_err() {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            _ => break,
+        }
+    }
+
+    let file_name = path.file_name().and_then(|f| f.to_str()).unwrap_or("");
+    for tag in ["Q4_K_M", "Q4_K_S", "Q5_K_M", "Q8_0", "Q3_K_M", "PTQ1_0", "FP16", "Q6_K", "Q2_K"] {
+        if file_name.contains(tag) {
+            quant = tag.to_string();
+            break;
+        }
+    }
+
+    Some(GgufMetadata {
+        architecture: arch,
+        name,
+        context_length: context_len,
+        tensor_count,
+        quantization: quant,
+        chat_template,
+    })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VramStatus {
+    pub total_vram_mb: u64,
+    pub free_vram_mb: u64,
+    pub used_vram_mb: u64,
+    pub total_system_ram_mb: u64,
+    pub available_system_ram_mb: u64,
+    pub has_nvidia_gpu: bool,
+}
+
+pub fn get_system_vram_status() -> VramStatus {
+    let mut sys = sysinfo::System::new();
+    sys.refresh_memory();
+    let total_ram_mb = sys.total_memory() / (1024 * 1024);
+    let avail_ram_mb = sys.available_memory() / (1024 * 1024);
+
+    if let Ok(output) = std::process::Command::new("nvidia-smi")
+        .args(["--query-gpu=memory.total,memory.free,memory.used", "--format=csv,noheader,nounits"])
+        .output()
+    {
+        if output.status.success() {
+            let out_str = String::from_utf8_lossy(&output.stdout);
+            if let Some(line) = out_str.lines().next() {
+                let parts: Vec<&str> = line.split(',').map(|s| s.trim()).collect();
+                if parts.len() >= 3 {
+                    let total = parts[0].parse::<u64>().unwrap_or(0);
+                    let free = parts[1].parse::<u64>().unwrap_or(0);
+                    let used = parts[2].parse::<u64>().unwrap_or(0);
+                    return VramStatus {
+                        total_vram_mb: total,
+                        free_vram_mb: free,
+                        used_vram_mb: used,
+                        total_system_ram_mb: total_ram_mb,
+                        available_system_ram_mb: avail_ram_mb,
+                        has_nvidia_gpu: true,
+                    };
+                }
+            }
+        }
+    }
+
+    VramStatus {
+        total_vram_mb: 0,
+        free_vram_mb: 0,
+        used_vram_mb: 0,
+        total_system_ram_mb: total_ram_mb,
+        available_system_ram_mb: avail_ram_mb,
+        has_nvidia_gpu: false,
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdmissionDecision {
+    pub admitted: bool,
+    pub recommended_gpu_layers: i32,
+    pub warning: Option<String>,
+    pub estimated_vram_needed_mb: u64,
+}
+
+pub fn evaluate_model_vram_admission(file_size_bytes: u64) -> Result<AdmissionDecision, String> {
+    let vram = get_system_vram_status();
+    let model_mb = file_size_bytes / (1024 * 1024);
+    let kv_cache_headroom_mb = 1024;
+    let estimated_vram_needed_mb = model_mb + kv_cache_headroom_mb;
+
+    let total_combined_mb = vram.total_vram_mb + vram.available_system_ram_mb;
+    if total_combined_mb > 0 && model_mb > total_combined_mb {
+        return Err(format!(
+            "VRAM Admission Failure: Model requires ~{:.1} GB memory, but total available (VRAM + System RAM) is only {:.1} GB. Loading would cause an Out-Of-Memory system crash.",
+            model_mb as f64 / 1024.0,
+            total_combined_mb as f64 / 1024.0
+        ));
+    }
+
+    if !vram.has_nvidia_gpu || vram.total_vram_mb == 0 {
+        return Ok(AdmissionDecision {
+            admitted: true,
+            recommended_gpu_layers: 0,
+            warning: Some("No discrete NVIDIA GPU detected. Running model purely on CPU system RAM.".to_string()),
+            estimated_vram_needed_mb,
+        });
+    }
+
+    if vram.free_vram_mb >= estimated_vram_needed_mb {
+        Ok(AdmissionDecision {
+            admitted: true,
+            recommended_gpu_layers: 99,
+            warning: None,
+            estimated_vram_needed_mb,
+        })
+    } else {
+        let ratio = vram.free_vram_mb as f64 / estimated_vram_needed_mb as f64;
+        let layers = (ratio * 40.0).max(1.0) as i32;
+        Ok(AdmissionDecision {
+            admitted: true,
+            recommended_gpu_layers: layers,
+            warning: Some(format!(
+                "Limited VRAM headroom: Model needs ~{:.1} GB, but only {:.1} GB VRAM is free (of {:.1} GB total). Automatically offloading {} layers to GPU and spilling remainder to system RAM to prevent OOM crash.",
+                estimated_vram_needed_mb as f64 / 1024.0,
+                vram.free_vram_mb as f64 / 1024.0,
+                vram.total_vram_mb as f64 / 1024.0,
+                layers
+            )),
+            estimated_vram_needed_mb,
+        })
+    }
+}
+
 /// Recursively scan directories for .gguf model files
 fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: usize, models: &mut Vec<ModelInfo>) {
     if current_depth > max_depth || !dir.exists() {
@@ -84,6 +360,21 @@ fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: us
                     .to_string();
                 let file_size = entry.metadata().map(|m| m.len()).unwrap_or(0);
 
+                let meta = parse_gguf_metadata(&path);
+                let (context_len, arch, quant, tensor_cnt) = if let Some(m) = meta {
+                    (m.context_length, Some(m.architecture), Some(m.quantization), Some(m.tensor_count))
+                } else {
+                    (8192, None, None, None)
+                };
+
+                let desc = format!(
+                    "Local GGUF ({}) | Arch: {} | Quant: {} | Ctx: {}",
+                    format_bytes(file_size),
+                    arch.as_deref().unwrap_or("auto"),
+                    quant.as_deref().unwrap_or("auto"),
+                    context_len
+                );
+
                 models.push(ModelInfo {
                     id: format!("local:{}", file_name),
                     name: file_name.clone(),
@@ -91,8 +382,11 @@ fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: us
                     size_formatted: format_bytes(file_size),
                     path: Some(path.display().to_string()),
                     is_running: true,
-                    context_length: 32768,
-                    description: format!("Local GGUF ({}) in {}", format_bytes(file_size), path.parent().map(|p| p.display().to_string()).unwrap_or_default()),
+                    context_length: context_len,
+                    description: desc,
+                    architecture: arch,
+                    quantization: quant,
+                    tensor_count: tensor_cnt,
                 });
             }
         }
@@ -151,6 +445,9 @@ async fn query_ollama_models(client: &reqwest::Client) -> Vec<ModelInfo> {
                                 is_running: true,
                                 context_length: 8192,
                                 description: format!("Ollama local model ({})", short_digest),
+                                architecture: None,
+                                quantization: None,
+                                tensor_count: None,
                             });
                         }
                     }
@@ -183,6 +480,9 @@ async fn query_sglang_models(client: &reqwest::Client) -> Vec<ModelInfo> {
                                 is_running: true,
                                 context_length: 32768,
                                 description: "Active SGLang High-Throughput Server".to_string(),
+                                architecture: None,
+                                quantization: None,
+                                tensor_count: None,
                             });
                         }
                     }
@@ -208,10 +508,27 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         return Ok(());
     }
 
+    let file_size = std::fs::metadata(model_path)
+        .map(|m| m.len())
+        .unwrap_or(4 * 1024 * 1024 * 1024);
+
+    // Evaluate VRAM admission
+    let admission = evaluate_model_vram_admission(file_size)?;
+    if let Some(warn) = &admission.warning {
+        tracing::warn!(warning = %warn, "Model VRAM admission notice");
+    }
+
+    let gpu_layers = admission.recommended_gpu_layers;
+    let context_len = parse_gguf_metadata(std::path::Path::new(model_path))
+        .map(|m| m.context_length.min(32768))
+        .unwrap_or(8192);
+
     info!(
         model_path = %model_path,
         port = %port,
-        "Launching native llama-server engine for local inference"
+        gpu_layers = %gpu_layers,
+        context_len = %context_len,
+        "Launching native llama-server engine with dynamic VRAM admission"
     );
 
     // Terminate existing server if running
@@ -240,9 +557,9 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         .arg("--host")
         .arg("127.0.0.1")
         .arg("-c")
-        .arg("8192")
+        .arg(context_len.to_string())
         .arg("-ngl")
-        .arg("99")
+        .arg(gpu_layers.to_string())
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()
@@ -319,6 +636,9 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
             is_running: true,
             context_length: 1048576,
             description: "Google Gemini Cloud Endpoint (Configured via API Key)".to_string(),
+            architecture: None,
+            quantization: None,
+            tensor_count: None,
         });
     }
 
@@ -332,6 +652,9 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
             is_running: true,
             context_length: 131072,
             description: "Groq Cloud Fast LPU Endpoint".to_string(),
+            architecture: None,
+            quantization: None,
+            tensor_count: None,
         });
     }
 

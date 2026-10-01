@@ -28,4 +28,8 @@ chrono = { workspace = true }
 blake3 = { workspace = true }
 dashmap = { workspace = true }
 
-
+[features]
+default = []
+cuda = []
+metal = []
+vulkan = []

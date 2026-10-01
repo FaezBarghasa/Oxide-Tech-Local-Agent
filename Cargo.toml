@@ -68,7 +68,9 @@ rust-embed = { version = "8.5", features = ["mime-guess", "include-exclude"] }
 mime_guess = "2.0"
 cpal = "0.18.2"
 base64 = "0.23.1"
-ed25519-dalek = { version = "2.1", default-features = false, features = ["std"] }
+ed25519-dalek = { version = "2.1", default-features = false, features = [
+    "std",
+] }
 rmcp = { version = "3.2.0", features = ["server", "transport-io"] }
 reqwest = { version = "=0.12.28", default-features = false, features = [
     "json",
@@ -150,6 +152,8 @@ libloading = "0.9.0"
 parametric-forge = { path = "crates/parametric-forge" }
 visual-forge = { path = "crates/visual-forge" }
 forge-rust = { path = "crates/forge-rust" }
+llama-cpp-2 = { version = "0.1.158", default-features = false }
+tokenizers = { version = "0.23.2", default-features = false }
 
 
 [profile.release]

@@ -320,69 +320,81 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
         serde_json::json!({ "id": "auto/coding", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
         serde_json::json!({ "id": "auto/fast", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
         serde_json::json!({ "id": "auto/cheap", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
-        serde_json::json!({ "id": "auto/smart", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
         serde_json::json!({ "id": "auto/offline", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
-        serde_json::json!({ "id": "auto/lkgp", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
-        serde_json::json!({ "id": "auto/chaos", "owned_by": "oxide-gateway", "type": "virtual_combo" }),
-
-        // Router Aliases
-        serde_json::json!({ "id": "openrouter/auto", "owned_by": "openrouter" }),
-        serde_json::json!({ "id": "openrouter/flavor-of-the-week", "owned_by": "openrouter" }),
-
-        // Anthropic Frontier
-        serde_json::json!({ "id": "claude-opus-5", "owned_by": "anthropic", "context_window": 500000, "supports_thinking": true }),
-        serde_json::json!({ "id": "claude-opus-4-8", "owned_by": "anthropic", "context_window": 200000, "supports_thinking": true }),
-        serde_json::json!({ "id": "claude-3-7-sonnet", "owned_by": "anthropic", "context_window": 200000, "supports_thinking": true }),
-        serde_json::json!({ "id": "claude-3-5-sonnet", "owned_by": "anthropic", "context_window": 200000 }),
-        serde_json::json!({ "id": "claude-3-5-haiku", "owned_by": "anthropic", "context_window": 200000 }),
-
-        // OpenAI Frontier & Reasoning
-        serde_json::json!({ "id": "gpt-5.6-sol", "owned_by": "openai", "context_window": 1000000, "supports_thinking": true }),
-        serde_json::json!({ "id": "gpt-4o", "owned_by": "openai", "context_window": 128000 }),
-        serde_json::json!({ "id": "gpt-4o-mini", "owned_by": "openai", "context_window": 128000 }),
-        serde_json::json!({ "id": "o3-mini", "owned_by": "openai", "context_window": 200000, "supports_thinking": true }),
-        serde_json::json!({ "id": "o1", "owned_by": "openai", "context_window": 200000, "supports_thinking": true }),
-        serde_json::json!({ "id": "o1-mini", "owned_by": "openai", "context_window": 128000, "supports_thinking": true }),
-
-        // DeepSeek
-        serde_json::json!({ "id": "deepseek-chat", "owned_by": "deepseek", "context_window": 128000 }),
-        serde_json::json!({ "id": "deepseek-reasoner", "owned_by": "deepseek", "context_window": 128000, "supports_thinking": true }),
-        serde_json::json!({ "id": "deepseek-coder", "owned_by": "deepseek", "context_window": 128000 }),
-
-        // Google DeepMind
-        serde_json::json!({ "id": "gemini-2.5-pro", "owned_by": "google", "context_window": 2000000, "supports_thinking": true }),
-        serde_json::json!({ "id": "gemini-2.0-flash", "owned_by": "google", "context_window": 1000000 }),
-        serde_json::json!({ "id": "gemini-1.5-pro", "owned_by": "google", "context_window": 2000000 }),
-        serde_json::json!({ "id": "gemini-1.5-flash", "owned_by": "google", "context_window": 1000000 }),
-
-        // Meta Llama
-        serde_json::json!({ "id": "llama-3.3-70b", "owned_by": "meta", "context_window": 128000 }),
-        serde_json::json!({ "id": "llama-3.1-405b", "owned_by": "meta", "context_window": 128000 }),
-        serde_json::json!({ "id": "llama-3.1-70b", "owned_by": "meta", "context_window": 128000 }),
-        serde_json::json!({ "id": "llama-3.1-8b", "owned_by": "meta", "context_window": 128000 }),
-
-        // Alibaba Qwen
-        serde_json::json!({ "id": "qwen-2.5-coder-32b", "owned_by": "alibaba", "context_window": 128000 }),
-        serde_json::json!({ "id": "qwen-2.5-72b", "owned_by": "alibaba", "context_window": 128000 }),
-        serde_json::json!({ "id": "qwen-turbo", "owned_by": "alibaba", "context_window": 128000 }),
-        serde_json::json!({ "id": "qwen-plus", "owned_by": "alibaba", "context_window": 128000 }),
-        serde_json::json!({ "id": "qwen-max", "owned_by": "alibaba", "context_window": 128000, "supports_thinking": true }),
-
-        // Mistral AI
-        serde_json::json!({ "id": "mistral-large", "owned_by": "mistralai", "context_window": 128000 }),
-        serde_json::json!({ "id": "mistral-small", "owned_by": "mistralai", "context_window": 32000 }),
-        serde_json::json!({ "id": "codestral", "owned_by": "mistralai", "context_window": 256000 }),
-        serde_json::json!({ "id": "pixtral", "owned_by": "mistralai", "context_window": 128000 }),
-
-        // Zhipu, Moonshot, MiniMax
-        serde_json::json!({ "id": "glm-4.7", "owned_by": "zhipu", "context_window": 128000 }),
-        serde_json::json!({ "id": "glm-4", "owned_by": "zhipu", "context_window": 128000 }),
-        serde_json::json!({ "id": "kimi-k3", "owned_by": "moonshot", "context_window": 2000000 }),
-        serde_json::json!({ "id": "kimi-k2", "owned_by": "moonshot", "context_window": 200000 }),
-        serde_json::json!({ "id": "minimax-m3", "owned_by": "minimax", "context_window": 1000000 }),
     ];
 
-    // Merge active models
+    // 1. Physically scan disk for genuine local .gguf models
+    let search_dirs = [
+        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".cache").join("huggingface").join("hub")),
+        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".ollama").join("models")),
+        Some(std::path::PathBuf::from("/opt/models")),
+        Some(std::path::PathBuf::from("/var/lib/oxide-tech/models")),
+    ];
+
+    for base_dir in search_dirs.into_iter().flatten() {
+        if let Ok(entries) = std::fs::read_dir(&base_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
+                    let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                    catalog.push(serde_json::json!({
+                        "id": name,
+                        "owned_by": "local-gguf",
+                        "size_bytes": size,
+                        "path": path.display().to_string(),
+                        "type": "local_gguf"
+                    }));
+                }
+            }
+        }
+    }
+
+    // 2. Query active Ollama daemon if running
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_millis(500))
+        .build()
+        .unwrap_or_default();
+
+    if let Ok(resp) = client.get("http://127.0.0.1:11434/api/tags").send().await {
+        if let Ok(json) = resp.json::<serde_json::Value>().await {
+            if let Some(arr) = json.get("models").and_then(|m| m.as_array()) {
+                for item in arr {
+                    if let Some(name) = item.get("name").and_then(|n| n.as_str()) {
+                        if !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(name)) {
+                            catalog.push(serde_json::json!({
+                                "id": name,
+                                "owned_by": "ollama",
+                                "type": "ollama_model"
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Query active llama-server if running
+    if let Ok(resp) = client.get("http://127.0.0.1:8081/v1/models").send().await {
+        if let Ok(json) = resp.json::<serde_json::Value>().await {
+            if let Some(arr) = json.get("data").and_then(|m| m.as_array()) {
+                for item in arr {
+                    if let Some(id) = item.get("id").and_then(|n| n.as_str()) {
+                        if !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(id)) {
+                            catalog.push(serde_json::json!({
+                                "id": id,
+                                "owned_by": "llama-server",
+                                "type": "active_llama_server"
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 4. Merge loaded models in AppState
     for entry in state.models.iter() {
         let key = entry.key();
         if !catalog.iter().any(|m| m.get("id").and_then(|id| id.as_str()) == Some(key)) {
