@@ -135,6 +135,23 @@ impl VectorStore {
         }
     }
 
+    /// Purge all vectors tagged with a checkpoint newer than target_checkpoint
+    pub fn purge_vectors_after(&mut self, target_checkpoint: &str) -> usize {
+        let mut purged_count = 0;
+        for coll in self.collections.values_mut() {
+            coll.documents.retain(|_id, doc| {
+                if let Some(cp_val) = doc.payload.get("checkpoint").and_then(|v| v.as_str()) {
+                    if cp_val > target_checkpoint {
+                        purged_count += 1;
+                        return false;
+                    }
+                }
+                true
+            });
+        }
+        purged_count
+    }
+
     /// Save index to disk
     pub fn save_to_disk(&self) -> Result<()> {
         if let Some(ref path) = self.storage_path {

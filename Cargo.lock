@@ -6008,6 +6008,7 @@ name = "mcp-probe-rs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "blake3",
  "chrono",
  "config-loader",
  "rmcp 3.2.0",

@@ -32,7 +32,7 @@ impl EmbeddedSurrealDb {
     pub async fn shared_in_memory() -> Result<Arc<Self>, surrealdb::Error> {
         GLOBAL_SURREAL_INSTANCE
             .get_or_try_init(|| async {
-                Self::in_memory().map(Arc::new)
+                Self::in_memory().await.map(Arc::new)
             })
             .await
             .cloned()

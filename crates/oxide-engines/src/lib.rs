@@ -19,6 +19,7 @@ pub trait InferenceProvider: Send + Sync + 'static {
     async fn unload(&self) -> Result<(), OxideError>;
 }
 
+pub mod adapter_mapper;
 pub mod candle_provider;
 pub mod decision_engine;
 pub mod grammar;
@@ -31,6 +32,8 @@ pub mod prism_sidecar;
 pub mod sidecar;
 pub mod tiered_kv_cache;
 pub mod universal_loader;
+
+pub use adapter_mapper::{AdapterMapper, LoraAdapterWeights};
 
 pub use decision_engine::{
     CandidateVectorCache, DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput,

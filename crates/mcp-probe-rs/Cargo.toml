@@ -16,4 +16,5 @@ sandbox = { path = "../sandbox" }
 config-loader = { path = "../config-loader" }
 schemars = { version = "1.2.1", features = ["derive"] }
 anyhow = { workspace = true }
+blake3 = { workspace = true }
 
