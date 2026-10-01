@@ -39,6 +39,7 @@ audio-forge = { path = "../crates/audio-forge" }
 media-forge = { path = "../crates/media-forge" }
 oxide-updater = { path = "../crates/oxide-updater" }
 base64 = { workspace = true }
+select = { workspace = true }
 rust-embed = { workspace = true }
 mime_guess = { workspace = true }
 mimalloc = { version = "0.1.39", default-features = false, features = ["secure"] }

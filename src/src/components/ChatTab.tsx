@@ -1,24 +1,33 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ChatMode, ChatMessage } from '../types';
-import { desktop, ModelInfo, audioStartRecording, audioStopAndTranscribe, audioSynthesizeSpeech } from '../lib/desktop';
-import { ModelSelector } from './ModelSelector';
+import { ChatMessage, AttachmentPayload, SearchResultDto } from '../types';
 import {
-  Bot,
-  Send,
+  desktop,
+  audioStartRecording,
+  audioStopAndTranscribe,
+  audioSynthesizeSpeech,
+  readAttachment,
+  webSearch,
+  deepResearchExecute,
+} from '../lib/desktop';
+import {
   Sliders,
   Paperclip,
   Copy,
   Check,
-  Brain,
-  Zap,
   RotateCcw,
   Sparkles,
-  ChevronDown,
-  ChevronUp,
-  Cpu,
   Mic,
   MicOff,
   Volume2,
+  Globe,
+  Compass,
+  FileText,
+  Image as ImageIcon,
+  FileCode,
+  X,
+  Send,
+  ShieldCheck,
+  ExternalLink,
 } from 'lucide-react';
 
 let msgId = 0;
@@ -29,7 +38,8 @@ export const ChatTab: React.FC = () => {
     {
       id: 'welcome-1',
       role: 'assistant',
-      content: 'Welcome to **Oxide-Tech Playground**. Connected to local CUDA inference engine. Ready for embedded firmware tasks, systems code generation, audio/media synthesis, and low-latency testing.',
+      content:
+        'Welcome to **Oxide-Tech AI Workstation**. Local CUDA & CPU inference ready with multimodal file attachments, real-time web search, and deep research mode.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -40,15 +50,18 @@ export const ChatTab: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
 
+  // New features
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [deepResearchMode, setDeepResearchMode] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentPayload[]>([]);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+
   // Model & Sampling Parameters
-  const [selectedModel, setSelectedModel] = useState('Qwen2.5-Coder-7B');
-  const [selectedProvider, setSelectedProvider] = useState('candle');
+  const [selectedModel, setSelectedModel] = useState('qwen2.5-coder:7b');
+  const [selectedProvider, setSelectedProvider] = useState('ollama');
   const [temperature, setTemperature] = useState(0.2);
   const [topP, setTopP] = useState(0.95);
-  const [presencePenalty, setPresencePenalty] = useState(0.0);
-  const [frequencyPenalty, setFrequencyPenalty] = useState(0.0);
   const [repetitionPenalty, setRepetitionPenalty] = useState(1.1);
-  const [mirostatMode, setMirostatMode] = useState<0 | 1 | 2>(0);
   const [maxTokens, setMaxTokens] = useState(4096);
   const [systemPrompt, setSystemPrompt] = useState(
     'You are Oxide-Tech Local Agent — expert in embedded systems, bare-metal no_std Rust, PCB design, and high-performance local AI computing.'
@@ -57,6 +70,7 @@ export const ChatTab: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -111,25 +125,149 @@ export const ChatTab: React.FC = () => {
     }
   };
 
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const isImg = file.type.startsWith('image/');
+      if (isImg) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Uri = reader.result as string;
+          setAttachments((prev) => [
+            ...prev,
+            {
+              file_name: file.name,
+              file_path: file.name,
+              file_type: 'image',
+              content: base64Uri,
+              is_base64: true,
+              estimated_tokens: 512,
+            },
+          ]);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result as string;
+          setAttachments((prev) => [
+            ...prev,
+            {
+              file_name: file.name,
+              file_path: file.name,
+              file_type: file.name.endsWith('.pdf') ? 'pdf' : 'text',
+              content: text,
+              is_base64: false,
+              estimated_tokens: Math.floor(text.length / 4),
+            },
+          ]);
+        };
+        reader.readAsText(file);
+      }
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
     const textToSend = input.trim();
-    if (!textToSend || isStreaming) return;
+    if (!textToSend && attachments.length === 0) return;
+    if (isStreaming) return;
+
+    let searchContext = '';
+    let searchResults: SearchResultDto[] = [];
+
+    setIsStreaming(true);
+    setStreamingContent('');
+
+    // Deep Research execution path
+    if (deepResearchMode && textToSend) {
+      const userMsg: ChatMessage = {
+        id: nextId(),
+        role: 'user',
+        content: `🔬 [Deep Research]: ${textToSend}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+
+      try {
+        const research = await deepResearchExecute(textToSend);
+        setIsStreaming(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: nextId(),
+            role: 'assistant',
+            content: research.synthesized_report,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            meta: {
+              model: 'Oxide Deep Research Engine',
+              tokens: research.synthesized_report.length / 4,
+            },
+          },
+        ]);
+      } catch (err: unknown) {
+        const error = err as Error;
+        setIsStreaming(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: nextId(),
+            role: 'assistant',
+            content: `⚠️ Deep research error: ${error.message}`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
+      return;
+    }
+
+    // Web Search pre-fetch
+    if (webSearchEnabled && textToSend) {
+      try {
+        searchResults = await webSearch(textToSend, 3);
+        if (searchResults.length > 0) {
+          searchContext = `\n[Live Web Search Snippets]:\n` +
+            searchResults
+              .map((r, i) => `[${i + 1}] ${r.title} (${r.url})\n${r.snippet}`)
+              .join('\n\n') +
+            '\n---\n';
+        }
+      } catch (err) {
+        console.warn('Web search pre-fetch failed', err);
+      }
+    }
+
+    // Compose final prompt with attachments and search
+    let fullPrompt = textToSend;
+    if (attachments.length > 0) {
+      const attachmentContext = attachments
+        .map((a) => `[Attachment: ${a.file_name}]\n${a.is_base64 ? '(Image base64 embedded)' : a.content}`)
+        .join('\n\n');
+      fullPrompt = `${attachmentContext}\n\n${fullPrompt}`;
+    }
+    if (searchContext) {
+      fullPrompt = `${searchContext}\n\n${fullPrompt}`;
+    }
 
     const userMsg: ChatMessage = {
       id: nextId(),
       role: 'user',
-      content: textToSend,
+      content: textToSend || `Attached ${attachments.length} file(s)`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
-    setIsStreaming(true);
-    setStreamingContent('');
+    setAttachments([]);
 
     try {
       const result = await desktop.modelRunPrompt({
-        prompt: textToSend,
+        prompt: fullPrompt,
         system_prompt: systemPrompt,
         model: selectedModel,
         provider: selectedProvider,
@@ -138,7 +276,7 @@ export const ChatTab: React.FC = () => {
       });
 
       const responseText = result.text || result.error || 'Execution finished.';
-      
+
       let currentLen = 0;
       const step = Math.max(1, Math.floor(responseText.length / 30));
       const interval = setInterval(() => {
@@ -180,7 +318,27 @@ export const ChatTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5 h-[calc(100vh-140px)] min-h-[540px] font-sans">
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDraggingFile(true);
+      }}
+      onDragLeave={() => setIsDraggingFile(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingFile(false);
+        handleFileUpload(e.dataTransfer.files);
+      }}
+      className="flex flex-col lg:flex-row gap-5 h-[calc(100vh-140px)] min-h-[540px] font-sans relative"
+    >
+      {/* Drag & Drop Overlay */}
+      {isDraggingFile && (
+        <div className="absolute inset-0 z-50 bg-indigo-950/80 border-2 border-dashed border-indigo-400 rounded-xl backdrop-blur-sm flex flex-col items-center justify-center gap-3 text-indigo-200">
+          <Paperclip className="w-10 h-10 animate-bounce" />
+          <span className="text-sm font-semibold">Drop PDF, image, or code files to attach to session</span>
+        </div>
+      )}
+
       {/* 1. Left Panel (Sampling Parameters & System Prompt) */}
       <div
         className={`w-full lg:w-80 shrink-0 bg-[#111113] border border-[#27272A] rounded-xl p-5 shadow-lg flex flex-col justify-between overflow-y-auto scrollbar-thin transition-all ${
@@ -193,9 +351,16 @@ export const ChatTab: React.FC = () => {
               <Sliders className="w-4 h-4 text-[#8B5CF6]" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#FAFAFA]">Sampling Matrix</h3>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25">
-              {selectedModel}
-            </span>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25 focus:outline-none"
+            >
+              <option value="qwen2.5-coder:7b">Qwen 2.5 Coder 7B</option>
+              <option value="deepseek-r1:8b">DeepSeek R1 8B</option>
+              <option value="llama3.2:3b">Llama 3.2 3B</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            </select>
           </div>
 
           {/* System Prompt */}
@@ -225,10 +390,6 @@ export const ChatTab: React.FC = () => {
               onChange={(e) => setTemperature(parseFloat(e.target.value))}
               className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-[9px] font-mono text-zinc-500">
-              <span>Exact (0.0)</span>
-              <span>Creative (1.5)</span>
-            </div>
           </div>
 
           {/* Top-P Slider */}
@@ -246,47 +407,6 @@ export const ChatTab: React.FC = () => {
               onChange={(e) => setTopP(parseFloat(e.target.value))}
               className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
             />
-          </div>
-
-          {/* Repetition Penalty Slider */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs font-mono">
-              <span className="text-zinc-400">Repetition Penalty</span>
-              <span className="text-[#FAFAFA] font-bold">{repetitionPenalty.toFixed(2)}</span>
-            </div>
-            <input
-              type="range"
-              min="0.8"
-              max="1.5"
-              step="0.05"
-              value={repetitionPenalty}
-              onChange={(e) => setRepetitionPenalty(parseFloat(e.target.value))}
-              className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
-            />
-          </div>
-
-          {/* Mirostat Mode Selector */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Mirostat Sampling</label>
-            <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
-              {[
-                { id: 0, label: 'Off' },
-                { id: 1, label: 'v1.0' },
-                { id: 2, label: 'v2.0' },
-              ].map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setMirostatMode(m.id as 0 | 1 | 2)}
-                  className={`py-1.5 px-2 rounded-lg border transition ${
-                    mirostatMode === m.id
-                      ? 'bg-[#8B5CF6]/20 border-[#8B5CF6] text-white font-bold'
-                      : 'bg-[#18181b] border-[#27272A] text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Max Tokens Slider */}
@@ -313,8 +433,6 @@ export const ChatTab: React.FC = () => {
             onClick={() => {
               setTemperature(0.2);
               setTopP(0.95);
-              setRepetitionPenalty(1.1);
-              setMirostatMode(0);
               setMaxTokens(4096);
             }}
             className="text-[11px] font-mono text-zinc-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
@@ -322,7 +440,7 @@ export const ChatTab: React.FC = () => {
             <RotateCcw className="w-3 h-3" />
             Reset Defaults
           </button>
-          <span className="text-[10px] font-mono text-zinc-500">Audio Forge Active</span>
+          <span className="text-[10px] font-mono text-zinc-500">Unsloth-Parity V0.6</span>
         </div>
       </div>
 
@@ -330,10 +448,10 @@ export const ChatTab: React.FC = () => {
       <div className="flex-1 bg-[#111113] border border-[#27272A] rounded-xl flex flex-col shadow-lg overflow-hidden relative">
         {/* Chat Header */}
         <div className="p-3.5 border-b border-[#27272A] bg-[#0A0A0A] flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
             <span className="text-xs font-bold text-[#FAFAFA]">{selectedModel}</span>
-            <span className="text-[10px] font-mono text-zinc-500">· Playground & Audio-Forge</span>
+            <span className="text-[10px] font-mono text-zinc-500">· Multimodal & Deep Search</span>
           </div>
           <button
             onClick={() => setMessages([])}
@@ -348,10 +466,7 @@ export const ChatTab: React.FC = () => {
           {messages.map((m) => {
             const isUser = m.role === 'user';
             return (
-              <div
-                key={m.id}
-                className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
-              >
+              <div key={m.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
                 {/* Message Header / Timestamp */}
                 <div className="flex items-center gap-2 mb-1.5 text-[10px] font-mono text-zinc-500">
                   <span>{isUser ? 'You' : selectedModel}</span>
@@ -363,7 +478,7 @@ export const ChatTab: React.FC = () => {
                         className={`hover:text-zinc-300 transition cursor-pointer ${
                           playingTtsId === m.id ? 'text-[#10B981] animate-pulse' : ''
                         }`}
-                        title="TTS Voice Playback (Kokoro/Piper)"
+                        title="TTS Voice Playback"
                       >
                         <Volume2 className="w-3.5 h-3.5" />
                       </button>
@@ -378,7 +493,7 @@ export const ChatTab: React.FC = () => {
                   )}
                 </div>
 
-                {/* Message Bubble / Clean Markdown */}
+                {/* Message Bubble */}
                 {isUser ? (
                   <div className="max-w-[85%] rounded-xl bg-[#18181b] border border-[#27272A] px-4 py-3 text-sm text-[#FAFAFA] leading-relaxed shadow-sm">
                     {m.content}
@@ -401,9 +516,7 @@ export const ChatTab: React.FC = () => {
               </div>
               <div className="max-w-[95%] text-sm text-[#FAFAFA] leading-relaxed font-sans">
                 <span className="whitespace-pre-wrap">{streamingContent}</span>
-                <span className="inline-block text-[#10B981] font-mono font-bold animate-pulse ml-0.5">
-                  ▋
-                </span>
+                <span className="inline-block text-[#10B981] font-mono font-bold animate-pulse ml-0.5">▋</span>
               </div>
             </div>
           )}
@@ -411,11 +524,80 @@ export const ChatTab: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 3. Floating Context Input Bar */}
-        <div className="p-4 border-t border-[#27272A] bg-[#0A0A0A]">
-          <div className="bg-[#111113] border border-[#27272A] focus-within:border-[#8B5CF6]/60 rounded-xl p-2.5 shadow-xl transition flex items-end gap-2.5">
+        {/* Attachment Chips Preview Bar */}
+        {attachments.length > 0 && (
+          <div className="px-4 py-2 bg-[#141416] border-t border-[#27272A] flex items-center gap-2 overflow-x-auto">
+            {attachments.map((a, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-1.5 bg-[#1F1F23] border border-[#2E2E33] px-2.5 py-1 rounded-lg text-xs text-zinc-200 shrink-0"
+              >
+                {a.file_type === 'image' ? (
+                  <ImageIcon className="w-3.5 h-3.5 text-purple-400" />
+                ) : a.file_type === 'pdf' ? (
+                  <FileText className="w-3.5 h-3.5 text-red-400" />
+                ) : (
+                  <FileCode className="w-3.5 h-3.5 text-blue-400" />
+                )}
+                <span className="max-w-[120px] truncate">{a.file_name}</span>
+                <span className="text-[10px] text-zinc-500">~{a.estimated_tokens} tok</span>
+                <button
+                  onClick={() => removeAttachment(i)}
+                  className="hover:text-red-400 text-zinc-500 p-0.5 transition"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 3. Floating Context Input Bar with Web Search & Attachment Tools */}
+        <div className="p-4 border-t border-[#27272A] bg-[#0A0A0A] flex flex-col gap-2">
+          {/* Quick Toggle Bar */}
+          <div className="flex items-center gap-2 text-xs">
             <button
-              title="Attach context file or prompt"
+              onClick={() => {
+                setWebSearchEnabled(!webSearchEnabled);
+                if (deepResearchMode) setDeepResearchMode(false);
+              }}
+              className={`px-2.5 py-1 rounded-md border text-[11px] font-medium flex items-center gap-1.5 transition cursor-pointer ${
+                webSearchEnabled
+                  ? 'bg-blue-500/20 border-blue-500 text-blue-300 font-semibold'
+                  : 'bg-[#18181B] border-[#27272A] text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              Web Search
+            </button>
+
+            <button
+              onClick={() => {
+                setDeepResearchMode(!deepResearchMode);
+                if (webSearchEnabled) setWebSearchEnabled(false);
+              }}
+              className={`px-2.5 py-1 rounded-md border text-[11px] font-medium flex items-center gap-1.5 transition cursor-pointer ${
+                deepResearchMode
+                  ? 'bg-purple-500/20 border-purple-500 text-purple-300 font-semibold'
+                  : 'bg-[#18181B] border-[#27272A] text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              Deep Research
+            </button>
+          </div>
+
+          <div className="bg-[#111113] border border-[#27272A] focus-within:border-[#8B5CF6]/60 rounded-xl p-2.5 shadow-xl transition flex items-end gap-2.5">
+            <input
+              type="file"
+              ref={fileInputRef}
+              multiple
+              onChange={(e) => handleFileUpload(e.target.files)}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach context file (PDF, image, code)"
               className="p-2 rounded-lg text-zinc-400 hover:text-[#FAFAFA] hover:bg-[#18181b] transition cursor-pointer shrink-0"
             >
               <Paperclip className="w-4 h-4" />
@@ -443,7 +625,11 @@ export const ChatTab: React.FC = () => {
                 }
               }}
               placeholder={
-                isRecording
+                deepResearchMode
+                  ? 'Enter research topic or architecture query for structured multi-source report…'
+                  : webSearchEnabled
+                  ? 'Search web & query local model with real-time citations…'
+                  : isRecording
                   ? 'Listening to microphone… speak now.'
                   : 'Ask a question, test prompts, generate Rust kernels… (Enter to send)'
               }
@@ -451,7 +637,7 @@ export const ChatTab: React.FC = () => {
             />
             <button
               onClick={handleSend}
-              disabled={!input.trim() || isStreaming}
+              disabled={(!input.trim() && attachments.length === 0) || isStreaming}
               className="p-2.5 rounded-lg bg-[#FAFAFA] text-black hover:bg-white hover:-translate-y-px active:translate-y-0 transition disabled:opacity-30 cursor-pointer shrink-0 shadow-md"
             >
               <Send className="w-4 h-4 fill-current" />

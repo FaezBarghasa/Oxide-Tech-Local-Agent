@@ -15,19 +15,25 @@
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+mod arena_ipc;
 mod assets;
 mod audio_ipc;
 mod config_ipc;
 mod doctor;
+mod document_ipc;
 mod gateway_rt;
 mod hardware_ipc;
 mod hub_ipc;
 mod installer;
 mod media_ipc;
 mod memory;
+mod migrate_ipc;
 mod model_ipc;
 mod protocol;
 mod reforge_ipc;
+mod search_ipc;
+mod skills_ipc;
+mod tunnel_ipc;
 mod updater_ipc;
 mod verifier_ipc;
 
@@ -131,6 +137,31 @@ fn run_desktop(config: Option<String>) {
             updater_ipc::updater_check,
             updater_ipc::updater_download_and_apply,
             updater_ipc::updater_restart,
+            // Skills Studio
+            skills_ipc::skill_list,
+            skills_ipc::skill_load,
+            skills_ipc::skill_save,
+            skills_ipc::skill_test,
+            skills_ipc::skill_delete,
+            // Model Arena
+            arena_ipc::arena_run_comparison,
+            // Document Library & Attachments
+            document_ipc::document_list,
+            document_ipc::document_read_text,
+            document_ipc::document_read_pdf_pages,
+            document_ipc::read_attachment,
+            // Search & Deep Research
+            search_ipc::web_search,
+            search_ipc::deep_research_execute,
+            // Tunnel & LAN
+            tunnel_ipc::start_cloudflare_tunnel,
+            tunnel_ipc::stop_cloudflare_tunnel,
+            tunnel_ipc::get_tunnel_status,
+            tunnel_ipc::start_lan_broadcast,
+            tunnel_ipc::stop_lan_broadcast,
+            // Unsloth Migration
+            migrate_ipc::scan_unsloth_data,
+            migrate_ipc::import_unsloth_items,
             // Config
             config_ipc::config_read,
             config_ipc::config_save,

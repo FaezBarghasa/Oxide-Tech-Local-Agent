@@ -23,6 +23,9 @@ import {
   Smartphone,
   ShieldAlert,
   Sparkles,
+  Swords,
+  BookOpen,
+  Layers,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,6 +55,7 @@ const navSections: NavSection[] = [
     title: 'Compute',
     items: [
       { id: 'catalog', label: 'Model Hub', icon: <Boxes className="w-4 h-4" />, desc: 'Universal loader' },
+      { id: 'arena', label: 'Model Arena', icon: <Swords className="w-4 h-4" />, desc: 'Side-by-side benchmark' },
       { id: 'sglang', label: 'Engines', icon: <Zap className="w-4 h-4" />, desc: 'Candle / vLLM / SGLang' },
       { id: 'media', label: 'Media Forge', icon: <Sparkles className="w-4 h-4" />, desc: 'Flux / SDXL & Video' },
     ],
@@ -60,12 +64,14 @@ const navSections: NavSection[] = [
     title: 'Network',
     items: [
       { id: 'endpoints', label: 'Gateway', icon: <Code2 className="w-4 h-4" />, desc: 'OpenAI API & Keys' },
-      { id: 'mcp', label: 'Agents', icon: <Wrench className="w-4 h-4" />, desc: 'MCP tool sandboxes' },
+      { id: 'skills', label: 'Skills Studio', icon: <Wrench className="w-4 h-4" />, desc: 'WASM & MCP tools' },
+      { id: 'mcp', label: 'Agents', icon: <Layers className="w-4 h-4" />, desc: 'MCP tool sandboxes' },
     ],
   },
   {
     title: 'Tooling',
     items: [
+      { id: 'library', label: 'Doc Library', icon: <BookOpen className="w-4 h-4" />, desc: 'PDF & doc viewer' },
       { id: 'research', label: 'Research', icon: <Search className="w-4 h-4" />, desc: 'Citations & Scanned OCR' },
       { id: 'dataset', label: 'Datasets', icon: <Database className="w-4 h-4" />, desc: 'Formatting & recipes' },
       { id: 'soup', label: 'Export', icon: <Flame className="w-4 h-4" />, desc: 'GGUF & weight soups' },

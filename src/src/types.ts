@@ -18,6 +18,9 @@ export type TabId =
   | 'verify'
   | 'doctor'
   | 'reforge'
+  | 'skills'
+  | 'arena'
+  | 'library'
   | 'settings';
 
 export interface GraphNode {
@@ -351,4 +354,143 @@ export interface GatewayLogEntry {
 // Config
 export interface ConfigFile {
   content: string;
+}
+
+// Skills Studio
+export interface SkillParameterDto {
+  name: string;
+  type: string;
+  description: string;
+  required: boolean;
+}
+
+export interface SkillDto {
+  name: string;
+  title: string;
+  description: string;
+  version: string;
+  runner_type: 'wasm' | 'rust_crate' | 'python_bridge' | 'script' | string;
+  parameters: SkillParameterDto[];
+  return_type: string;
+  code_or_schema: string;
+  is_builtin: boolean;
+}
+
+export interface SkillTestResultDto {
+  success: boolean;
+  output: string;
+  latency_ms: number;
+  schema_valid: boolean;
+  error?: string | null;
+}
+
+// Model Arena
+export interface ArenaRunRequest {
+  prompt: string;
+  system_prompt?: string | null;
+  model_a: string;
+  provider_a: string;
+  model_b: string;
+  provider_b: string;
+  temperature?: number | null;
+  max_tokens?: number | null;
+}
+
+export interface ModelArenaResponse {
+  model_a_output: string;
+  model_a_ttft_ms: number;
+  model_a_total_ms: number;
+  model_a_tokens: number;
+  model_a_tok_per_sec: number;
+  model_a_error?: string | null;
+
+  model_b_output: string;
+  model_b_ttft_ms: number;
+  model_b_total_ms: number;
+  model_b_tokens: number;
+  model_b_tok_per_sec: number;
+  model_b_error?: string | null;
+
+  winner_recommendation?: string | null;
+}
+
+// Document Library & Attachments
+export interface DocumentInfoDto {
+  name: string;
+  path: string;
+  extension: string;
+  size_formatted: string;
+  modified: string;
+  is_pdf: boolean;
+}
+
+export interface AttachmentPayload {
+  file_name: string;
+  file_path: string;
+  file_type: 'pdf' | 'docx' | 'image' | 'text' | 'code' | string;
+  content: string;
+  is_base64: boolean;
+  estimated_tokens: number;
+  error?: string | null;
+}
+
+export interface PdfPageDto {
+  page_number: number;
+  text_content: string;
+  token_count: number;
+}
+
+// Web Search & Deep Research
+export interface SearchResultDto {
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
+}
+
+export interface DeepResearchResultDto {
+  query: string;
+  synthesized_report: string;
+  sources_consulted: SearchResultDto[];
+  latency_ms: number;
+}
+
+// Tunnel & LAN
+export interface TunnelStatusDto {
+  is_active: boolean;
+  public_url?: string | null;
+  local_port: number;
+  latency_ms?: number | null;
+  client_count: number;
+}
+
+export interface LanBroadcastStatusDto {
+  is_broadcasting: boolean;
+  service_name: string;
+  ip_addresses: string[];
+  port: number;
+}
+
+// Unsloth Migration
+export interface DiscoveredUnslothItemDto {
+  item_type: 'model' | 'session' | 'skill' | 'checkpoint' | string;
+  name: string;
+  source_path: string;
+  size_formatted: string;
+  details: string;
+}
+
+export interface UnslothScanResultDto {
+  unsloth_found: boolean;
+  items: DiscoveredUnslothItemDto[];
+  total_models: number;
+  total_sessions: number;
+}
+
+export interface ImportSummaryDto {
+  success: boolean;
+  imported_models: number;
+  imported_sessions: number;
+  imported_skills: number;
+  message: string;
 }

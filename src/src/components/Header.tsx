@@ -29,6 +29,9 @@ const tabInfo: Record<TabId, { title: string; subtitle: string }> = {
   verify: { title: 'Verification', subtitle: '7-phase evidence matrix' },
   doctor: { title: 'Doctor', subtitle: 'Diagnostics & health' },
   reforge: { title: 'RE-Forge', subtitle: 'Binary disassembly & PTX' },
+  skills: { title: 'Skills Studio', subtitle: 'WASM & JSON-Schema MCP Tools' },
+  arena: { title: 'Model Arena', subtitle: 'Parallel Dual-Inference Benchmark' },
+  library: { title: 'Document Library', subtitle: 'In-app PDF & Doc Viewer' },
   settings: { title: 'Settings', subtitle: 'Configuration' },
   infra: { title: 'Infrastructure', subtitle: 'System resources' },
 };

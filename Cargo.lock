@@ -7437,6 +7437,7 @@ dependencies = [
  "re-forge",
  "reqwest 0.12.28",
  "rust-embed",
+ "select",
  "serde",
  "serde_json",
  "tauri",

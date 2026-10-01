@@ -508,11 +508,13 @@ impl AdapterRegistry {
 pub mod ddr5_offload;
 pub mod distributed;
 pub mod gguf_exporter;
+pub mod grpo;
 pub mod hf_hub;
 pub mod ipython_bridge;
 pub mod lora_engine;
 pub mod modelscope;
 pub mod optimizer;
+pub mod pure_rust_trainer;
 pub mod rewards;
 pub mod rl_engine;
 pub mod vram_guard;
@@ -522,7 +524,9 @@ pub use distributed::{
     DistributedEngine, MmapGgufWeightLoader, PartitionedTensor, ProcessGroup, ZeroStage,
 };
 pub use gguf_exporter::GgufExporter;
+pub use grpo::{CargoCompileReward, GrpoRollout, GrpoStepResult, PureRustGrpoTrainer, RewardFn, UnitTestPassReward};
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
+pub use pure_rust_trainer::{PureRustTrainer, PureRustTrainerConfig, TrainingStepMetrics};
 pub use ipython_bridge::{IPythonNotebookConfig, IPythonTrainerBridge};
 pub use lora_engine::LoRATrainingEngine;
 pub use optimizer::{AdamWConfig, AdamWOptimizer, AdamWState};

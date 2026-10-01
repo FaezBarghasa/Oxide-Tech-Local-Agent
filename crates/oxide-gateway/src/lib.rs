@@ -88,7 +88,8 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
                         "/chat/completions",
                         web::post().to(routes::chat_completions),
                     )
-                    .route("/models", web::get().to(routes::list_models)),
+                    .route("/models", web::get().to(routes::list_models))
+                    .route("/systemone", web::post().to(routes::system_one_decision)),
             )
     })
     .workers(workers)

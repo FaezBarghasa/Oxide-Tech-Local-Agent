@@ -22,6 +22,10 @@ import { ResearchTab } from './components/ResearchTab';
 import { DoctorTab } from './components/DoctorTab';
 import { ReForgeTab } from './components/ReForgeTab';
 import { SettingsTab } from './components/SettingsTab';
+import { SkillsTab } from './components/SkillsTab';
+import { ModelArenaTab } from './components/ModelArenaTab';
+import { LibraryTab } from './components/LibraryTab';
+import { UnslothMigrateModal } from './components/UnslothMigrateModal';
 import { StatusBar } from './components/StatusBar';
 import { CommandPalette } from './components/CommandPalette';
 import { DeploySlideOver } from './components/DeploySlideOver';
@@ -152,6 +156,12 @@ function Shell() {
         return <ReForgeTab />;
       case 'settings':
         return <SettingsTab />;
+      case 'skills':
+        return <SkillsTab />;
+      case 'arena':
+        return <ModelArenaTab />;
+      case 'library':
+        return <LibraryTab />;
       case 'graph':
         return <GraphTopologyTab />;
       case 'memory':
@@ -161,8 +171,22 @@ function Shell() {
     }
   };
 
+  const [unslothModalOpen, setUnslothModalOpen] = React.useState(false);
+
   const onPalette = (id: string) => {
     switch (id) {
+      case 'migrate-unsloth':
+        setUnslothModalOpen(true);
+        break;
+      case 'nav-skills':
+        setTab('skills');
+        break;
+      case 'nav-arena':
+        setTab('arena');
+        break;
+      case 'nav-library':
+        setTab('library');
+        break;
       case 'deploy':
         setDeployModel('Qwen3-8B');
         break;
@@ -245,6 +269,11 @@ function Shell() {
       <MobileCompanionModal
         isOpen={mobileCompanionOpen}
         onClose={() => setMobileCompanionOpen(false)}
+      />
+      <UnslothMigrateModal
+        isOpen={unslothModalOpen}
+        onClose={() => setUnslothModalOpen(false)}
+        onImportComplete={(count) => toast(`Imported ${count} Unsloth assets successfully`)}
       />
       {hitlOpen && (
         <HitlApprovalModal

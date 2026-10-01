@@ -76,13 +76,14 @@ pub async fn media_generate_video(req: GenerateVideoDto) -> Result<VideoGenerati
     let state = MEDIA_STATE.lock().await;
     let vid_req = VideoGenerationRequest {
         prompt: req.prompt.clone(),
-        model_id: "ltx-video-2b".to_string(),
+        model_id: "ltx-2.3-distilled".to_string(),
         width: req.width.unwrap_or(512),
         height: req.height.unwrap_or(512),
         num_frames: req.num_frames.unwrap_or(24),
         fps: req.fps.unwrap_or(24),
-        steps: 20,
+        steps: 8,
         seed: None,
+        use_fp8: true,
     };
 
     info!("Media IPC: Generating video with prompt '{}'", req.prompt);
