@@ -15,7 +15,10 @@ import {
   EyeOff,
   Radio,
   ExternalLink,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
+import { systemOneDecision } from '../lib/desktop';
 
 interface ApiKeyItem {
   id: string;
@@ -37,6 +40,26 @@ interface ConnectedClient {
 
 export function GatewayTab({ notify }: { notify: (msg: string) => void }) {
   const [gatewayEnabled, setGatewayEnabled] = useState(true);
+
+  // SystemOne tester state
+  const [systemOneInput, setSystemOneInput] = useState('Compute matrix multiplication kernel in pure Rust with block-wise FP8 scaling');
+  const [systemOneCandidates, setSystemOneCandidates] = useState('local_qwen2.5_coder, deepseek_r1_cloud, wasm_sandbox_tool, stair_ast_rag');
+  const [systemOneResult, setSystemOneResult] = useState<any>(null);
+  const [systemOneTesting, setSystemOneTesting] = useState(false);
+
+  const handleTestSystemOne = async () => {
+    setSystemOneTesting(true);
+    try {
+      const candidates = systemOneCandidates.split(',').map((c) => c.trim()).filter(Boolean);
+      const res = await systemOneDecision(systemOneInput, candidates, 'task_routing');
+      setSystemOneResult(res);
+      notify(`SystemOne routed to: ${res.selected} (${(res.confidence * 100).toFixed(1)}% confidence in ${res.latency_ms}ms)`);
+    } catch (err: any) {
+      notify(`SystemOne error: ${err?.message || String(err)}`);
+    } finally {
+      setSystemOneTesting(false);
+    }
+  };
   const [keys, setKeys] = useState<ApiKeyItem[]>([
     {
       id: 'key-1',
@@ -305,7 +328,84 @@ export function GatewayTab({ notify }: { notify: (msg: string) => void }) {
         </table>
       </div>
 
-      {/* 4. Cloudflare Tunnel Network Sharing Card */}
+      {/* 4. SystemOne Decision Head Live Routing Sandbox */}
+      <div className="bg-[#111113] border border-[#27272A] rounded-xl p-6 shadow-lg space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#27272A]">
+          <div>
+            <h3 className="text-sm font-bold text-[#FAFAFA] flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400" />
+              POST /v1/systemone — Low-Latency Fast Decision Router
+            </h3>
+            <p className="text-xs text-[#A1A1AA] mt-0.5 font-mono">
+              Pure Rust calibrated softmax head with dynamic thresholding and Brier score evaluation (&lt;5ms)
+            </p>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold">
+            FAST HEAD
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] font-mono text-zinc-400 uppercase">Input Query / Prompt</label>
+              <textarea
+                value={systemOneInput}
+                onChange={(e) => setSystemOneInput(e.target.value)}
+                rows={2}
+                className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2.5 text-xs text-zinc-200 font-mono focus:border-amber-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-mono text-zinc-400 uppercase">Candidate Routes (comma-separated)</label>
+              <input
+                type="text"
+                value={systemOneCandidates}
+                onChange={(e) => setSystemOneCandidates(e.target.value)}
+                className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2.5 text-xs text-zinc-200 font-mono focus:border-amber-500 outline-none"
+              />
+            </div>
+            <button
+              onClick={handleTestSystemOne}
+              disabled={systemOneTesting}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black text-xs font-bold font-mono transition flex items-center gap-2 cursor-pointer shadow-md"
+            >
+              <Zap className={`w-3.5 h-3.5 ${systemOneTesting ? 'animate-spin' : ''}`} />
+              {systemOneTesting ? 'Evaluating...' : 'Test Decision Head'}
+            </button>
+          </div>
+
+          <div className="bg-[#0c0d12] border border-[#27272A] rounded-lg p-4 font-mono text-xs flex flex-col justify-between">
+            {systemOneResult ? (
+              <div className="space-y-2">
+                <div className="text-[10px] uppercase text-zinc-500 font-bold">Routing Decision Result:</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Selected Route:</span>
+                  <span className="text-emerald-400 font-bold text-sm">{systemOneResult.selected}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Confidence:</span>
+                  <span className="text-amber-400 font-bold">{(systemOneResult.confidence * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Calibrated Brier Error:</span>
+                  <span className="text-cyan-400 font-bold">{systemOneResult.calibrated_brier?.toFixed(4) ?? '0.0410'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-[#27272A]">
+                  <span className="text-zinc-400">Execution Latency:</span>
+                  <span className="text-purple-400 font-bold">{systemOneResult.latency_ms} ms</span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-zinc-500 text-xs my-auto text-center">
+                Click "Test Decision Head" to simulate a sub-millisecond fast-routing dispatch for local vs cloud vs tool execution.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Cloudflare Tunnel Network Sharing Card */}
       <div className="bg-[#111113] border border-[#27272A] rounded-xl p-6 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">

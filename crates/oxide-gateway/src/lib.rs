@@ -4,18 +4,27 @@ use oxide_core::RuntimeTopology;
 use oxide_state::AppState;
 use std::sync::Arc;
 
+pub mod db;
+pub mod gecko_driver;
 pub mod middleware;
 pub mod mobile_bridge;
 pub mod probe;
 pub mod quality;
+pub mod rate_pacer;
 pub mod router;
 pub mod routes;
+pub mod universal_router;
 
+pub use db::{AccountRecord, ComboRecord, ComboStep, GatewayDb, ModelRecord, SessionRelayRecord};
+pub use gecko_driver::GeckoSession;
 pub use mobile_bridge::{
     AgentControlAction, MobileBridgeManager, MobileSignalMessage, PendingApprovalPayload,
 };
 pub use quality::QualityGate;
+pub use rate_pacer::RatePacer;
 pub use router::{CoderBackend, GatewayRouter};
+pub use universal_router::{ModelResolver, RoutedTarget};
+
 
 /// Construct a tuned multi-threaded Tokio runtime with CPU topology awareness and core pinning.
 pub fn build_tuned_runtime(
@@ -88,7 +97,9 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
                         "/chat/completions",
                         web::post().to(routes::chat_completions),
                     )
+                    .route("/messages", web::post().to(routes::anthropic_messages))
                     .route("/models", web::get().to(routes::list_models))
+                    .route("/combos", web::get().to(routes::list_combos))
                     .route("/systemone", web::post().to(routes::system_one_decision)),
             )
     })

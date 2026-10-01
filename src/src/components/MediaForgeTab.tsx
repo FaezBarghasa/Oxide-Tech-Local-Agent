@@ -160,6 +160,19 @@ export const MediaForgeTab: React.FC = () => {
             {activeMode === 'image' && (
               <>
                 <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400 font-semibold">Image Model</label>
+                  <select
+                    value={scheduler}
+                    onChange={(e) => setScheduler(e.target.value)}
+                    className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2 text-xs font-mono text-zinc-200 focus:border-purple-500 outline-none"
+                  >
+                    <option value="FlowMatchEuler">Flux.1-schnell (4-step FP8 Distilled)</option>
+                    <option value="DPMSolverPlusPlus">SDXL Turbo (Real-time)</option>
+                    <option value="DDIM">Stable Diffusion 3.5 Medium</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
                   <div className="flex justify-between text-xs font-mono">
                     <span className="text-zinc-400">Guidance Scale (CFG)</span>
                     <span className="text-[#FAFAFA] font-bold">{guidanceScale.toFixed(1)}</span>
@@ -174,39 +187,50 @@ export const MediaForgeTab: React.FC = () => {
                     className="w-full accent-purple-500 bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-mono uppercase text-zinc-400 font-semibold">Scheduler</label>
-                  <select
-                    value={scheduler}
-                    onChange={(e) => setScheduler(e.target.value)}
-                    className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2 text-xs font-mono text-zinc-200 focus:border-purple-500 outline-none"
-                  >
-                    <option value="FlowMatchEuler">FlowMatchEuler (Flux.1)</option>
-                    <option value="DPMSolverPlusPlus">DPM-Solver++ (SDXL)</option>
-                    <option value="DDIM">DDIM</option>
-                    <option value="EulerDiscrete">Euler Discrete</option>
-                  </select>
-                </div>
               </>
             )}
 
             {activeMode === 'video' && (
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs font-mono">
-                  <span className="text-zinc-400">Frames Count</span>
-                  <span className="text-[#FAFAFA] font-bold">{numFrames} frames ({fps} fps)</span>
+              <>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono uppercase text-zinc-400 font-semibold">Video Generator Engine</label>
+                  <select
+                    className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2 text-xs font-mono text-zinc-200 focus:border-purple-500 outline-none"
+                  >
+                    <option value="ltx-distilled">LTX-2.3 (Distilled 4.5x Fast Sampler - 8 Steps)</option>
+                    <option value="ltx-standard">LTX-Video 0.9.1 (Standard 30 Steps)</option>
+                    <option value="wan-2.1">Wan 2.1 T2V (1.3B DiT)</option>
+                  </select>
                 </div>
-                <input
-                  type="range"
-                  min="16"
-                  max="97"
-                  step="8"
-                  value={numFrames}
-                  onChange={(e) => setNumFrames(parseInt(e.target.value))}
-                  className="w-full accent-purple-500 bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
-                />
-              </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-mono">
+                    <span className="text-zinc-400">Frames Count</span>
+                    <span className="text-[#FAFAFA] font-bold">{numFrames} frames ({fps} fps)</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="16"
+                    max="97"
+                    step="8"
+                    value={numFrames}
+                    onChange={(e) => setNumFrames(parseInt(e.target.value))}
+                    className="w-full accent-purple-500 bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-[#18181b] rounded-lg border border-[#27272A]">
+                  <div>
+                    <div className="text-xs font-bold text-white">FP8 Block-wise Quant</div>
+                    <div className="text-[10px] text-zinc-400">Save 45% VRAM on 16GB GPUs</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    className="w-4 h-4 accent-purple-500 rounded cursor-pointer"
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
