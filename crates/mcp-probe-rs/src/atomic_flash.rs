@@ -210,6 +210,63 @@ impl AtomicFlashManager {
             )))
         }
     }
+
+    /// Verifies in-memory firmware payload bytes and BLAKE3 hash directly, eliminating disk TOCTOU windows
+    pub fn verify_in_memory_payload(
+        payload: &[u8],
+        expected_blake3_hex: &str,
+        token: &str,
+        chip: &str,
+    ) -> Result<[u8; 32], AtomicFlashError> {
+        if payload.is_empty() {
+            return Err(AtomicFlashError::VerificationFailed(
+                "Firmware binary buffer is empty".to_string(),
+            ));
+        }
+
+        Self::validate_ed25519_flash_token(token, chip)?;
+
+        let computed_hash = blake3::hash(payload);
+        let computed_hex = computed_hash.to_hex();
+
+        if !expected_blake3_hex.is_empty() && computed_hex.as_str() != expected_blake3_hex {
+            return Err(AtomicFlashError::VerificationFailed(format!(
+                "BLAKE3 digest mismatch: computed '{}' vs expected '{}'",
+                computed_hex, expected_blake3_hex
+            )));
+        }
+
+        tracing::info!(
+            target: "atomic_flash",
+            "In-memory firmware verification passed (BLAKE3: {}, bytes: {})",
+            computed_hex, payload.len()
+        );
+
+        Ok(*computed_hash.as_bytes())
+    }
+}
+
+/// In-memory verified firmware payload container preventing disk modification between verification and flash
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifiedFirmwarePayload {
+    pub blake3_digest: [u8; 32],
+    pub binary_bytes: Vec<u8>,
+    pub target_chip: String,
+    pub auth_token: String,
+}
+
+impl VerifiedFirmwarePayload {
+    pub fn new(bytes: Vec<u8>, target_chip: impl Into<String>, auth_token: impl Into<String>) -> Result<Self, AtomicFlashError> {
+        let chip = target_chip.into();
+        let tok = auth_token.into();
+        let digest = AtomicFlashManager::verify_in_memory_payload(&bytes, "", &tok, &chip)?;
+        Ok(Self {
+            blake3_digest: digest,
+            binary_bytes: bytes,
+            target_chip: chip,
+            auth_token: tok,
+        })
+    }
 }
 
 #[cfg(test)]

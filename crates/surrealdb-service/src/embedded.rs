@@ -15,6 +15,12 @@ pub const MIGRATION_002: &str = include_str!("migrations/002_cloud_training.surq
 pub const MIGRATION_003: &str = include_str!("migrations/003_multi_tenant.surql");
 pub const MIGRATION_004: &str = include_str!("migrations/004_cloud_training_capture.surql");
 
+use std::sync::Arc;
+use tokio::sync::OnceCell;
+
+static GLOBAL_SURREAL_INSTANCE: OnceCell<Arc<EmbeddedSurrealDb>> = OnceCell::const_new();
+
+#[derive(Clone)]
 pub struct EmbeddedSurrealDb {
     pub db: Surreal<Any>,
     pub namespace: String,
@@ -22,6 +28,16 @@ pub struct EmbeddedSurrealDb {
 }
 
 impl EmbeddedSurrealDb {
+    /// Retrieve or initialize a process-wide thread-safe singleton instance
+    pub async fn shared_in_memory() -> Result<Arc<Self>, surrealdb::Error> {
+        GLOBAL_SURREAL_INSTANCE
+            .get_or_try_init(|| async {
+                Self::in_memory().map(Arc::new)
+            })
+            .await
+            .cloned()
+    }
+
     /// Connect to an in-memory database instance (ideal for transient sessions & testing)
     pub async fn in_memory() -> Result<Self, surrealdb::Error> {
         Self::connect_url("mem://").await

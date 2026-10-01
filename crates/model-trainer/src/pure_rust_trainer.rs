@@ -87,8 +87,12 @@ impl PureRustTrainer {
         self.step += 1;
 
         let batch_size = batch_embeddings.len() / hidden_dim.max(1);
-        let _q_out = self.adapter_q.forward(batch_embeddings, batch_size.max(1));
-        let _v_out = self.adapter_v.forward(batch_embeddings, batch_size.max(1));
+        let q_out = self.adapter_q.forward(batch_embeddings, batch_size.max(1));
+        let v_out = self.adapter_v.forward(batch_embeddings, batch_size.max(1));
+
+        // Explicitly drop intermediate activations to free computation graph buffers
+        drop(q_out);
+        drop(v_out);
 
         let lr = self.compute_lr(self.step);
 
@@ -108,6 +112,10 @@ impl PureRustTrainer {
             elapsed_ms: start.elapsed().as_millis() as u64,
         };
 
+        // Bounded telemetry buffer: retain latest 10,000 steps to prevent host memory exhaustion
+        if self.history.len() >= 10_000 {
+            self.history.drain(0..1_000);
+        }
         self.history.push(metrics.clone());
         metrics
     }

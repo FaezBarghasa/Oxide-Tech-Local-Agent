@@ -204,12 +204,17 @@ impl<M: PolicyValueModel> DecisionGuidedMcts<M> {
             active_candidates
         };
 
-        // 3. Initialize PUCT branches
+        // 3. Initialize PUCT branches with NaN sanitization
         let mut branches: Vec<PuctBranch> = candidates
             .iter()
             .map(|a| {
-                let p = priors.get(a).copied().unwrap_or(1.0 / candidates.len() as f64);
-                PuctBranch::new(a.clone(), p)
+                let raw_p = priors.get(a).copied().unwrap_or(1.0 / candidates.len() as f64);
+                let safe_p = if raw_p.is_nan() || raw_p.is_infinite() {
+                    1.0 / candidates.len() as f64
+                } else {
+                    raw_p.clamp(0.0, 1.0)
+                };
+                PuctBranch::new(a.clone(), safe_p)
             })
             .collect();
 
@@ -217,21 +222,24 @@ impl<M: PolicyValueModel> DecisionGuidedMcts<M> {
         for _sim in 0..self.num_simulations {
             let total_visits: usize = branches.iter().map(|b| b.visit_count).sum();
 
-            // Select best branch by PUCT score
+            // Select best branch by PUCT score with safe fallback comparison
             let best_idx = branches
                 .iter()
                 .enumerate()
                 .max_by(|(_, a), (_, b)| {
-                    a.puct_score(total_visits.max(1), self.c_puct)
-                        .partial_cmp(&b.puct_score(total_visits.max(1), self.c_puct))
-                        .unwrap_or(std::cmp::Ordering::Equal)
+                    let score_a = a.puct_score(total_visits.max(1), self.c_puct);
+                    let score_b = b.puct_score(total_visits.max(1), self.c_puct);
+                    let safe_a = if score_a.is_nan() { f64::NEG_INFINITY } else { score_a };
+                    let safe_b = if score_b.is_nan() { f64::NEG_INFINITY } else { score_b };
+                    safe_a.partial_cmp(&safe_b).unwrap_or(std::cmp::Ordering::Equal)
                 })
                 .map(|(idx, _)| idx)
                 .unwrap_or(0);
 
             let action_to_eval = branches[best_idx].action.clone();
-            let reward = rollout_fn(base_state, &action_to_eval);
-            branches[best_idx].update(reward);
+            let raw_reward = rollout_fn(base_state, &action_to_eval);
+            let safe_reward = if raw_reward.is_nan() { 0.0 } else { raw_reward.clamp(-1.0, 1.0) };
+            branches[best_idx].update(safe_reward);
         }
 
         // 5. Select best action by highest visit count (most robust decision)

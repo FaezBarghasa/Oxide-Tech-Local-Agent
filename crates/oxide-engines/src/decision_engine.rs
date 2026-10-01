@@ -207,13 +207,19 @@ impl CandidateVectorCache {
             .iter()
             .zip(self.vectors.iter())
             .map(|(id, cand_vec)| {
-                let dot: f32 = state_embedding
+                let mut dot: f32 = state_embedding
                     .iter()
                     .zip(cand_vec.iter())
                     .map(|(&s, &c)| (s / state_norm) * c)
                     .sum();
-                let calibrated_prob = 1.0 / (1.0 + (-dot * 4.0).exp());
-                (id.clone(), calibrated_prob)
+                if dot.is_nan() {
+                    dot = 0.0;
+                }
+                // Numerically stable sigmoid with clamped exponent
+                let clamped_dot = (dot * 4.0).clamp(-50.0, 50.0);
+                let calibrated_prob = 1.0 / (1.0 + (-clamped_dot).exp());
+                let safe_prob = if calibrated_prob.is_nan() { 0.5 } else { calibrated_prob };
+                (id.clone(), safe_prob)
             })
             .collect();
 

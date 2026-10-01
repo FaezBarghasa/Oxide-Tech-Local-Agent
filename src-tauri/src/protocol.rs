@@ -14,21 +14,31 @@ pub fn handle_oxide_protocol(
     match WebAssets::get(target_path) {
         Some(asset) => {
             let mime = mime_guess::from_path(target_path).first_or_octet_stream();
+            let data = asset.data.into_owned();
+            let len = data.len().to_string();
             Ok(Response::builder()
                 .status(200)
                 .header("Content-Type", mime.as_ref())
+                .header("Content-Length", len)
+                .header("Access-Control-Allow-Origin", "*")
                 .header("Cache-Control", "no-cache")
-                .body(asset.data.into_owned())?)
+                .body(data)?)
         }
         None => {
             if let Some(fallback) = WebAssets::get("index.html") {
+                let data = fallback.data.into_owned();
+                let len = data.len().to_string();
                 Ok(Response::builder()
                     .status(200)
                     .header("Content-Type", "text/html")
-                    .body(fallback.data.into_owned())?)
+                    .header("Content-Length", len)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(data)?)
             } else {
                 Ok(Response::builder()
                     .status(404)
+                    .header("Content-Type", "text/plain")
+                    .header("Access-Control-Allow-Origin", "*")
                     .body(b"Asset not found in embedded bundle".to_vec())?)
             }
         }

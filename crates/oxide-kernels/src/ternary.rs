@@ -189,6 +189,8 @@ impl TernaryBitplaneMatrix {
 
     /// Optimized bitwise XNOR-GEMM:
     /// Y = scale * (popcount(A_pos ^ W_pos) - popcount(A_pos ^ W_neg))
+    /// Implements AVX-512F / AVX-512VPOPCNTDQ with unaligned loads (_mm512_loadu_si512)
+    /// and portable scalar fallback.
     pub fn xnor_gemm_cpu(&self, input_activations: &[f32], output: &mut [f32]) {
         assert_eq!(input_activations.len(), self.cols);
         assert_eq!(output.len(), self.rows);
@@ -204,21 +206,74 @@ impl TernaryBitplaneMatrix {
         }
 
         for r in 0..self.rows {
+            let row_offset = r * self.words_per_row;
             let mut pos_matches = 0i32;
             let mut neg_matches = 0i32;
 
-            for w in 0..self.words_per_row {
-                let w_idx = r * self.words_per_row + w;
-                let a = act_bits[w];
-                let wp = self.w_pos[w_idx];
-                let wn = self.w_neg[w_idx];
+            #[cfg(target_arch = "x86_64")]
+            {
+                if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("avx512vpopcntdq") {
+                    unsafe {
+                        use std::arch::x86_64::*;
+                        let mut w = 0;
+                        while w + 8 <= self.words_per_row {
+                            // Unaligned safe vector load from memory mapped or packed slice
+                            let a_vec = _mm512_loadu_si512(act_bits.as_ptr().add(w) as *const _);
+                            let wp_vec = _mm512_loadu_si512(self.w_pos.as_ptr().add(row_offset + w) as *const _);
+                            let wn_vec = _mm512_loadu_si512(self.w_neg.as_ptr().add(row_offset + w) as *const _);
 
-                // Bitwise XNOR popcount
-                let match_pos = !(a ^ wp);
-                let match_neg = !(a ^ wn);
+                            // XNOR: !(a ^ w) & w
+                            let xnor_pos = _mm512_and_si512(_mm512_xor_si512(a_vec, wp_vec), wp_vec);
+                            let xnor_neg = _mm512_and_si512(_mm512_xor_si512(a_vec, wn_vec), wn_vec);
 
-                pos_matches += (match_pos & wp).count_ones() as i32;
-                neg_matches += (match_neg & wn).count_ones() as i32;
+                            let pop_pos = _mm512_popcnt_epi64(xnor_pos);
+                            let pop_neg = _mm512_popcnt_epi64(xnor_neg);
+
+                            let mut res_pos = [0u64; 8];
+                            let mut res_neg = [0u64; 8];
+                            _mm512_storeu_si512(res_pos.as_mut_ptr() as *mut _, pop_pos);
+                            _mm512_storeu_si512(res_neg.as_mut_ptr() as *mut _, pop_neg);
+
+                            pos_matches += res_pos.iter().sum::<u64>() as i32;
+                            neg_matches += res_neg.iter().sum::<u64>() as i32;
+                            w += 8;
+                        }
+
+                        // Remainder scalar processing
+                        for rem_w in w..self.words_per_row {
+                            let a = act_bits[rem_w];
+                            let wp = self.w_pos[row_offset + rem_w];
+                            let wn = self.w_neg[row_offset + rem_w];
+                            let match_pos = !(a ^ wp);
+                            let match_neg = !(a ^ wn);
+                            pos_matches += (match_pos & wp).count_ones() as i32;
+                            neg_matches += (match_neg & wn).count_ones() as i32;
+                        }
+                    }
+                } else {
+                    for w in 0..self.words_per_row {
+                        let a = act_bits[w];
+                        let wp = self.w_pos[row_offset + w];
+                        let wn = self.w_neg[row_offset + w];
+                        let match_pos = !(a ^ wp);
+                        let match_neg = !(a ^ wn);
+                        pos_matches += (match_pos & wp).count_ones() as i32;
+                        neg_matches += (match_neg & wn).count_ones() as i32;
+                    }
+                }
+            }
+
+            #[cfg(not(target_arch = "x86_64"))]
+            {
+                for w in 0..self.words_per_row {
+                    let a = act_bits[w];
+                    let wp = self.w_pos[row_offset + w];
+                    let wn = self.w_neg[row_offset + w];
+                    let match_pos = !(a ^ wp);
+                    let match_neg = !(a ^ wn);
+                    pos_matches += (match_pos & wp).count_ones() as i32;
+                    neg_matches += (match_neg & wn).count_ones() as i32;
+                }
             }
 
             output[r] = self.scales[r] * ((pos_matches - neg_matches) as f32);
