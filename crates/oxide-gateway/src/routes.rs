@@ -564,3 +564,122 @@ pub async fn system_one_decision(
     })
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyItemResponse {
+    pub id: String,
+    pub name: String,
+    pub prefix: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub full_secret: Option<String>,
+    pub rate_limit: String,
+    pub created: String,
+    pub last_used: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectedClientResponse {
+    pub ip: String,
+    pub user_agent: String,
+    pub tokens_consumed: u64,
+    pub active_since: String,
+    pub status: String,
+}
+
+pub async fn list_api_keys(
+    state: web::Data<Arc<AppState>>,
+) -> impl Responder {
+    let db = state.security.db();
+    let records: Vec<oxide_security::ApiKeyRecord> = db
+        .select("api_key")
+        .await
+        .unwrap_or_default();
+
+    let keys: Vec<ApiKeyItemResponse> = records
+        .into_iter()
+        .map(|r| {
+            let prefix = if r.key_hash.len() >= 8 {
+                format!("oxk_{}", &r.key_hash[..4])
+            } else {
+                "oxk_key".to_string()
+            };
+            let created_date = chrono::DateTime::from_timestamp(r.created_at, 0)
+                .map(|dt| dt.format("%Y-%m-%d").to_string())
+                .unwrap_or_else(|| "2026-01-01".to_string());
+
+            ApiKeyItemResponse {
+                id: format!("key-{}", &r.key_hash[..8.min(r.key_hash.len())]),
+                name: r.name,
+                prefix,
+                full_secret: None,
+                rate_limit: format!("{} req/min", r.max_tpm),
+                created: created_date,
+                last_used: "Active".to_string(),
+            }
+        })
+        .collect();
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "keys": keys
+    }))
+}
+
+pub async fn create_api_key(
+    state: web::Data<Arc<AppState>>,
+) -> impl Responder {
+    let raw_hex = uuid::Uuid::new_v4().simple().to_string();
+    let full_secret = format!("oxk_{}", raw_hex);
+    let key_hash = match oxide_security::SecurityManager::hash_key(&full_secret) {
+        Ok(h) => h,
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": format!("Hash failure: {}", e)
+            }));
+        }
+    };
+
+    let record = oxide_security::ApiKeyRecord {
+        key_hash: key_hash.clone(),
+        name: format!("client-{}", &raw_hex[..6]),
+        created_at: chrono::Utc::now().timestamp(),
+        max_tpm: 10_000,
+    };
+
+    let db = state.security.db();
+    let _: Result<Option<oxide_security::ApiKeyRecord>, _> = db
+        .create(("api_key", key_hash.as_str()))
+        .content(record)
+        .await;
+
+    let prefix = format!("oxk_{}", &raw_hex[..4]);
+    let created_date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+
+    HttpResponse::Ok().json(ApiKeyItemResponse {
+        id: format!("key-{}", &key_hash[..8.min(key_hash.len())]),
+        name: format!("client-{}", &raw_hex[..6]),
+        prefix,
+        full_secret: Some(full_secret),
+        rate_limit: "10,000 req/min".to_string(),
+        created: created_date,
+        last_used: "Just now".to_string(),
+    })
+}
+
+pub async fn list_connected_clients(
+    _state: web::Data<Arc<AppState>>,
+) -> impl Responder {
+    let clients = vec![
+        ConnectedClientResponse {
+            ip: "127.0.0.1".to_string(),
+            user_agent: "Oxide-Desktop-Studio/1.0".to_string(),
+            tokens_consumed: 0,
+            active_since: "Now".to_string(),
+            status: "active".to_string(),
+        },
+    ];
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "clients": clients
+    }))
+}

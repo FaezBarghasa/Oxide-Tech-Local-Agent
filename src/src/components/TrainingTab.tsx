@@ -50,28 +50,17 @@ interface TrainingPoint {
   klDiv: number;
 }
 
-const INITIAL_METRICS: TrainingPoint[] = [
-  { step: 40, epoch: 'E1.1', loss: 0.142, rewardScore: 0.32, passRate: 62.0, klDiv: 0.058 },
-  { step: 80, epoch: 'E1.2', loss: 0.124, rewardScore: 0.44, passRate: 68.5, klDiv: 0.052 },
-  { step: 120, epoch: 'E1.3', loss: 0.101, rewardScore: 0.55, passRate: 74.2, klDiv: 0.046 },
-  { step: 160, epoch: 'E2.1', loss: 0.085, rewardScore: 0.63, passRate: 78.0, klDiv: 0.041 },
-  { step: 200, epoch: 'E2.2', loss: 0.072, rewardScore: 0.71, passRate: 82.5, klDiv: 0.036 },
-  { step: 240, epoch: 'E2.3', loss: 0.063, rewardScore: 0.77, passRate: 85.0, klDiv: 0.031 },
-  { step: 280, epoch: 'E3.1', loss: 0.055, rewardScore: 0.82, passRate: 87.4, klDiv: 0.028 },
-  { step: 320, epoch: 'E3.2', loss: 0.048, rewardScore: 0.86, passRate: 89.1, klDiv: 0.024 },
-  { step: 360, epoch: 'E3.3', loss: 0.042, rewardScore: 0.89, passRate: 90.5, klDiv: 0.021 },
-  { step: 420, epoch: 'E4.1', loss: 0.0381, rewardScore: 0.912, passRate: 91.2, klDiv: 0.018 },
-];
+// No static training data. All values come from trainer_get_job_status IPC.
 
 export const TrainingTab: React.FC = () => {
   const [isTraining, setIsTraining] = useState(false);
-  const [step, setStep] = useState(420);
+  const [step, setStep] = useState(0);
   const [totalSteps] = useState(1200);
-  const [loss, setLoss] = useState(0.0381);
-  const [rewardScore, setRewardScore] = useState(0.912);
-  const [passRate, setPassRate] = useState(91.2);
-  const [lr, setLr] = useState(1.7e-5);
-  const [selectedModel, setSelectedModel] = useState('qwen2.5-coder:14b');
+  const [loss, setLoss] = useState(0);
+  const [rewardScore, setRewardScore] = useState(0);
+  const [passRate, setPassRate] = useState(0);
+  const [lr, setLr] = useState(2e-4);
+  const [selectedModel, setSelectedModel] = useState('');
   const [trainingEngine, setTrainingEngine] = useState<'pure_rust' | 'ipython' | 'unsloth_gpu'>('pure_rust');
   const [exportQuant, setExportQuant] = useState('Q4_K_M');
   const [harvestStatus, setHarvestStatus] = useState<string | null>(null);
@@ -93,13 +82,29 @@ export const TrainingTab: React.FC = () => {
     klDiv: false,
   });
 
-  const [metricsHistory, setMetricsHistory] = useState<TrainingPoint[]>(INITIAL_METRICS);
+  const [metricsHistory, setMetricsHistory] = useState<TrainingPoint[]>([]);
 
   const [logs, setLogs] = useState<string[]>([
     `[${new Date().toLocaleTimeString()}] 🚀 Oxide Sovereign Trainer: Native Rust kernels active (LoRA NF4, Chunked CE, SwiGLU)`,
     `[${new Date().toLocaleTimeString()}] 🛡️ Multi-Domain Verifiers: [cargo check, memory safety, SPICE, embedded timing, EDA DRC]`,
     `[${new Date().toLocaleTimeString()}] 📖 Agent Journal: Ready to harvest verified trajectories where VerificationDelta == Pass`,
   ]);
+
+  // Load real trainer status on mount (resume in-progress job view if any)
+  useEffect(() => {
+    trainerGetJobStatus().then((status) => {
+      if (!status) return;
+      if (status.step > 0) {
+        setStep(status.step);
+        setLoss(status.loss);
+        setRewardScore(status.reward);
+        setPassRate(status.pass_rate);
+        setLr(status.lr);
+        if (status.status === 'RUNNING') setIsTraining(true);
+      }
+      if (status.model) setSelectedModel(status.model);
+    }).catch(() => { /* no job running = empty chart, correct */ });
+  }, []);
 
   useEffect(() => {
     let interval: any = null;
@@ -163,13 +168,13 @@ export const TrainingTab: React.FC = () => {
   const handleResetSession = () => {
     setIsTraining(false);
     trainerAbortJob().catch(() => {});
-    setStep(40);
-    setLoss(0.142);
-    setRewardScore(0.32);
-    setPassRate(62.0);
-    setMetricsHistory(INITIAL_METRICS.slice(0, 3));
+    setStep(0);
+    setLoss(0);
+    setRewardScore(0);
+    setPassRate(0);
+    setMetricsHistory([]);
     const time = new Date().toLocaleTimeString();
-    setLogs((l) => [...l, `[${time}] ↺ Training session reset for clean baseline run.`]);
+    setLogs((l) => [...l, `[${time}] ↺ Training session reset. Start a new job to populate metrics.`]);
   };
 
   const handleHarvestTrajectories = async () => {

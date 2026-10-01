@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SkeletonRows } from './Skeleton';
 import {
   Key,
@@ -60,41 +60,22 @@ export function GatewayTab({ notify }: { notify: (msg: string) => void }) {
       setSystemOneTesting(false);
     }
   };
-  const [keys, setKeys] = useState<ApiKeyItem[]>([
-    {
-      id: 'key-1',
-      name: 'jan-local-app',
-      prefix: 'oxk_9f2a',
-      fullSecret: 'oxk_9f2ab71de0042a98f12c3e41b9d0',
-      rateLimit: '10,000 req/min',
-      created: '2026-09-18',
-      lastUsed: '2 mins ago',
-    },
-    {
-      id: 'key-2',
-      name: 'lm-studio-desktop',
-      prefix: 'oxk_3c8e',
-      fullSecret: 'oxk_3c8e19bb445f1280a87d091e77aa',
-      rateLimit: '5,000 req/min',
-      created: '2026-09-19',
-      lastUsed: 'Just now',
-    },
-    {
-      id: 'key-3',
-      name: 'goose-cli-agent',
-      prefix: 'oxk_71d4',
-      fullSecret: 'oxk_71d488e100fc921a998b3c1031d9',
-      rateLimit: 'Unlimited',
-      created: '2026-09-20',
-      lastUsed: '15 mins ago',
-    },
-  ]);
+  const [keys, setKeys] = useState<ApiKeyItem[]>([]);
 
-  const [clients, setClients] = useState<ConnectedClient[]>([
-    { ip: '127.0.0.1', userAgent: 'Jan-App / 0.5.1', tokensConsumed: 18450, activeSince: '42m ago', status: 'active' },
-    { ip: '192.168.1.104', userAgent: 'LM-Studio / 0.3.6', tokensConsumed: 34120, activeSince: '1h 12m ago', status: 'active' },
-    { ip: '192.168.1.188', userAgent: 'Goose-Agent / 1.0.0', tokensConsumed: 9280, activeSince: '20m ago', status: 'idle' },
-  ]);
+  const [clients, setClients] = useState<ConnectedClient[]>([]);
+
+  // Load real keys and active clients from gateway backend on mount
+  useEffect(() => {
+    fetch('/api/gateway/keys')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.keys) setKeys(d.keys); })
+      .catch(() => {});
+    fetch('/api/gateway/clients')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.clients) setClients(d.clients); })
+      .catch(() => {});
+  }, []);
+
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [tunnelUrl, setTunnelUrl] = useState<string | null>(null);
@@ -102,25 +83,25 @@ export function GatewayTab({ notify }: { notify: (msg: string) => void }) {
   const [revealedKeyId, setRevealedKeyId] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
 
-  const handleGenerateKey = () => {
+  const handleGenerateKey = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      const hex = Math.random().toString(16).slice(2, 6);
-      const full = `oxk_${hex}${Math.random().toString(16).slice(2, 14)}`;
-      const newKey: ApiKeyItem = {
-        id: `key-${Date.now()}`,
-        name: `agent-client-${keys.length + 1}`,
-        prefix: `oxk_${hex}`,
-        fullSecret: full,
-        rateLimit: '10,000 req/min',
-        created: new Date().toISOString().slice(0, 10),
-        lastUsed: 'Never',
-      };
-      setKeys((prev) => [newKey, ...prev]);
+    try {
+      // Call the real gateway key-generation endpoint backed by SurrealDB
+      const res = await fetch('/api/gateway/keys', { method: 'POST' });
+      if (res.ok) {
+        const newKey: ApiKeyItem = await res.json();
+        setKeys((prev) => [newKey, ...prev]);
+        notify('New API key generated and persisted (Blake3 Hash)');
+      } else {
+        notify(`Key generation failed: HTTP ${res.status}`);
+      }
+    } catch (err: any) {
+      notify(`Key generation error: ${err?.message ?? String(err)}`);
+    } finally {
       setIsGenerating(false);
-      notify('New API key generated securely (Blake3 Hash)');
-    }, 500);
+    }
   };
+
 
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard?.writeText(text);

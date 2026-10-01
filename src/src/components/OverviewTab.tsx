@@ -127,7 +127,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ onNavigateTab }) => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-[#27272A]">
           <div className="bg-[#18181b] border border-[#27272A] rounded-lg p-3">
             <div className="text-[10px] font-mono uppercase text-zinc-500 font-semibold">Workspace Crates</div>
-            <div className="text-lg font-bold font-mono text-[#FAFAFA] mt-0.5">55 Crates</div>
+            <div className="text-lg font-bold font-mono text-[#FAFAFA] mt-0.5">58 Crates</div>
             <div className="text-[9px] font-mono text-[#10B981] mt-0.5">0 Errors · Clean Build</div>
           </div>
           <div className="bg-[#18181b] border border-[#27272A] rounded-lg p-3">

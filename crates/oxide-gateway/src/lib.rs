@@ -89,6 +89,9 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
             .route("/api/status", web::get().to(routes::api_status))
             .route("/api/agent/think", web::post().to(routes::agent_think))
             .route("/api/agent/execute", web::post().to(routes::agent_execute))
+            .route("/api/gateway/keys", web::get().to(routes::list_api_keys))
+            .route("/api/gateway/keys", web::post().to(routes::create_api_key))
+            .route("/api/gateway/clients", web::get().to(routes::list_connected_clients))
             // Protected OpenAI-compatible /v1 scope
             .service(
                 web::scope("/v1")

@@ -4,7 +4,9 @@ use std::sync::Arc;
 use surrealdb::Surreal;
 use surrealdb::engine::any::Any;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+use surrealdb_types::SurrealValue;
+
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ApiKeyRecord {
     pub key_hash: String,
     pub name: String,
