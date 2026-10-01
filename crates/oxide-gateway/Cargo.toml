@@ -12,6 +12,7 @@ oxide-security = { path = "../oxide-security" }
 vllm-client = { path = "../vllm-client" }
 config-loader = { path = "../config-loader" }
 surrealdb = { workspace = true }
+surrealdb-types = { workspace = true }
 reqwest = { workspace = true }
 actix-web = { workspace = true }
 actix-web-lab = { workspace = true }

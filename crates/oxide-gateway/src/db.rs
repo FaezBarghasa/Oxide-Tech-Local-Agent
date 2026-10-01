@@ -3,10 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use surrealdb::engine::any::{connect, Any};
 use surrealdb::Surreal;
+use surrealdb_types::{RecordId, SurrealValue};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ModelRecord {
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<RecordId>,
+    pub model_id: String,
     pub canonical_name: String,
     pub provider: String,
     pub context_window: u32,
@@ -16,7 +19,7 @@ pub struct ModelRecord {
     pub is_free_tier: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ComboStep {
     pub provider: String,
     pub model: String,
@@ -24,17 +27,21 @@ pub struct ComboStep {
     pub weight: Option<f32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct ComboRecord {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<RecordId>,
     pub name: String,
     pub strategy: String,
     pub targets: Vec<ComboStep>,
     pub handoff_threshold_percent: u8,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct AccountRecord {
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<RecordId>,
+    pub account_id: String,
     pub provider: String,
     pub auth_type: String, // "api_key", "session_cookie", "gecko_profile"
     pub credentials_encrypted: Vec<u8>,
@@ -46,8 +53,10 @@ pub struct AccountRecord {
     pub is_active: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
 pub struct SessionRelayRecord {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<RecordId>,
     pub session_id: String,
     pub handoff_summary: String,
     pub token_count: usize,
@@ -67,11 +76,13 @@ impl GatewayDb {
             format!("surrealkv://{}", db_path.display())
         });
 
-        let db = connect(&db_url).await.or_else(|_| {
-            // In-memory fallback if file lock or permissions error occurs
-            tracing::warn!("Falling back to mem:// SurrealDB instance for GatewayDb");
-            tokio::runtime::Handle::current().block_on(connect("mem://"))
-        }).context("Failed to open embedded SurrealDB instance for GatewayDb")?;
+        let db = match connect(&db_url).await {
+            Ok(d) => d,
+            Err(e) => {
+                tracing::warn!("Failed to open db at {}: {}. Falling back to mem://", db_url, e);
+                connect("mem://").await.context("Failed to open mem:// SurrealDB instance")?
+            }
+        };
 
         db.use_ns("oxide").use_db("gateway").await?;
 
@@ -98,8 +109,8 @@ impl GatewayDb {
             .query("SELECT * FROM combo WHERE name = $name")
             .bind(("name", name.to_string()))
             .await?;
-        let combo: Option<ComboRecord> = res.take(0)?;
-        Ok(combo)
+        let mut combos: Vec<ComboRecord> = res.take(0).unwrap_or_default();
+        Ok(combos.pop())
     }
 
     pub async fn list_combos(&self) -> Result<Vec<ComboRecord>> {
@@ -126,11 +137,11 @@ impl GatewayDb {
             "#,
             )
             .bind(("provider", provider.to_string()))
-            .bind(("now", now))
+            .bind(("now", now as i64))
             .await?;
 
-        let account: Option<AccountRecord> = res.take(0)?;
-        Ok(account)
+        let mut accounts: Vec<AccountRecord> = res.take(0).unwrap_or_default();
+        Ok(accounts.pop())
     }
 
     pub async fn report_429(&self, account_id: &str, backoff_secs: u64) -> Result<()> {
@@ -149,7 +160,7 @@ impl GatewayDb {
             "#,
             )
             .bind(("id", account_id.to_string()))
-            .bind(("cooldown", cooldown_until))
+            .bind(("cooldown", cooldown_until as i64))
             .await?;
 
         Ok(())
@@ -166,7 +177,7 @@ impl GatewayDb {
             "#,
             )
             .bind(("id", account_id.to_string()))
-            .bind(("tokens", tokens))
+            .bind(("tokens", tokens as i64))
             .await?;
         Ok(())
     }
@@ -201,8 +212,8 @@ impl GatewayDb {
             .query("SELECT * FROM session_relay WHERE session_id = $session_id")
             .bind(("session_id", session_id.to_string()))
             .await?;
-        let rec: Option<SessionRelayRecord> = res.take(0)?;
-        Ok(rec)
+        let mut recs: Vec<SessionRelayRecord> = res.take(0).unwrap_or_default();
+        Ok(recs.pop())
     }
 
     pub async fn list_models(&self) -> Result<Vec<ModelRecord>> {
@@ -214,6 +225,7 @@ impl GatewayDb {
     async fn seed_default_combos(&self) -> Result<()> {
         let combos = vec![
             ComboRecord {
+                id: None,
                 name: "auto".to_string(),
                 strategy: "lkgp".to_string(),
                 targets: vec![
@@ -245,6 +257,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/coding".to_string(),
                 strategy: "priority".to_string(),
                 targets: vec![
@@ -276,6 +289,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/fast".to_string(),
                 strategy: "least-latency".to_string(),
                 targets: vec![
@@ -301,6 +315,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/cheap".to_string(),
                 strategy: "cost-optimized".to_string(),
                 targets: vec![
@@ -332,6 +347,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/smart".to_string(),
                 strategy: "quality-scoring".to_string(),
                 targets: vec![
@@ -369,6 +385,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/offline".to_string(),
                 strategy: "offline-first".to_string(),
                 targets: vec![
@@ -388,6 +405,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 90,
             },
             ComboRecord {
+                id: None,
                 name: "auto/lkgp".to_string(),
                 strategy: "lkgp".to_string(),
                 targets: vec![
@@ -407,6 +425,7 @@ impl GatewayDb {
                 handoff_threshold_percent: 85,
             },
             ComboRecord {
+                id: None,
                 name: "auto/chaos".to_string(),
                 strategy: "chaos".to_string(),
                 targets: vec![
@@ -434,23 +453,8 @@ impl GatewayDb {
         ];
 
         for c in combos {
-            let _ = self
-                .db
-                .query(
-                    r#"
-                UPSERT combo SET 
-                    name = $name,
-                    strategy = $strategy,
-                    targets = $targets,
-                    handoff_threshold_percent = $handoff
-                WHERE name = $name
-            "#,
-                )
-                .bind(("name", c.name))
-                .bind(("strategy", c.strategy))
-                .bind(("targets", c.targets))
-                .bind(("handoff", c.handoff_threshold_percent))
-                .await;
+            let name = c.name.clone();
+            let _: Option<ComboRecord> = self.db.create(("combo", name)).content(c).await.ok().flatten();
         }
         Ok(())
     }
@@ -458,7 +462,8 @@ impl GatewayDb {
     async fn seed_model_catalog(&self) -> Result<()> {
         let models = vec![
             ModelRecord {
-                id: "claude-opus-5".into(),
+                id: None,
+                model_id: "claude-opus-5".into(),
                 canonical_name: "Claude Opus 5".into(),
                 provider: "anthropic".into(),
                 context_window: 500_000,
@@ -468,7 +473,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "claude-3-7-sonnet".into(),
+                id: None,
+                model_id: "claude-3-7-sonnet".into(),
                 canonical_name: "Claude 3.7 Sonnet (Thinking)".into(),
                 provider: "anthropic".into(),
                 context_window: 200_000,
@@ -478,7 +484,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "gpt-5.6-sol".into(),
+                id: None,
+                model_id: "gpt-5.6-sol".into(),
                 canonical_name: "GPT-5.6 Sol".into(),
                 provider: "openai".into(),
                 context_window: 1_000_000,
@@ -488,7 +495,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "gpt-4o".into(),
+                id: None,
+                model_id: "gpt-4o".into(),
                 canonical_name: "GPT-4o Omni".into(),
                 provider: "openai".into(),
                 context_window: 128_000,
@@ -498,7 +506,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "deepseek-reasoner".into(),
+                id: None,
+                model_id: "deepseek-reasoner".into(),
                 canonical_name: "DeepSeek R1".into(),
                 provider: "deepseek".into(),
                 context_window: 128_000,
@@ -508,7 +517,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "deepseek-chat".into(),
+                id: None,
+                model_id: "deepseek-chat".into(),
                 canonical_name: "DeepSeek V3".into(),
                 provider: "deepseek".into(),
                 context_window: 128_000,
@@ -518,7 +528,8 @@ impl GatewayDb {
                 is_free_tier: true,
             },
             ModelRecord {
-                id: "gemini-2.5-pro".into(),
+                id: None,
+                model_id: "gemini-2.5-pro".into(),
                 canonical_name: "Gemini 2.5 Pro".into(),
                 provider: "google".into(),
                 context_window: 2_000_000,
@@ -528,7 +539,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "gemini-2.0-flash".into(),
+                id: None,
+                model_id: "gemini-2.0-flash".into(),
                 canonical_name: "Gemini 2.0 Flash".into(),
                 provider: "google".into(),
                 context_window: 1_000_000,
@@ -538,7 +550,8 @@ impl GatewayDb {
                 is_free_tier: true,
             },
             ModelRecord {
-                id: "qwen-2.5-coder-32b".into(),
+                id: None,
+                model_id: "qwen-2.5-coder-32b".into(),
                 canonical_name: "Qwen 2.5 Coder 32B".into(),
                 provider: "qwen".into(),
                 context_window: 128_000,
@@ -548,7 +561,8 @@ impl GatewayDb {
                 is_free_tier: false,
             },
             ModelRecord {
-                id: "llama-3.3-70b".into(),
+                id: None,
+                model_id: "llama-3.3-70b".into(),
                 canonical_name: "Llama 3.3 70B Instruct".into(),
                 provider: "meta-llama".into(),
                 context_window: 128_000,
@@ -558,7 +572,8 @@ impl GatewayDb {
                 is_free_tier: true,
             },
             ModelRecord {
-                id: "codestral".into(),
+                id: None,
+                model_id: "codestral".into(),
                 canonical_name: "Codestral 2501".into(),
                 provider: "mistral".into(),
                 context_window: 256_000,
@@ -570,31 +585,8 @@ impl GatewayDb {
         ];
 
         for m in models {
-            let _ = self
-                .db
-                .query(
-                    r#"
-                UPSERT model SET 
-                    id = $id,
-                    canonical_name = $name,
-                    provider = $provider,
-                    context_window = $ctx,
-                    supports_thinking = $thinking,
-                    supports_vision = $vision,
-                    supports_tools = $tools,
-                    is_free_tier = $free
-                WHERE id = $id
-            "#,
-                )
-                .bind(("id", m.id))
-                .bind(("name", m.canonical_name))
-                .bind(("provider", m.provider))
-                .bind(("ctx", m.context_window as i64))
-                .bind(("thinking", m.supports_thinking))
-                .bind(("vision", m.supports_vision))
-                .bind(("tools", m.supports_tools))
-                .bind(("free", m.is_free_tier))
-                .await;
+            let id = m.model_id.clone();
+            let _: Option<ModelRecord> = self.db.create(("model", id)).content(m).await.ok().flatten();
         }
         Ok(())
     }

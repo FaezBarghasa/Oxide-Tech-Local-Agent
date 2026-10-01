@@ -87,10 +87,10 @@ pub async fn chat_completions(
     let provider = state
         .models
         .get(&model_name)
-        .or_else(|| state.models.get(&upstream_model))
-        .or_else(|| state.models.get(&target_provider))
-        .or_else(|| state.models.iter().next())
-        .map(|p| p.value().clone());
+        .map(|p| p.value().clone())
+        .or_else(|| state.models.get(&upstream_model).map(|p| p.value().clone()))
+        .or_else(|| state.models.get(&target_provider).map(|p| p.value().clone()))
+        .or_else(|| state.models.iter().next().map(|p| p.value().clone()));
 
     let is_streaming = req.stream.unwrap_or(true);
     let params = GenerationParams {
@@ -119,8 +119,8 @@ pub async fn chat_completions(
         } else {
             let last_user_msg = messages
                 .iter()
-                .rfind(|m| m.role == "user")
-                .map(|m| m.content.clone())
+                .rfind(|m| m.role == oxide_core::Role::User)
+                .map(|m| m.text_content())
                 .unwrap_or_else(|| "Hello from Oxide Universal AI Gateway".to_string());
             let reply = format!("Oxide Gateway [{}/{}]: {}", target_provider, upstream_model, last_user_msg);
             let _ = tx.send(reply).await;
@@ -210,7 +210,7 @@ pub struct AnthropicMessageRequest {
 }
 
 pub async fn anthropic_messages(
-    state: web::Data<Arc<AppState>>,
+    _state: web::Data<Arc<AppState>>,
     req: web::Json<AnthropicMessageRequest>,
 ) -> impl Responder {
     let model_tag = req.model.clone();
