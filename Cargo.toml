@@ -27,6 +27,7 @@ members = [
     "crates/tree-sitter-service",
     "crates/vllm-client",
     "crates/mcp-cargo-gatekeeper",
+    "crates/mcp-desktop-tester",
     "crates/mcp-probe-rs",
     "crates/mcp-qemu-redox",
     "crates/mcp-live-docs",

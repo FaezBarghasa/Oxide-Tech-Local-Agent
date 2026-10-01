@@ -37,11 +37,15 @@ impl ModelResolver {
             }
         }
 
-        // 2. Parse Provider-Prefixed IDs (e.g. "anthropic/claude-3.7-sonnet:thinking", "deepseek/deepseek-r1:free")
+        // 2. Parse Provider-Prefixed IDs (e.g. "anthropic/claude-3.7-sonnet:thinking", "deepseek/deepseek-r1:free", "local/...")
         if let Some((provider, model_name)) = trimmed.split_once('/') {
             let clean_model = model_name.split(':').next().unwrap_or(model_name);
             let is_browser = Self::check_if_browser_required(provider, clean_model);
-            let account = db.get_healthy_account(provider).await?;
+            let account = if provider == "local" || provider == "local_gguf" {
+                None
+            } else {
+                db.get_healthy_account(provider).await.ok().flatten()
+            };
             let (supports_thinking, ctx) = Self::infer_capabilities(clean_model);
 
             return Ok(RoutedTarget {
@@ -58,7 +62,11 @@ impl ModelResolver {
         // 3. Normalized Core IDs (e.g., "claude-3-7-sonnet", "gpt-4o", "deepseek-reasoner", "gemini-2.5-pro")
         let (provider, upstream_model, supports_thinking, ctx) = Self::map_core_id_to_provider(trimmed);
         let is_browser = Self::check_if_browser_required(&provider, &upstream_model);
-        let account = db.get_healthy_account(&provider).await?;
+        let account = if provider == "local" || provider == "local_gguf" {
+            None
+        } else {
+            db.get_healthy_account(&provider).await.ok().flatten()
+        };
 
         Ok(RoutedTarget {
             provider,

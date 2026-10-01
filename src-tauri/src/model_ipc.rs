@@ -316,25 +316,37 @@ pub fn evaluate_model_vram_admission(file_size_bytes: u64) -> Result<AdmissionDe
         });
     }
 
-    if vram.free_vram_mb >= estimated_vram_needed_mb {
+    // Reserve 1.5 GB safety headroom for CUDA context, desktop display server & KV cache
+    let safe_vram_headroom_mb = vram.free_vram_mb.saturating_sub(1536);
+
+    if safe_vram_headroom_mb >= model_mb {
         Ok(AdmissionDecision {
             admitted: true,
             recommended_gpu_layers: 99,
             warning: None,
             estimated_vram_needed_mb,
         })
-    } else {
-        let ratio = vram.free_vram_mb as f64 / estimated_vram_needed_mb as f64;
-        let layers = (ratio * 40.0).max(1.0) as i32;
+    } else if safe_vram_headroom_mb > 512 {
+        let ratio = safe_vram_headroom_mb as f64 / model_mb.max(1) as f64;
+        let layers = ((ratio * 36.0) as i32).clamp(1, 28);
         Ok(AdmissionDecision {
             admitted: true,
             recommended_gpu_layers: layers,
             warning: Some(format!(
-                "Limited VRAM headroom: Model needs ~{:.1} GB, but only {:.1} GB VRAM is free (of {:.1} GB total). Automatically offloading {} layers to GPU and spilling remainder to system RAM to prevent OOM crash.",
-                estimated_vram_needed_mb as f64 / 1024.0,
-                vram.free_vram_mb as f64 / 1024.0,
-                vram.total_vram_mb as f64 / 1024.0,
+                "Limited VRAM headroom: Model weights ~{:.1} GB, safe free VRAM is {:.1} GB. Safely offloading {} layers to GPU and spilling remainder to system RAM to avoid cudaMalloc failure.",
+                model_mb as f64 / 1024.0,
+                safe_vram_headroom_mb as f64 / 1024.0,
                 layers
+            )),
+            estimated_vram_needed_mb,
+        })
+    } else {
+        Ok(AdmissionDecision {
+            admitted: true,
+            recommended_gpu_layers: 0,
+            warning: Some(format!(
+                "Insufficient GPU VRAM headroom ({:.1} GB free). Running model purely on CPU system RAM.",
+                vram.free_vram_mb as f64 / 1024.0
             )),
             estimated_vram_needed_mb,
         })
@@ -549,7 +561,7 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         "llama-server"
     };
 
-    let child = std::process::Command::new(server_bin)
+    let mut child = std::process::Command::new(server_bin)
         .arg("-m")
         .arg(model_path)
         .arg("--port")
@@ -561,7 +573,7 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         .arg("-ngl")
         .arg(gpu_layers.to_string())
         .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("Failed to spawn llama-server: {}. Ensure llama.cpp is installed.", e))?;
 
@@ -571,7 +583,7 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         *pid_guard = Some(child_pid);
     }
 
-    // Poll health check until server is ready (up to 30 seconds for large models)
+    // Poll health check until server is ready, monitoring child process exit
     let client = reqwest::Client::builder()
         .timeout(Duration::from_millis(500))
         .build()
@@ -580,7 +592,27 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
     let health_url = format!("http://127.0.0.1:{}/health", port);
     let mut ready = false;
 
-    for _ in 0..60 {
+    for _ in 0..240 {
+        // Check if child exited prematurely
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let mut stderr_output = String::new();
+                if let Some(mut err_pipe) = child.stderr.take() {
+                    use std::io::Read;
+                    let _ = err_pipe.read_to_string(&mut stderr_output);
+                }
+                return Err(format!(
+                    "llama-server exited prematurely with code {:?}. Stderr:\n{}",
+                    status.code(),
+                    stderr_output.trim()
+                ));
+            }
+            Ok(None) => {}
+            Err(e) => {
+                tracing::warn!("Failed to query llama-server child status: {}", e);
+            }
+        }
+
         tokio::time::sleep(Duration::from_millis(500)).await;
         if let Ok(resp) = client.get(&health_url).send().await {
             if resp.status().is_success() {
@@ -711,18 +743,38 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
     let is_local_gguf = provider == "local_gguf" || model_name.starts_with("local:") || model_name.ends_with(".gguf");
 
     if is_local_gguf {
-        let clean_model = model_name.strip_prefix("local:").unwrap_or(model_name);
+        let clean_model = model_name
+            .strip_prefix("local:")
+            .or_else(|| model_name.strip_prefix("local/"))
+            .unwrap_or(model_name);
 
         // Find the model's actual file path on disk
         let all_local = scan_default_local_gguf_models();
-        let target_model = all_local.iter().find(|m| m.name == clean_model || m.id == req.model);
+        let target_model = all_local.iter().find(|m| {
+            m.name == clean_model
+                || m.id == req.model
+                || m.name.eq_ignore_ascii_case(clean_model)
+                || m.name.trim_end_matches(".gguf").eq_ignore_ascii_case(clean_model.trim_end_matches(".gguf"))
+        });
 
         let model_path = match target_model.and_then(|m| m.path.as_deref()) {
             Some(p) => p.to_string(),
             None => {
-                // If clean_model is a direct path
+                // Check if clean_model is a direct path
                 if std::path::Path::new(clean_model).exists() {
                     clean_model.to_string()
+                } else if let Some(home) = std::env::var("HOME").ok()
+                    && std::path::PathBuf::from(&home).join("models").join(clean_model).exists()
+                {
+                    std::path::PathBuf::from(&home).join("models").join(clean_model).display().to_string()
+                } else if let Some(first_available) = all_local.first().and_then(|m| m.path.as_deref()) {
+                    tracing::warn!(
+                        "Requested model '{}' not found on disk; automatically falling back to installed model '{}' ({})",
+                        clean_model,
+                        all_local[0].name,
+                        first_available
+                    );
+                    first_available.to_string()
                 } else {
                     return Ok(RunPromptResponse {
                         text: String::new(),
@@ -731,7 +783,7 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                         tokens_used: None,
                         latency_ms: start.elapsed().as_millis() as u64,
                         error: Some(format!(
-                            "Local model '{}' not found on disk. Place .gguf files in ~/models/ or /opt/models/.",
+                            "Local model '{}' not found on disk and no alternative .gguf models found in ~/models/ or /opt/models/.",
                             clean_model
                         )),
                     });
