@@ -133,27 +133,24 @@ impl TieredKvCacheManager {
         let bytes_per_page = self.config.bytes_per_page();
 
         let start_page_idx = old_seq_len / page_size;
-        let end_page_idx = (new_seq_len + page_size - 1) / page_size;
+        let end_page_idx = new_seq_len.div_ceil(page_size);
 
         for p_idx in start_page_idx..end_page_idx {
             let p_id = p_idx as u32;
-            if !pages_guard.contains_key(&p_id) {
+            pages_guard.entry(p_id).or_insert_with(|| {
                 let token_start = p_idx * page_size;
                 let token_count = page_size;
 
                 // Initial placement in GPU VRAM
-                pages_guard.insert(
-                    p_id,
-                    KvPage {
-                        page_id: p_id,
-                        token_start,
-                        token_count,
-                        tier: KvMemoryTier::GpuVram,
-                        host_buffer: None,
-                        device_ptr: Some(0x1000_0000 + (p_id as u64 * 0x1000)),
-                    },
-                );
-            }
+                KvPage {
+                    page_id: p_id,
+                    token_start,
+                    token_count,
+                    tier: KvMemoryTier::GpuVram,
+                    host_buffer: None,
+                    device_ptr: Some(0x1000_0000 + (p_id as u64 * 0x1000)),
+                }
+            });
         }
 
         *seq_len_guard = new_seq_len;
@@ -228,16 +225,16 @@ impl TieredKvCacheManager {
         let mut pages_guard = self.pages.write().await;
         let page_size = self.config.page_size_tokens;
         let start_page = (start_token / page_size) as u32;
-        let end_page = ((end_token + page_size - 1) / page_size) as u32;
+        let end_page = (end_token.div_ceil(page_size)) as u32;
 
         let mut prefetched_pages = 0;
         for p_id in start_page..=end_page {
-            if let Some(page) = pages_guard.get_mut(&p_id) {
-                if page.tier == KvMemoryTier::HostDdr5 {
-                    page.tier = KvMemoryTier::GpuVram;
-                    page.device_ptr = Some(0x3000_0000 + (p_id as u64 * 0x1000));
-                    prefetched_pages += 1;
-                }
+            if let Some(page) = pages_guard.get_mut(&p_id)
+                && page.tier == KvMemoryTier::HostDdr5
+            {
+                page.tier = KvMemoryTier::GpuVram;
+                page.device_ptr = Some(0x3000_0000 + (p_id as u64 * 0x1000));
+                prefetched_pages += 1;
             }
         }
 

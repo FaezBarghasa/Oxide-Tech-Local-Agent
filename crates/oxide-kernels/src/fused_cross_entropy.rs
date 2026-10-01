@@ -80,8 +80,8 @@ impl ChunkedCrossEntropyKernel {
 
                 // 2. Log-Sum-Exp reduction
                 let mut sum_exp = 0.0f32;
-                for v in 0..vocab_size {
-                    sum_exp += (logits[v] - max_logit).exp();
+                for &logit in logits.iter().take(vocab_size) {
+                    sum_exp += (logit - max_logit).exp();
                 }
                 let lse = max_logit + sum_exp.ln();
 

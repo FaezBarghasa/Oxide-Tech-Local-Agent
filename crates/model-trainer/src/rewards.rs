@@ -126,8 +126,7 @@ impl SpiceSimulationReward {
             }
             let first = tokens[0].to_uppercase();
 
-            if first.starts_with('.') {
-                let cmd = &first[1..];
+            if let Some(cmd) = first.strip_prefix('.') {
                 if ["TRAN", "DC", "AC", "OP", "NOISE", "FOUR"].contains(&cmd) {
                     has_sim_cmd = true;
                 }

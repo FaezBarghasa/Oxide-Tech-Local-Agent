@@ -7,6 +7,7 @@
 
 pub struct QLoraNf4Dequant;
 
+#[allow(clippy::excessive_precision)]
 impl QLoraNf4Dequant {
     pub const NF4_TABLE: [f32; 16] = [
         -1.0, -0.6961928009986877, -0.5250730514526367, -0.39491748809814453,
@@ -106,6 +107,7 @@ impl LoRALinearKernel {
     }
 
     /// Backward pass: Computes d_lora_a, d_lora_b, and d_x given incoming d_out
+    #[allow(clippy::too_many_arguments)]
     pub fn backward(
         &self,
         x: &[f32],

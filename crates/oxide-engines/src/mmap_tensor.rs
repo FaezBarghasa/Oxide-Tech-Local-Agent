@@ -295,7 +295,7 @@ impl HardenedTensorMap {
         let align_req = std::mem::align_of::<T>().max(64);
         let raw_ptr = unsafe { mmap.as_ptr().add(offset) };
 
-        if (raw_ptr as usize) % align_req != 0 {
+        if !(raw_ptr as usize).is_multiple_of(align_req) {
             return Err(OxideError::Engine(format!(
                 "Memory alignment invariant violated: address {:p} not aligned to {}",
                 raw_ptr, align_req
@@ -306,7 +306,7 @@ impl HardenedTensorMap {
             .checked_mul(std::mem::size_of::<T>())
             .ok_or_else(|| OxideError::Engine("Arithmetic overflow computing byte bounds".to_string()))?;
 
-        if offset.checked_add(required_bytes).map_or(true, |end| end > mmap.len()) {
+        if offset.checked_add(required_bytes).is_none_or(|end| end > mmap.len()) {
             return Err(OxideError::Engine(
                 "Requested slice bounds exceed memory map capacity".into(),
             ));

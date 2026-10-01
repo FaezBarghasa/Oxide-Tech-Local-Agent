@@ -72,7 +72,7 @@ pub fn fp8_e4m3_to_f32(byte: u8) -> f32 {
 /// Quantize a slice of f32 weights into block-wise FP8 with per-block dynamic scaling.
 pub fn quantize_fp8_block(tensor: &[f32], block_size: usize) -> QuantizedFP8Block {
     let block_sz = if block_size == 0 { 64 } else { block_size };
-    let num_blocks = (tensor.len() + block_sz - 1) / block_sz;
+    let num_blocks = tensor.len().div_ceil(block_sz);
 
     let mut data = Vec::with_capacity(tensor.len());
     let mut scales = Vec::with_capacity(num_blocks);

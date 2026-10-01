@@ -10,6 +10,12 @@ pub struct ProviderRateState {
     pub max_backoff_secs: u64,
 }
 
+impl Default for ProviderRateState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProviderRateState {
     pub fn new() -> Self {
         Self {
@@ -52,6 +58,12 @@ pub struct RatePacer {
     providers: Arc<DashMap<String, ProviderRateState>>,
 }
 
+impl Default for RatePacer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RatePacer {
     pub fn new() -> Self {
         Self {
@@ -60,12 +72,12 @@ impl RatePacer {
     }
 
     pub fn is_provider_available(&self, provider: &str) -> bool {
-        let entry = self.providers.entry(provider.to_string()).or_insert_with(ProviderRateState::new);
+        let entry = self.providers.entry(provider.to_string()).or_default();
         entry.is_available()
     }
 
     pub fn report_429(&self, provider: &str) -> u64 {
-        let entry = self.providers.entry(provider.to_string()).or_insert_with(ProviderRateState::new);
+        let entry = self.providers.entry(provider.to_string()).or_default();
         entry.record_429()
     }
 
