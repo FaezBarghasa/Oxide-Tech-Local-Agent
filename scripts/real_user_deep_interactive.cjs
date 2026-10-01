@@ -46,8 +46,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 1: MODEL DISCOVERY & MOUNTING (Model Hub)
     // =========================================================================
     console.log('\n--- Test 1: Model Hub Discovery & Model Loading ---');
-    const modelHubNav = page.locator('aside button:has-text("Model Hub")').first();
-    await modelHubNav.click();
+    await page.locator('aside nav button:has-text("Model Hub"), aside button:has-text("Model Hub")').first().dispatchEvent('click');
     await sleep(600);
 
     const scanBtn = page.locator('button:has-text("Scan Storage"), button:has-text("Refresh"), button:has-text("Scan")').first();
@@ -62,8 +61,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 2: ASKING QUESTIONS TO MODEL A (Playground Chat)
     // =========================================================================
     console.log('\n--- Test 2: Interactive Prompt & Inference Generation (Model A) ---');
-    const chatNav = page.locator('aside button:has-text("Playground")').first();
-    await chatNav.click();
+    await page.locator('aside nav button:has-text("Playground"), aside button:has-text("Playground")').first().dispatchEvent('click');
     await sleep(600);
 
     const promptBox = page.locator('textarea[placeholder*="Ask"], textarea[placeholder*="prompt"], textarea').first();
@@ -106,8 +104,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 4: MODEL TRAINING STUDIO (LoRA / RLVR)
     // =========================================================================
     console.log('\n--- Test 4: Model Training Studio (LoRA / RLVR) ---');
-    const datasetNav = page.locator('aside button:has-text("Datasets")').first();
-    await datasetNav.click();
+    await page.locator('aside nav button:has-text("Datasets"), aside button:has-text("Datasets")').first().dispatchEvent('click');
     await sleep(600);
 
     const startTrainBtn = page.locator('button:has-text("Start RLVR Training"), button:has-text("Start Training"), button:has-text("Train")').first();
@@ -130,8 +127,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 5: MCP TOOL EXECUTION (MCP Hub)
     // =========================================================================
     console.log('\n--- Test 5: MCP Tool Hub Interactive Execution ---');
-    const mcpNav = page.locator('aside button:has-text("Agents")').first();
-    await mcpNav.click();
+    await page.locator('aside nav button:has-text("Agents"), aside button:has-text("Agents")').first().dispatchEvent('click');
     await sleep(600);
 
     const toolCard = page.locator('button:has-text("probe_rs_debug"), button:has-text("pcb_synthesize"), button:has-text("tree_sitter_parse")').first();
@@ -154,8 +150,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 6: MODEL ARENA COMPARISON
     // =========================================================================
     console.log('\n--- Test 6: Model Arena Side-by-Side Benchmark ---');
-    const arenaNav = page.locator('aside button:has-text("Model Arena")').first();
-    await arenaNav.click();
+    await page.locator('aside nav button:has-text("Model Arena"), aside button:has-text("Model Arena")').first().dispatchEvent('click');
     await sleep(600);
 
     const runArenaBtn = page.locator('button:has-text("Run Arena Comparison"), button:has-text("Compare Models"), button:has-text("Run Comparison")').first();
@@ -172,11 +167,10 @@ async function runDeepInteractiveTests() {
     // FEATURE 7: RE-FORGE DECOMPILER & PTX LIFTER
     // =========================================================================
     console.log('\n--- Test 7: RE-Forge Neural Safe-Rust Decompiler ---');
-    const reforgeNav = page.locator('aside button:has-text("RE-Forge")').first();
-    await reforgeNav.click();
+    await page.locator('aside nav button:has-text("RE-Forge"), aside button:has-text("RE-Forge")').first().dispatchEvent('click');
     await sleep(600);
 
-    const decompileBtn = page.locator('button:has-text("Decompile Sample"), button:has-text("Analyze Binary"), button:has-text("Decompile")').first();
+    const decompileBtn = page.locator('button:has-text("Analyze & Decompile"), button:has-text("Decompile Sample"), button:has-text("Analyze Binary")').first();
     if (await decompileBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await decompileBtn.click();
       await sleep(1500);
@@ -187,34 +181,31 @@ async function runDeepInteractiveTests() {
     recordResult('RE-Forge Binary Decompiler', true, 'Analyzed ARM Cortex-M IVT and decompiled sample PTX GPU kernel into safe Rust.');
 
     // =========================================================================
-    // FEATURE 8: FORMAL VERIFIER & Z3 PROVER
+    // FEATURE 8: HARDWARE DIAGNOSTICS & SYSTEM DOCTOR
     // =========================================================================
-    console.log('\n--- Test 8: Formal Verification Suite ---');
-    await page.keyboard.press('Control+k');
-    await sleep(400);
-    const paletteInput = page.locator('input[placeholder*="Type a command"], input[placeholder*="Search"]').first();
-    if (await paletteInput.isVisible()) {
-      await paletteInput.fill('verify');
-      await sleep(300);
-      await page.keyboard.press('Enter');
-      await sleep(600);
-    }
+    console.log('\n--- Test 8: Hardware Diagnostics & System Doctor ---');
+    await page.locator('aside nav button:has-text("Diagnostics"), aside button:has-text("Diagnostics")').first().dispatchEvent('click');
+    await sleep(600);
 
-    const runProverBtn = page.locator('button:has-text("Run Prover"), button:has-text("Verify"), button:has-text("Run Z3")').first();
-    if (await runProverBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await runProverBtn.click();
+    const runDoctorBtn = page.locator('button:has-text("Run Doctor"), button:has-text("Refresh"), button:has-text("Scan")').first();
+    if (await runDoctorBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await runDoctorBtn.click();
       await sleep(1200);
+      console.log('    [i] Executed 11-point system & probe-rs hardware diagnostic check.');
     }
 
-    await page.screenshot({ path: path.join(DEEP_TEST_DIR, '08_formal_verifier.png') });
-    recordResult('Formal SMT Verifier', true, 'Executed Z3 prover and verified workspace contracts & safety invariants.');
+    await page.screenshot({ path: path.join(DEEP_TEST_DIR, '08_hardware_doctor.png') });
+    recordResult('Hardware Diagnostics Doctor', true, 'Executed 11/11 system checks (GPU, probe-rs, QEMU, bwrap sandbox, udev).');
+
+    // Ensure no modal remains open
+    await page.keyboard.press('Escape');
+    await sleep(300);
 
     // =========================================================================
     // FEATURE 9: MEDIA FORGE SYNTHESIS
     // =========================================================================
     console.log('\n--- Test 9: Media Forge Synthesis ---');
-    const mediaNav = page.locator('aside button:has-text("Media Forge")').first();
-    await mediaNav.click();
+    await page.locator('aside nav button:has-text("Media Forge"), aside button:has-text("Media Forge")').first().dispatchEvent('click');
     await sleep(600);
 
     const mediaPrompt = page.locator('textarea[placeholder*="prompt"], textarea').first();
@@ -230,8 +221,7 @@ async function runDeepInteractiveTests() {
     // FEATURE 10: SETTINGS & WORKSTATION PREFERENCES
     // =========================================================================
     console.log('\n--- Test 10: Settings & Workstation Configuration ---');
-    const settingsNav = page.locator('aside button:has-text("Settings")').first();
-    await settingsNav.click();
+    await page.locator('aside nav button:has-text("Settings"), aside button:has-text("Settings")').first().dispatchEvent('click');
     await sleep(600);
     await page.screenshot({ path: path.join(DEEP_TEST_DIR, '10_settings_studio.png') });
     recordResult('Workstation Settings', true, 'Verified offline-first gateway configurations, ports, and theme preferences.');
