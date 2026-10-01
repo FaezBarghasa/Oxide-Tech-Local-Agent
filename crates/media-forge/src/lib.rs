@@ -30,3 +30,24 @@ impl MediaForgeEngine {
         &self.video
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_media_forge_diffusion() {
+        let engine = MediaForgeEngine::new().unwrap();
+        let req = DiffusionRequest {
+            prompt: "cyberpunk PCB trace render".to_string(),
+            width: 64,
+            height: 64,
+            steps: 2,
+            ..Default::default()
+        };
+        let res = engine.diffusion().generate(req).await.unwrap();
+        assert_eq!(res.image_width, 64);
+        assert_eq!(res.image_height, 64);
+        assert_eq!(res.raw_rgb.len(), 64 * 64 * 3);
+    }
+}

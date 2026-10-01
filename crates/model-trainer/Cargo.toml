@@ -15,6 +15,9 @@ tracing = { workspace = true }
 blake3 = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
+anyhow = { workspace = true }
+reqwest = { workspace = true }
+tokio-stream = { workspace = true }
 async-trait = "0.1"
 sysinfo = { workspace = true }
 memmap2 = { workspace = true }

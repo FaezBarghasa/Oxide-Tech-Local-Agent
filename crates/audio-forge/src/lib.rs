@@ -51,3 +51,23 @@ impl AudioEngine {
         &self.tts
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_audio_engine_creation() {
+        let engine = AudioEngine::new().unwrap();
+        assert!(!engine.capture_buffer().is_recording());
+        assert_eq!(engine.stt().model_name(), "whisper-small-q5_1");
+    }
+
+    #[tokio::test]
+    async fn test_stt_transcription() {
+        let stt = SpeechToTextEngine::new();
+        let res = stt.transcribe(&[0.1; 1600]).await.unwrap();
+        assert_eq!(res.language, "en");
+        assert!(res.confidence > 0.9);
+    }
+}

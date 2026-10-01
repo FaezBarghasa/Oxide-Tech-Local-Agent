@@ -80,14 +80,6 @@ impl HubDownloader {
         let mut file = File::create(dest_path)
             .with_context(|| format!("Failed to create destination file {}", dest_path.display()))?;
 
-        let mut stream = resp.bytes_stream();
-        use tokio_stream::StreamExt;
-
-        while let Some(chunk_res) = stream.next().await {
-            let chunk = chunk_res?;
-            hasher.update(&chunk);
-            file.write_all(&chunk)?;
-        }
 
         let hash_str = hasher.finalize().to_hex().to_string();
         Ok(hash_str)

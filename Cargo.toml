@@ -53,8 +53,6 @@ members = [
     "crates/surface-api",
     "crates/ratchet",
     "crates/forge-rust",
-    "crates/audio-forge",
-    "crates/media-forge",
     "targets/llm-pretraining-rs/surface",
     "targets/llm-pretraining-rs/harness",
     "src-tauri",
@@ -64,9 +62,6 @@ resolver = "3"
 
 
 [workspace.dependencies]
-rust-embed = { version = "8.5", features = ["mime-guess"] }
-mime_guess = "2.0"
-cpal = "0.15"
 rmcp = { version = "3.2.0", features = ["server", "transport-io"] }
 reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
 tokio = { version = "1.52", features = ["full"] }
