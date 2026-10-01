@@ -152,18 +152,16 @@ impl AclRule {
         }
 
         // 3. Source prefix check
-        if let Some(ref pfx) = self.src_prefix {
-            if !pfx.contains(meta.src_ip) {
+        if let Some(ref pfx) = self.src_prefix
+            && !pfx.contains(meta.src_ip) {
                 return false;
             }
-        }
 
         // 4. Destination prefix check
-        if let Some(ref pfx) = self.dst_prefix {
-            if !pfx.contains(meta.dst_ip) {
+        if let Some(ref pfx) = self.dst_prefix
+            && !pfx.contains(meta.dst_ip) {
                 return false;
             }
-        }
 
         // 5. Port range check
         if let Some((min_port, max_port)) = self.port_range {

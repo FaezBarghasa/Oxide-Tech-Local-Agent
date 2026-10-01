@@ -43,14 +43,14 @@ impl SwarmPairingManager {
 
     /// Determines whether to offload heavy inference or training to the paired compute core.
     pub fn evaluate_offload(&self, prompt_tokens: usize, requires_heavy_model: bool, available_peers: &[DiscoveredNode]) -> TaskOffloadDecision {
-        if self.local_role == SwarmRole::EdgeController && (prompt_tokens > 150 || requires_heavy_model) {
-            if let Some(core) = available_peers.iter().find(|p| p.role == SwarmRole::ComputeCore) {
-                return TaskOffloadDecision {
-                    should_offload: true,
-                    target_node: Some(core.clone()),
-                    reason: format!("Prompt ({} tokens) routed to high-VRAM compute core '{}'", prompt_tokens, core.node_id),
-                };
-            }
+        if self.local_role == SwarmRole::EdgeController && (prompt_tokens > 150 || requires_heavy_model)
+            && let Some(core) = available_peers.iter().find(|p| p.role == SwarmRole::ComputeCore)
+        {
+            return TaskOffloadDecision {
+                should_offload: true,
+                target_node: Some(core.clone()),
+                reason: format!("Prompt ({} tokens) routed to high-VRAM compute core '{}'", prompt_tokens, core.node_id),
+            };
         }
 
         TaskOffloadDecision {

@@ -190,19 +190,19 @@ impl ModelResolver {
             // 2. Fill-First (Drain active provider until rate-limit)
             "fill-first" => {
                 for step in targets {
-                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
-                        if account.is_active {
-                            let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
-                            return Ok(RoutedTarget {
-                                provider: step.provider.clone(),
-                                model: step.model.clone(),
-                                is_browser_session: false,
-                                supports_thinking,
-                                context_window: ctx,
-                                account: Some(account),
-                                routing_strategy_applied: "fill-first".into(),
-                            });
-                        }
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await
+                        && account.is_active
+                    {
+                        let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                        return Ok(RoutedTarget {
+                            provider: step.provider.clone(),
+                            model: step.model.clone(),
+                            is_browser_session: false,
+                            supports_thinking,
+                            context_window: ctx,
+                            account: Some(account),
+                            routing_strategy_applied: "fill-first".into(),
+                        });
                     }
                 }
                 Self::fallback_target(targets, db, "fill-first").await
@@ -280,11 +280,11 @@ impl ModelResolver {
                 let mut min_tokens = u64::MAX;
 
                 for step in targets {
-                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
-                        if account.tokens_used_today < min_tokens {
-                            min_tokens = account.tokens_used_today;
-                            best_target = step;
-                        }
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await
+                        && account.tokens_used_today < min_tokens
+                    {
+                        min_tokens = account.tokens_used_today;
+                        best_target = step;
                     }
                 }
 

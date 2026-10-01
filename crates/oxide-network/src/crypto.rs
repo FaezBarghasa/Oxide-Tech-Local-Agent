@@ -318,7 +318,7 @@ mod hex {
     }
 
     pub fn decode(hex_str: &str) -> Result<Vec<u8>, String> {
-        if hex_str.len() % 2 != 0 {
+        if !hex_str.len().is_multiple_of(2) {
             return Err("Hex string must have even length".into());
         }
         (0..hex_str.len())

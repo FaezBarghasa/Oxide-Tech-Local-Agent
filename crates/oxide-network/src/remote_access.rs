@@ -229,25 +229,22 @@ impl RemoteAccessMeshEngine {
             };
 
             // 4. Encrypt and dispatch to destination peer
-            match target {
-                RouteTarget::DirectPeer { node_id, .. } => {
-                    let mut peers_guard = self.peers.write().await;
-                    if let Some(peer) = peers_guard.get_mut(&node_id) {
-                        let seq = peer.send_seq;
-                        peer.send_seq += 1;
+            if let RouteTarget::DirectPeer { node_id, .. } = target {
+                let mut peers_guard = self.peers.write().await;
+                if let Some(peer) = peers_guard.get_mut(&node_id) {
+                    let seq = peer.send_seq;
+                    peer.send_seq += 1;
 
-                        let ciphertext = peer.cipher.encrypt(seq, packet);
-                        let ptype = if meta.dst_ip.is_v4() {
-                            PacketType::Ipv4
-                        } else {
-                            PacketType::Ipv6
-                        };
-                        let wire_pkt = WirePacket::new(ptype, seq as u32, ciphertext)?;
-                        self.transport.send_datagram(node_id, wire_pkt).await?;
-                        return Ok(Some(node_id));
-                    }
+                    let ciphertext = peer.cipher.encrypt(seq, packet);
+                    let ptype = if meta.dst_ip.is_v4() {
+                        PacketType::Ipv4
+                    } else {
+                        PacketType::Ipv6
+                    };
+                    let wire_pkt = WirePacket::new(ptype, seq as u32, ciphertext)?;
+                    self.transport.send_datagram(node_id, wire_pkt).await?;
+                    return Ok(Some(node_id));
                 }
-                _ => {}
             }
         }
 
@@ -264,10 +261,10 @@ impl RemoteAccessMeshEngine {
         let verdict = pre_parse_packet(packet_bytes);
         match verdict {
             PreParseVerdict::JunkIgnored => {
-                return Ok(Vec::new()); // Camouflage packet safely discarded
+                Ok(Vec::new())// Camouflage packet safely discarded
             }
             PreParseVerdict::Malformed => {
-                return Err(OxideError::Network("Malformed datagram header".into()));
+                Err(OxideError::Network("Malformed datagram header".into()))
             }
             PreParseVerdict::ValidData { packet_id, .. }
             | PreParseVerdict::ValidControl { packet_id, .. } => {

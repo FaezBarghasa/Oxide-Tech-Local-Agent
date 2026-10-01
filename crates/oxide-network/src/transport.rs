@@ -191,13 +191,11 @@ impl TransportCircuitBreaker {
     }
 
     pub fn is_peer_allowed(&self, node_id: &NodeId) -> bool {
-        if let Some((failures, last_failure)) = self.peer_failures.get(node_id) {
-            if *failures >= self.config.failure_threshold {
-                if last_failure.elapsed() < Duration::from_secs(self.config.recovery_timeout_secs) {
+        if let Some((failures, last_failure)) = self.peer_failures.get(node_id)
+            && *failures >= self.config.failure_threshold
+                && last_failure.elapsed() < Duration::from_secs(self.config.recovery_timeout_secs) {
                     return false; // Circuit open (tripped)
                 }
-            }
-        }
         true
     }
 

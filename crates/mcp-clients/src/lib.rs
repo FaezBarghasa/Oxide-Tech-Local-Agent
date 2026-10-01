@@ -100,6 +100,7 @@ impl EiosMcpClient {
     }
 }
 
+#[allow(clippy::result_large_err)]
 pub mod bridge_proto {
     tonic::include_proto!("oxide.bridge");
 }

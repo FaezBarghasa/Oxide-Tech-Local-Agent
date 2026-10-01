@@ -560,6 +560,7 @@ export interface TrainerJobRequest {
 export interface TrainerJobStatus {
   job_id: string;
   status: string;
+  model?: string;
   step: number;
   total_steps: number;
   loss: number;

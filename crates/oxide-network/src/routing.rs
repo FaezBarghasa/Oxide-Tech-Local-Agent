@@ -145,9 +145,7 @@ impl L1DirectMappedCache {
     }
 
     pub fn clear(&mut self) {
-        for slot in &mut self.slots {
-            *slot = (0, None);
-        }
+        self.slots.fill((0, None));
     }
 }
 

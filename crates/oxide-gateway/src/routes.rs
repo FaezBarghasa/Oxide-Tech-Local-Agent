@@ -130,8 +130,8 @@ pub async fn chat_completions(
                 "stream": true,
             });
 
-            if let Ok(resp) = client.post(llama_url).json(&body).send().await {
-                if resp.status().is_success() {
+            if let Ok(resp) = client.post(llama_url).json(&body).send().await
+                && resp.status().is_success() {
                     let mut stream = resp.bytes_stream();
                     while let Some(item) = stream.next().await {
                         if let Ok(bytes) = item {
@@ -155,7 +155,6 @@ pub async fn chat_completions(
                     }
                     return;
                 }
-            }
 
             let _ = tx.send(format!(
                 "Error: No inference provider loaded for model '{}' and no active llama-server at http://127.0.0.1:8081.",
@@ -357,39 +356,35 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
         .build()
         .unwrap_or_default();
 
-    if let Ok(resp) = client.get("http://127.0.0.1:11434/api/tags").send().await {
-        if let Ok(json) = resp.json::<serde_json::Value>().await {
-            if let Some(arr) = json.get("models").and_then(|m| m.as_array()) {
+    if let Ok(resp) = client.get("http://127.0.0.1:11434/api/tags").send().await
+        && let Ok(json) = resp.json::<serde_json::Value>().await
+            && let Some(arr) = json.get("models").and_then(|m| m.as_array()) {
                 for item in arr {
-                    if let Some(name) = item.get("name").and_then(|n| n.as_str()) {
-                        if !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(name)) {
+                    if let Some(name) = item.get("name").and_then(|n| n.as_str())
+                        && !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(name)) {
                             catalog.push(serde_json::json!({
                                 "id": name,
                                 "owned_by": "ollama",
                                 "type": "ollama_model"
                             }));
                         }
-                    }
                 }
             }
-        }
-    }
 
     // 3. Query active llama-server if running
-    if let Ok(resp) = client.get("http://127.0.0.1:8081/v1/models").send().await {
-        if let Ok(json) = resp.json::<serde_json::Value>().await {
-            if let Some(arr) = json.get("data").and_then(|m| m.as_array()) {
-                for item in arr {
-                    if let Some(id) = item.get("id").and_then(|n| n.as_str()) {
-                        if !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(id)) {
-                            catalog.push(serde_json::json!({
-                                "id": id,
-                                "owned_by": "llama-server",
-                                "type": "active_llama_server"
-                            }));
-                        }
-                    }
-                }
+    if let Ok(resp) = client.get("http://127.0.0.1:8081/v1/models").send().await
+        && let Ok(json) = resp.json::<serde_json::Value>().await
+        && let Some(arr) = json.get("data").and_then(|m| m.as_array())
+    {
+        for item in arr {
+            if let Some(id) = item.get("id").and_then(|n| n.as_str())
+                && !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(id))
+            {
+                catalog.push(serde_json::json!({
+                    "id": id,
+                    "owned_by": "llama-server",
+                    "type": "active_llama_server"
+                }));
             }
         }
     }
@@ -520,27 +515,26 @@ pub async fn agent_think(
             "stream": false,
         });
 
-        if let Ok(resp) = client.post(llama_url).json(&body).send().await {
-            if resp.status().is_success() {
-                if let Ok(json) = resp.json::<serde_json::Value>().await {
-                    let reply = json
-                        .get("choices")
-                        .and_then(|c| c.as_array())
-                        .and_then(|a| a.first())
-                        .and_then(|choice| choice.get("message"))
-                        .and_then(|m| m.get("content"))
-                        .and_then(|c| c.as_str())
-                        .unwrap_or("")
-                        .to_string();
+        if let Ok(resp) = client.post(llama_url).json(&body).send().await
+            && resp.status().is_success()
+            && let Ok(json) = resp.json::<serde_json::Value>().await
+        {
+            let reply = json
+                .get("choices")
+                .and_then(|c| c.as_array())
+                .and_then(|a| a.first())
+                .and_then(|choice| choice.get("message"))
+                .and_then(|m| m.get("content"))
+                .and_then(|c| c.as_str())
+                .unwrap_or("")
+                .to_string();
 
-                    return HttpResponse::Ok().json(ThinkResponse {
-                        status: "success".to_string(),
-                        reply,
-                        model: model_name,
-                        timestamp: chrono::Utc::now().to_rfc3339(),
-                    });
-                }
-            }
+            return HttpResponse::Ok().json(ThinkResponse {
+                status: "success".to_string(),
+                reply,
+                model: model_name,
+                timestamp: chrono::Utc::now().to_rfc3339(),
+            });
         }
 
         HttpResponse::ServiceUnavailable().json(serde_json::json!({

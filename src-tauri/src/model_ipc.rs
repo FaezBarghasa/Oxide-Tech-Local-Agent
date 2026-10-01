@@ -143,7 +143,7 @@ pub fn parse_gguf_metadata(path: &std::path::Path) -> Option<GgufMetadata> {
                     break;
                 }
             }
-            4 | 5 | 6 => {
+            4..=6 => {
                 if file.read_exact(&mut buf4).is_err() {
                     break;
                 }
@@ -176,7 +176,7 @@ pub fn parse_gguf_metadata(path: &std::path::Path) -> Option<GgufMetadata> {
                     }
                 }
             }
-            10 | 11 | 12 => {
+            10..=12 => {
                 if file.read_exact(&mut buf8).is_err() {
                     break;
                 }
@@ -198,8 +198,8 @@ pub fn parse_gguf_metadata(path: &std::path::Path) -> Option<GgufMetadata> {
                 let item_size = match arr_type {
                     0 | 1 | 7 => 1,
                     2 | 3 => 2,
-                    4 | 5 | 6 => 4,
-                    10 | 11 | 12 => 8,
+                    4..=6 => 4,
+                    10..=12 => 8,
                     _ => 0,
                 };
                 if item_size > 0 {
@@ -1301,6 +1301,7 @@ pub struct TrainerJobRequest {
 pub struct TrainerJobStatus {
     pub job_id: String,
     pub status: String,
+    pub model: Option<String>,
     pub step: u32,
     pub total_steps: u32,
     pub loss: f32,
@@ -1359,6 +1360,7 @@ pub async fn trainer_start_job(req: TrainerJobRequest) -> std::result::Result<Tr
     let initial_status = TrainerJobStatus {
         job_id: job_id.clone(),
         status: "RUNNING".to_string(),
+        model: Some(req.model.clone()),
         step: 0,
         total_steps: total_steps as u32,
         loss: 0.142,
