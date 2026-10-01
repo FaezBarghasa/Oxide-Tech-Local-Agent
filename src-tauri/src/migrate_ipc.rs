@@ -120,9 +120,6 @@ pub async fn import_unsloth_items(selected_paths: Vec<String>) -> Result<ImportS
                     info!("Imported Unsloth session record: {:?}", p);
                 }
             }
-        } else {
-            // Simulated migration for preset
-            imported_models += 1;
         }
     }
 
@@ -135,7 +132,7 @@ pub async fn import_unsloth_items(selected_paths: Vec<String>) -> Result<ImportS
         success: true,
         imported_models,
         imported_sessions,
-        imported_skills: 2,
+        imported_skills: 0,
         message: format!(
             "Successfully imported {} models and {} sessions. Oxide-Tech is ready as your primary runner.",
             imported_models, imported_sessions

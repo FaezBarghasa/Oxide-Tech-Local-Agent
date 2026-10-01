@@ -392,18 +392,20 @@ fn main() {
         return;
     }
     let (cmd, rest) = match raw.split_first() {
+        Some((head, _)) if head == "--install" || head == "-i" || head == "install" => ("install", &raw[1..]),
         Some((head, _)) if !head.starts_with('-') => (head.as_str(), &raw[1..]),
         _ => ("desktop", raw.as_slice()),
     };
 
     match cmd {
         "desktop" => run_desktop(flag_value(&raw, "--config")),
-        "install" | "--install" => {
+        "install" => {
             let force = raw.iter().any(|a| a == "--force" || a == "-f");
             if let Err(e) = installer::run_self_install(force) {
                 eprintln!("install error: {e:?}");
                 std::process::exit(1);
             }
+            std::process::exit(0);
         }
         "daemon" => {
             if let Err(e) = gateway_rt::run_headless(flag_value(&raw, "--config").as_deref()) {
