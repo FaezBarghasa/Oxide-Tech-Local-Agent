@@ -1,10 +1,41 @@
-# Oxide-Tech Local Agent OS: System Diagrams (v2.1)
+# Oxide-Tech Local Agent OS: System Diagrams (v3.2)
 
-This document contains Mermaid diagrams illustrating request handling, tri-engine perception dispatch, graph traversal, multi-agent loop orchestration, and self-evolution cycles.
+This document contains Mermaid diagrams illustrating request handling, universal AI gateway routing, tri-engine perception dispatch, graph traversal, multi-agent loop orchestration, and self-evolution cycles.
 
 ---
 
-## 1. End-to-End System Execution Sequence with Perception Layer
+## 1. Universal AI Gateway & Native Inference Execution Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / IDE / Studio UI
+    participant GW as Universal Gateway (:8080)
+    participant Router as Universal Router (19 Strategies)
+    participant Llama as Native llama-server (:8081)
+    participant Ollama as Local Ollama (:11434)
+    participant Cloud as Browser-Auth Cloud Provider
+    participant Verifier as Deterministic Verifiers
+
+    User->>GW: POST /api/v1/gateway/route (prompt, model, strategy)
+    GW->>Router: Evaluate 16-Factor Scoring Engine & Active Strategy
+    alt Native Offline Local GGUF
+        Router->>Llama: POST /v1/chat/completions (GPU -ngl 99)
+        Llama-->>Router: Response stream / JSON
+    else Local Ollama Daemon
+        Router->>Ollama: POST /api/chat
+        Ollama-->>Router: Response stream / JSON
+    else Context-Relay or Multi-Account Cloud
+        Router->>Cloud: POST /v1/chat/completions (OAuth Token / API Key)
+        Cloud-->>Router: Response stream / JSON
+    end
+    Router-->>GW: Result + Latency + Token Usage
+    GW-->>User: 200 OK Response DTO
+```
+
+---
+
+## 2. End-to-End System Execution Sequence with Perception Layer
 
 ```mermaid
 sequenceDiagram
@@ -13,7 +44,7 @@ sequenceDiagram
     participant GW as Dual-Protocol Gateway (:8080)
     participant Percept as Perception Router (Scrapling/PinchTab/Kitesurf)
     participant Graph as Graph Engineering Engine
-    participant SGLang as SGLang TP=2 (:30000)
+    participant Llama as Native llama-server (:8081)
     participant Verifier as Deterministic Verifiers
     participant Evolver as Self-Evolution Engine
     participant DB as SurrealDB v3 / Qdrant
@@ -34,14 +65,14 @@ sequenceDiagram
     Graph->>DB: Fetch 1-hop & 2-hop topological callers/callees
     Graph-->>GW: Return Compact Pruned Context (-80% tokens)
 
-    GW->>SGLang: Route to Dynamic LoRA Adapter (lora_embedded_rust_v2)
-    SGLang-->>GW: Generate Structured Plan & Code
+    GW->>Llama: Route to Active Model (e.g. Ternary-Bonsai-2-27B)
+    Llama-->>GW: Generate Structured Plan & Code
 
     GW->>Verifier: Checkpoint tree (git stash create) & Run cargo check / QEMU
     alt Verification Fails (Compiler Error)
         Verifier-->>GW: Error diagnostics (stderr)
-        GW->>SGLang: Feed error to Verifier / Coder Persona for self-correction
-        SGLang-->>GW: Generate fixed code
+        GW->>Llama: Feed error to Verifier / Coder Persona for self-correction
+        Llama-->>GW: Generate fixed code
         GW->>Verifier: Re-run verification (Max 5 attempts)
     end
 
@@ -53,7 +84,7 @@ sequenceDiagram
 
 ---
 
-## 2. Multi-Agent Persona Handoff (Researcher -> Architect -> Coder -> DRC)
+## 3. Multi-Agent Persona Handoff (Researcher -> Architect -> Coder -> DRC)
 
 ```mermaid
 stateDiagram-v2
@@ -83,7 +114,7 @@ stateDiagram-v2
 
 ---
 
-## 3. Tri-Engine Perception Dispatch Hierarchy
+## 4. Tri-Engine Perception Dispatch Hierarchy
 
 ```mermaid
 graph TD
@@ -106,7 +137,7 @@ graph TD
 
 ---
 
-## 4. Tri-Fold Self-Evolution Engine Flow
+## 5. Tri-Fold Self-Evolution Engine Flow
 
 ```mermaid
 graph LR
@@ -129,7 +160,7 @@ graph LR
 
 ---
 
-## 5. Cyclic Agent FSM Lifecycle & State Transitions
+## 6. Cyclic Agent FSM Lifecycle & State Transitions
 
 ```mermaid
 stateDiagram-v2
@@ -149,7 +180,7 @@ stateDiagram-v2
 
 ---
 
-## 6. Human-in-the-Loop (HITL) Inbox Suspension & Resumption Sequence
+## 7. Human-in-the-Loop (HITL) Inbox Suspension & Resumption Sequence
 
 ```mermaid
 sequenceDiagram

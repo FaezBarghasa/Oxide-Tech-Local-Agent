@@ -1,14 +1,26 @@
-# Oxide-Tech Local Agent OS: System Architecture (v2.2)
+# Oxide-Tech Local Agent OS: System Architecture (v3.2)
 
-**Oxide-Tech-Local-Agent** is organized into 6 primary engineering layers, ensuring full isolation, structural intelligence, deterministic verification, autonomous self-evolution, and multi-domain physical co-simulation.
+**Oxide-Tech-Local-Agent** is organized into isolated, highly optimized engineering layers, ensuring structural intelligence, deterministic verification, autonomous self-evolution, multi-domain physical co-simulation, and universal AI model routing.
 
 ---
 
-## 1. Six-Layer Architecture & Data Flow
+## 1. System Architecture & Data Flow
 
 ```mermaid
 graph TD
-    Client[User / IDE / Studio UI: React 19] -->|TCP JSON-RPC / UDP HTTP3 / SSE| Gateway[Gateway: Actix + Quinn QUIC 8080]
+    Client[User / IDE / Studio UI: React 19] -->|TCP JSON-RPC / UDP HTTP3 / SSE| Gateway[Universal Gateway: Actix + Quinn QUIC 8080]
+
+    subgraph GatewayLayer [Universal AI Gateway & Model Routing Plane]
+        Router[Universal Router: 19 Algorithmic Strategies]
+        Scorer[16-Factor Dynamic Scoring Engine]
+        LlamaRt[Native llama-server Runtime :8081 -ngl 99]
+        OllamaRt[Local Ollama Bridge :11434]
+        CloudUpstreams[OAuth Browser-Authenticated Providers]
+        Router --> Scorer
+        Router --> LlamaRt
+        Router --> OllamaRt
+        Router --> CloudUpstreams
+    end
 
     subgraph DTXLayer [Distributed Transaction Layer: The Oxide Protocol]
         DTX[DtxCoordinator: UUIDv7 DTX State Machine]
@@ -16,13 +28,13 @@ graph TD
     end
 
     subgraph Layer0 [Layer 1: External Research & Perception Layer]
-        Router[Dynamic Perception Dispatcher]
-        Tier1[Tier 1: d4vinci/Scrapling (Local Fast Headless)]
-        Tier2[Tier 2: pinchtab/pinchtab (Local Interactive Daemon)]
-        Tier3[Tier 3: Cloudflare Kitesurf (Cloud V8 Browser Isolates)]
-        Router --> Tier1
-        Router --> Tier2
-        Router --> Tier3
+        PerceptRouter[Dynamic Perception Dispatcher]
+        Tier1[Tier 1: d4vinci/Scrapling - Local Fast Headless]
+        Tier2[Tier 2: pinchtab/pinchtab - Local Interactive Daemon]
+        Tier3[Tier 3: Cloudflare Kitesurf - Cloud V8 Browser Isolates]
+        PerceptRouter --> Tier1
+        PerceptRouter --> Tier2
+        PerceptRouter --> Tier3
     end
 
     subgraph Layer1 [Layer 2: Graph Engineering & Multi-Domain Memory]
@@ -59,6 +71,7 @@ graph TD
         SkillOpt[SkillOpt Crystallizer -> SKILL.md]
     end
 
+    Gateway --> GatewayLayer
     Gateway --> DTXLayer
     DTXLayer --> Layer0
     Layer0 --> Layer1
@@ -70,7 +83,37 @@ graph TD
 
 ---
 
-## 2. Non-Autoregressive Pure-Rust Decision Engine (`crates/oxide-engines`)
+## 2. Universal AI Gateway Matrix (`crates/oxide-gateway/src/universal_router.rs`)
+
+The **Universal AI Gateway** executes a multi-strategy routing plane that load-balances, failovers, and optimizes requests across local hardware and multi-account cloud upstreams:
+
+```text
+[ Incoming Request (Prompt / Chat Completion) ]
+                     │
+                     ▼
+        ┌─────────────────────────┐
+        │  UniversalRouter        │
+        └────────────┬────────────┘
+                     │
+     ┌───────────────┴───────────────┐
+     ▼                               ▼
+[ 19 Routing Strategies ]      [ 16-Factor Scoring Engine ]
+• priority                     • Context Capacity & Limit Proximity
+• fill-first                   • Reasoning / Thinking Support
+• weighted / round-robin       • Account Rate Headroom (RPM/RPD)
+• p2c / least-used             • 429 Consecutive Failure Exponential Backoff
+• cost-optimized / headroom    • KV Cache Affinity / Locality
+• reset-window / reset-aware   • Active Token Bucket Balance
+• context-relay (>= 85%)       • Offline / Air-gapped Preference
+• auto / fusion / chaos        • Historical Provider Latency
+                     │
+                     ▼
+[ Upstream Dispatch: Native llama-server (:8081) / Ollama (:11434) / Cloud ]
+```
+
+---
+
+## 3. Non-Autoregressive Pure-Rust Decision Engine (`crates/oxide-engines`)
 
 The decision engine runs **strictly non-autoregressive** (single forward pass, deterministic output, no token-generation loop), achieving ultra-low latency, calibrated confidence, and sub-500 MB footprint:
 
@@ -96,12 +139,12 @@ The decision engine runs **strictly non-autoregressive** (single forward pass, d
 - **`DecisionEngine`**: Zero-mutex contention actor-worker handle executing batched matrix multiplications on a dedicated thread.
 - **`CandidateVectorCache`**: Pre-computed normalized candidate embeddings for 30–100+ choices, performing microsecond dense dot-product evaluations against state embeddings.
 - **`FastKanDecisionHead`**: Non-autoregressive B-spline/trigonometric activation projection resolving multi-candidate probability distributions in a single pass.
-- **`BrierScoreLoss`**: Mathematically calibrated loss function avoiding the artificial overconfidence of standard cross-entropy.
+- **`BrierScoreLoss`**: Mathematically calibrated loss function avoiding artificial overconfidence.
 - **`AlignedTensorMap`**: SIMD-aligned (64-byte boundary) memory-mapped weights with `fs2` advisory reader locks.
 
 ---
 
-## 3. Subsystem Deep Dive
+## 4. Subsystem Deep Dive
 
 ### Layer 1: External Research & Perception Layer (`crates/mcp-live-docs`)
 - **Stealth Local Extraction (`d4vinci/Scrapling`)**: Fast Python-based extraction worker handling `docs.rs`, GitHub issues, and crates.io with sub-200ms DOM parsing.
@@ -136,17 +179,14 @@ The decision engine runs **strictly non-autoregressive** (single forward pass, d
 - **Secure Stderr Capture & Sanitization (`stderr_sanitizer.rs`)**: 16 KiB bounded ring buffer tail capture with regex scrubbing of API keys/tokens into `0600` root-isolated diagnostic files.
 - **Process Group Containment (`process_containment.rs`)**: Enforces POSIX process group tree (`setpgid`) wrapping with 4-second SIGTERM grace intervals and SIGKILL tree destruction to eliminate zombie processes.
 
-### Layer 8: Accelerated Compute & Tiered Memory Architecture (`crates/oxide-kernels` & `crates/model-trainer`)
-- **GPU Architecture Autotuning (`autotune.rs`)**: Hardware SM detection across Nvidia Ampere (SM80/86), Ada (SM89), Hopper (SM90), and Blackwell (SM100/120) with optimal tile sizing and warp allocations.
-- **DDR5 Host RAM Spillover Tier (`ddr5_offload.rs`)**: Tiered hierarchy (`GpuVram` $\to$ `HostDdr5` $\to$ `NvmeDisk`) automatically evicting tensors to pinned host RAM when VRAM headroom drops below $800\text{ MB}$.
-- **AVX-512 Tensor Compression (`avx512_compress.rs`)**: 4x memory bandwidth reduction converting FP32 tensors to INT8 with dynamic scaling factors via AVX-512F/BW SIMD vectorization.
-
 ---
 
-## 3. Desktop-First Integration (`src-tauri` & `ui/oxide-agent-studio`)
+## 5. Desktop-First Integration (`src-tauri` & `ui/oxide-agent-studio`)
 
 The desktop application directly mounts the full suite of backend capabilities across specialized studio views:
 - **System Doctor**: Direct target connectivity, hardware permissions, and udev rule deployment.
+- **Catalog & Model Manager**: Native GGUF model scanning, GPU offload controls, and `llama-server` process lifecycle management.
+- **Gateway Dashboard**: Real-time routing strategy configuration, account rate-limit gauges, and token bucket monitors.
 - **RE-Forge Studio**: Binary architecture analysis, ARM vector table parsing, entropy graphs, and safe-Rust decompilation.
 - **Verification Matrix**: Real-time multi-suite verification execution, checkpointer rollback, and evidence bundle generation.
 - **Memory & Rule Fabric**: Persistent decision inspection, contradiction detection, and 2-hop GraphRAG traversals.

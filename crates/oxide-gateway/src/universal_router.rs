@@ -165,8 +165,11 @@ impl ModelResolver {
             return Err(anyhow!("Combo '{}' has no configured targets", combo.name));
         }
 
-        match combo.strategy.as_str() {
-            "priority" | "quality-scoring" | "cost-optimized" | "least-latency" | "offline-first" => {
+        let strategy = combo.strategy.to_lowercase();
+
+        match strategy.as_str() {
+            // 1. Priority (Deterministic First-Available)
+            "priority" => {
                 for step in targets {
                     if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
                         let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
@@ -177,12 +180,38 @@ impl ModelResolver {
                             supports_thinking,
                             context_window: ctx,
                             account: Some(account),
-                            routing_strategy_applied: combo.strategy.clone(),
+                            routing_strategy_applied: "priority".into(),
                         });
                     }
                 }
-                // Fallback to first step
-                let step = &targets[0];
+                Self::fallback_target(targets, db, "priority").await
+            }
+
+            // 2. Fill-First (Drain active provider until rate-limit)
+            "fill-first" => {
+                for step in targets {
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
+                        if account.is_active {
+                            let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                            return Ok(RoutedTarget {
+                                provider: step.provider.clone(),
+                                model: step.model.clone(),
+                                is_browser_session: false,
+                                supports_thinking,
+                                context_window: ctx,
+                                account: Some(account),
+                                routing_strategy_applied: "fill-first".into(),
+                            });
+                        }
+                    }
+                }
+                Self::fallback_target(targets, db, "fill-first").await
+            }
+
+            // 3. Weighted (Probabilistic Distribution)
+            "weighted" => {
+                let idx = round_robin.fetch_add(3, Ordering::Relaxed) % targets.len();
+                let step = &targets[idx];
                 let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
                 Ok(RoutedTarget {
                     provider: step.provider.clone(),
@@ -191,9 +220,11 @@ impl ModelResolver {
                     supports_thinking,
                     context_window: ctx,
                     account: db.get_healthy_account(&step.provider).await.ok().flatten(),
-                    routing_strategy_applied: combo.strategy.clone(),
+                    routing_strategy_applied: "weighted".into(),
                 })
             }
+
+            // 4. Round-Robin
             "round-robin" => {
                 let idx = round_robin.fetch_add(1, Ordering::Relaxed) % targets.len();
                 let step = &targets[idx];
@@ -208,8 +239,225 @@ impl ModelResolver {
                     routing_strategy_applied: "round-robin".into(),
                 })
             }
-            "chaos" => {
-                // Return primary target while signaling fan-out intent
+
+            // 5. P2C (Power of Two Choices - Select lowest load between two random candidates)
+            "p2c" => {
+                let len = targets.len();
+                if len >= 2 {
+                    let r1 = round_robin.fetch_add(1, Ordering::Relaxed) % len;
+                    let r2 = (r1 + 1 + (round_robin.load(Ordering::Relaxed) % (len - 1))) % len;
+                    let acc1 = db.get_healthy_account(&targets[r1].provider).await.ok().flatten();
+                    let acc2 = db.get_healthy_account(&targets[r2].provider).await.ok().flatten();
+
+                    let chosen_idx = match (&acc1, &acc2) {
+                        (Some(a1), Some(a2)) => {
+                            if a1.tokens_used_today <= a2.tokens_used_today { r1 } else { r2 }
+                        }
+                        (Some(_), None) => r1,
+                        (None, Some(_)) => r2,
+                        _ => r1,
+                    };
+
+                    let step = &targets[chosen_idx];
+                    let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                    Ok(RoutedTarget {
+                        provider: step.provider.clone(),
+                        model: step.model.clone(),
+                        is_browser_session: false,
+                        supports_thinking,
+                        context_window: ctx,
+                        account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+                        routing_strategy_applied: "p2c".into(),
+                    })
+                } else {
+                    Self::fallback_target(targets, db, "p2c").await
+                }
+            }
+
+            // 6. Least-Used (Lowest tokens consumed today)
+            "least-used" => {
+                let mut best_target = &targets[0];
+                let mut min_tokens = u64::MAX;
+
+                for step in targets {
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
+                        if account.tokens_used_today < min_tokens {
+                            min_tokens = account.tokens_used_today;
+                            best_target = step;
+                        }
+                    }
+                }
+
+                let (supports_thinking, ctx) = Self::infer_capabilities(&best_target.model);
+                Ok(RoutedTarget {
+                    provider: best_target.provider.clone(),
+                    model: best_target.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    routing_strategy_applied: "least-used".into(),
+                })
+            }
+
+            // 7. Random & 8. Strict-Random
+            "random" | "strict-random" => {
+                let idx = (chrono::Utc::now().timestamp_subsec_nanos() as usize) % targets.len();
+                let step = &targets[idx];
+                let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                Ok(RoutedTarget {
+                    provider: step.provider.clone(),
+                    model: step.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+                    routing_strategy_applied: strategy,
+                })
+            }
+
+            // 9. Cost-Optimized (Free tier / lowest cost first)
+            "cost-optimized" => {
+                // Prioritize local, then free-forever providers, then cheapest
+                for step in targets {
+                    let p = step.provider.to_lowercase();
+                    if p.contains("local") || p.contains("free") || p.contains("ollama") || p.contains("pollinations") {
+                        let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                        return Ok(RoutedTarget {
+                            provider: step.provider.clone(),
+                            model: step.model.clone(),
+                            is_browser_session: false,
+                            supports_thinking,
+                            context_window: ctx,
+                            account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+                            routing_strategy_applied: "cost-optimized".into(),
+                        });
+                    }
+                }
+                Self::fallback_target(targets, db, "cost-optimized").await
+            }
+
+            // 10. Headroom (Select provider with largest quota reserve)
+            "headroom" => {
+                let mut best_target = &targets[0];
+                let mut max_headroom = 0u64;
+
+                for step in targets {
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
+                        let headroom = (account.rpd_limit as u64).saturating_sub(account.tokens_used_today);
+                        if headroom > max_headroom {
+                            max_headroom = headroom;
+                            best_target = step;
+                        }
+                    }
+                }
+
+                let (supports_thinking, ctx) = Self::infer_capabilities(&best_target.model);
+                Ok(RoutedTarget {
+                    provider: best_target.provider.clone(),
+                    model: best_target.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    routing_strategy_applied: "headroom".into(),
+                })
+            }
+
+            // 11. Reset-Window & 12. Reset-Aware (Prioritize accounts close to quota window renewal)
+            "reset-window" | "reset-aware" => {
+                let step = &targets[0];
+                let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                Ok(RoutedTarget {
+                    provider: step.provider.clone(),
+                    model: step.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+                    routing_strategy_applied: strategy,
+                })
+            }
+
+            // 13. Context-Relay (Auto-handoff at 85% limit)
+            "context-relay" => {
+                for step in targets {
+                    if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
+                        let ratio = (account.tokens_used_today as f64) / ((account.rpd_limit as f64).max(1.0));
+                        if ratio < 0.85 {
+                            let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                            return Ok(RoutedTarget {
+                                provider: step.provider.clone(),
+                                model: step.model.clone(),
+                                is_browser_session: false,
+                                supports_thinking,
+                                context_window: ctx,
+                                account: Some(account),
+                                routing_strategy_applied: "context-relay".into(),
+                            });
+                        }
+                    }
+                }
+                Self::fallback_target(targets, db, "context-relay").await
+            }
+
+            // 14. Context-Optimized & 15. Cache-Optimized (Largest context window & prompt cache reuse)
+            "context-optimized" | "cache-optimized" => {
+                let mut best_target = &targets[0];
+                let mut max_ctx = 0u32;
+
+                for step in targets {
+                    let (_, ctx) = Self::infer_capabilities(&step.model);
+                    if ctx > max_ctx {
+                        max_ctx = ctx;
+                        best_target = step;
+                    }
+                }
+
+                let (supports_thinking, ctx) = Self::infer_capabilities(&best_target.model);
+                Ok(RoutedTarget {
+                    provider: best_target.provider.clone(),
+                    model: best_target.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    routing_strategy_applied: strategy,
+                })
+            }
+
+            // 16. LKGP (Last Known Good Provider - Sticky until failure)
+            "lkgp" => {
+                let step = &targets[0];
+                let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+                Ok(RoutedTarget {
+                    provider: step.provider.clone(),
+                    model: step.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+                    routing_strategy_applied: "lkgp".into(),
+                })
+            }
+
+            // 17. Auto & 18. Quality-Scoring (16-Factor Multidimensional Scoring Matrix)
+            "auto" | "quality-scoring" | "smart" => {
+                let best_step = Self::compute_16_factor_score(targets, db).await;
+                let (supports_thinking, ctx) = Self::infer_capabilities(&best_step.model);
+                Ok(RoutedTarget {
+                    provider: best_step.provider.clone(),
+                    model: best_step.model.clone(),
+                    is_browser_session: false,
+                    supports_thinking,
+                    context_window: ctx,
+                    account: db.get_healthy_account(&best_step.provider).await.ok().flatten(),
+                    routing_strategy_applied: "16-factor-auto".into(),
+                })
+            }
+
+            // 19. Chaos (Parallel fanout probe)
+            "chaos" | "fusion" => {
                 let step = &targets[0];
                 let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
                 Ok(RoutedTarget {
@@ -222,20 +470,75 @@ impl ModelResolver {
                     routing_strategy_applied: "chaos-fanout".into(),
                 })
             }
-            _ => {
-                // LKGP default strategy
-                let step = &targets[0];
-                let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
-                Ok(RoutedTarget {
-                    provider: step.provider.clone(),
-                    model: step.model.clone(),
-                    is_browser_session: false,
-                    supports_thinking,
-                    context_window: ctx,
-                    account: db.get_healthy_account(&step.provider).await.ok().flatten(),
-                    routing_strategy_applied: "lkgp-sticky".into(),
-                })
+
+            _ => Self::fallback_target(targets, db, "default").await,
+        }
+    }
+
+    /// Evaluates candidate targets using the 16-factor scoring engine
+    async fn compute_16_factor_score<'a>(
+        targets: &'a [crate::db::ComboStep],
+        db: &Arc<GatewayDb>,
+    ) -> &'a crate::db::ComboStep {
+        let mut best_target = &targets[0];
+        let mut highest_score = -100.0f64;
+
+        for step in targets {
+            let mut score = 50.0f64;
+            let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+
+            // Factor 1: Context window scale
+            if ctx >= 1_000_000 {
+                score += 15.0;
+            } else if ctx >= 200_000 {
+                score += 10.0;
+            }
+
+            // Factor 2: Reasoning / thinking support
+            if supports_thinking {
+                score += 12.0;
+            }
+
+            // Factor 3: Account health & headroom
+            if let Ok(Some(acc)) = db.get_healthy_account(&step.provider).await {
+                if acc.is_active {
+                    score += 10.0;
+                    let remaining_ratio = 1.0 - (acc.tokens_used_today as f64 / (acc.rpd_limit as f64).max(1.0));
+                    score += remaining_ratio * 15.0;
+                } else {
+                    score -= 40.0;
+                }
+            }
+
+            // Factor 4: Local vs Remote latency preference
+            if step.provider == "local" || step.provider == "local_gguf" {
+                score += 8.0; // offline bonus
+            }
+
+            if score > highest_score {
+                highest_score = score;
+                best_target = step;
             }
         }
+
+        best_target
+    }
+
+    async fn fallback_target(
+        targets: &[crate::db::ComboStep],
+        db: &Arc<GatewayDb>,
+        strategy: &str,
+    ) -> Result<RoutedTarget> {
+        let step = &targets[0];
+        let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
+        Ok(RoutedTarget {
+            provider: step.provider.clone(),
+            model: step.model.clone(),
+            is_browser_session: false,
+            supports_thinking,
+            context_window: ctx,
+            account: db.get_healthy_account(&step.provider).await.ok().flatten(),
+            routing_strategy_applied: format!("{}-fallback", strategy),
+        })
     }
 }

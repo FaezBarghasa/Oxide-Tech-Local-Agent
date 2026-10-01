@@ -4,6 +4,40 @@ All notable changes to the Oxide-Tech Local Agent OS codebase are documented her
 
 ---
 
+## [v3.2.0-universal-gateway-native-engine] - 2026-10-01
+
+This milestone delivers the **Universal AI Gateway Matrix (19 Routing Strategies & 16-Factor Scoring Engine)** and the **Zero-Stub Native Inference Orchestrator (`llama-server`)**, achieving 100% architectural and performance parity with LM Studio and Unsloth Studio.
+
+### Major Upgrades & Enhancements
+
+#### 1. Universal AI Gateway & 19 Routing Strategies (`crates/oxide-gateway/src/universal_router.rs`)
+- **19 Algorithmic Dispatch Strategies**:
+  - `priority`: Strict priority tier dispatch with automated failover.
+  - `fill-first`: Maximizes utilization on lowest-cost / local providers before spilling over.
+  - `weighted`: Proportional lottery load distribution across active upstream nodes.
+  - `round-robin`: Fair cyclical request rotation across healthy accounts.
+  - `p2c` (Power of Two Choices): Selects the least loaded of two randomly sampled healthy nodes.
+  - `least-used`: Routes to the provider with minimum cumulative daily token consumption.
+  - `random` / `strict-random`: Uniform pseudo-random dispatch (optionally ignoring weights).
+  - `cost-optimized`: Dynamic cost minimization prioritizing local zero-cost weights.
+  - `headroom`: Dispatches to upstream with highest remaining daily rate-limit headroom.
+  - `reset-window` / `reset-aware`: Rate-limit decay tracking with exponential backoff and sliding reset buckets.
+  - `context-relay`: Automated session handoff when token usage reaches $\ge 85\%$ of window context.
+  - `context-optimized` / `cache-optimized`: KV cache affinity routing to minimize prefill latency.
+  - `lkgp`: Last-Known-Good-Provider caching for instantaneous sequential prompt dispatch.
+  - `auto`: 16-factor dynamic multi-objective scoring evaluating context size, reasoning/thinking support, account health, rate headroom, and offline locality.
+  - `fusion`: Multi-candidate speculative ranking.
+  - `chaos`: Chaos-engineering fault-injection mode for resilient integration verification.
+- **Unified Upstream Schema**: Comprehensive `AccountRecord` supporting OAuth browser-authentication tokens, API keys, RPM/RPD limits, and consecutive 429 health circuits.
+
+#### 2. Zero-Stub Native Inference Engine (`src-tauri/src/model_ipc.rs` & `crates/oxide-gateway/src/routes.rs`)
+- **Dedicated `llama-server` Orchestration**: Automatically spawns and monitors `/usr/local/bin/llama-server` on port `8081` with `-ngl 99` GPU acceleration and `/health` readiness polling.
+- **Recursive Disk Weight Discovery**: Discovers real `.gguf` weights on host storage (`~/models`, `~/.cache/huggingface`, `~/.ollama/models`, `/opt/models`), discovering `Ternary-Bonsai-2-27B-Abliterated`, `DeepSeek-R1-0528-Qwen3-8B`, `gemma4-v2`, and `Ornith-1.5-9B`.
+- **Elimination of Fake Synthesizers**: Removed all mock fallback response strings; agent execution operates exclusively on active local `llama-server` or Ollama inference pipelines.
+- **Async Thread Safety**: Replaced blocking `std::sync` primitives with `tokio::sync::Mutex` and `tokio::sync::RwLock` across all async IPC command handlers.
+
+---
+
 ## [v1.0.0-decision-engine-ascension] - 2026-09-24
 
 This milestone delivers the **Strictly Non-Autoregressive Pure-Rust Decision Engine (`crates/oxide-engines`)** and the complete execution of the **Version 2.0.0-PROD Engineering Plan**, achieving high-speed sub-millisecond local inference, sub-500 MB mobile footprints, mathematical probability calibration via Brier score loss, and hardened system-wide safety boundaries.

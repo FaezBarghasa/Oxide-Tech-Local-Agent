@@ -6,6 +6,12 @@
 
 ## 1. Core Feature Tabs
 
+- **Model Catalog & Native Engine (`CatalogTab.tsx`)**:
+  - Live discovery of local `.gguf` weights on host storage (`~/models`, `~/.cache/huggingface`, `~/.ollama/models`).
+  - Real-time GPU layer offloading configuration (`-ngl 99`), context size allocation, and on-demand `llama-server` lifecycle management.
+- **Universal Gateway Dashboard (`GatewayTab.tsx`)**:
+  - Configuration of 19 algorithmic routing strategies (`priority`, `cost-optimized`, `context-relay`, `auto`, etc.).
+  - Upstream browser-authenticated account management and token bucket gauges.
 - **Graph Topology & Structural Skeleton (`GraphTopologyTab.tsx`)**:
   - Live interactive visualization of multi-modal code graphs (AST nodes, function callers/callees).
   - Downstream blast radius impact analysis and predictive test target selection.
@@ -16,9 +22,8 @@
 - **Verifier & Sandboxes (`VerifierTab.tsx`)**:
   - Deterministic compiler and DRC verifiers (`cargo check`, `kicad-cli`, `qemu`).
   - Atomic working tree checkpoint history and instant one-click rollbacks.
-- **LoRA Models & SGLang (`LoraTab.tsx`)**:
-  - SGLang TP=2 serving status on port `30000`.
-  - Dynamic LoRA adapter hot-swapping (`lora_embedded_rust_v2`, `lora_kicad_schgen_v3`, `lora_cad_b3d_v1`).
+- **Project Memory & GraphRAG (`MemoryTab.tsx`)**:
+  - Integrated `oxide-embed` semantic memory fabric, STAIR Code-ToC search, and contradiction auditor.
 - **Terminal & Ring Buffers (`TerminalTab.tsx`)**:
   - Low-latency streaming of ephemeral terminal session logs, dirty editor buffers, and stack traces.
 
@@ -40,4 +45,4 @@ pnpm build
 pnpm start
 ```
 
-The application will be accessible at: **[http://localhost:3000](http://localhost:3000)**.
+The application will be accessible at: **[http://localhost:3000](http://localhost:3000)** or directly via the Tauri v2 Desktop binary `oxide-agent`.

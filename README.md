@@ -1,6 +1,6 @@
 # Oxide-Tech Local Agent OS
 
-**Oxide-Tech Local Agent OS** is a local-first, graph-aware, sandboxed agentic engineering operating system designed for deterministic software, embedded firmware, open-source EDA, high-performance binary/GPU reverse engineering, and multi-physics co-simulation workflows.
+**Oxide-Tech Local Agent OS** is a local-first, graph-aware, sandboxed agentic engineering operating system designed for deterministic software, embedded firmware, open-source EDA, high-performance binary/GPU reverse engineering, multi-physics co-simulation, and universal multi-provider AI model orchestration.
 
 ---
 
@@ -10,11 +10,29 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 
 | Operating Profile | Flag | Inference Backend | Default Model | Storage & Sandboxing |
 | --- | --- | --- | --- | --- |
-| **Lite Mode** | `--profile lite` | Local Ollama / `llama.cpp` | `gemma-4:9B` | Embedded SurrealKV / in-memory, read-only sandbox default |
-| **Standard Mode** | `--profile standard` | Local Ollama / vLLM | `gemma-4-moe:26B` | Local SurrealDB + Qdrant, `bwrap` namespace sandbox |
-| **Pro Mode** | `--profile pro` | SGLang / vLLM (TP=2) | `Ornith-1.5:35B` | SurrealDB + Qdrant, LoRA hot-swapping, full verifiers |
-| **Air-Gapped Mode** | `--profile airgapped` | Pure offline weights | `qwen3.8:27b` | Zero WAN, offline doc index, signed tool manifests |
-| **Enterprise Mode** | `--profile enterprise` | Local Cluster / Private API | Multi-model pipeline | Audit journal, RBAC, cryptographic evidence bundles |
+| **Lite Mode** | `--profile lite` | Local `llama-server` / Ollama | `gemma4-v2-Q3_K_M.gguf` | Embedded SurrealKV / in-memory, read-only sandbox default |
+| **Standard Mode** | `--profile standard` | Local `llama-server` / vLLM | `Ternary-Bonsai-2-27B-Abliterated` | Local SurrealDB + Qdrant, `bwrap` namespace sandbox |
+| **Pro Mode** | `--profile pro` | SGLang / vLLM (TP=2) | `DeepSeek-R1-0528-Qwen3-8B` | SurrealDB + Qdrant, LoRA hot-swapping, full verifiers |
+| **Air-Gapped Mode** | `--profile airgapped` | Pure offline `.gguf` weights | `Ornith-1.5-9B-Q4_K_M.gguf` | Zero WAN, offline doc index, signed tool manifests |
+| **Enterprise Mode** | `--profile enterprise` | Universal Gateway / Private API | Multi-model pipeline | Audit journal, RBAC, cryptographic evidence bundles |
+
+---
+
+## 🌐 Universal AI Gateway & Native Engine Matrix (v3.2)
+
+Oxide-Tech incorporates a pure-Rust **Universal AI Gateway** and zero-stub **Native Inference Orchestrator**, providing parity with LM Studio and Unsloth Studio:
+
+### 1. 19 Universal Routing Strategies (`crates/oxide-gateway/src/universal_router.rs`)
+- **Traffic Balancing**: `round-robin`, `weighted`, `random`, `strict-random`, `p2c` (power-of-two-choices), `least-used`, `chaos` (chaos-engineering fault injection).
+- **Latency & Capacity Gating**: `priority`, `fill-first`, `headroom`, `cost-optimized`, `lkgp` (last-known-good-provider).
+- **Rate-Limit & Reset Awareness**: `reset-window` (sliding token bucket), `reset-aware` (RPM/RPD decay tracker).
+- **Context Routing**: `context-relay` (automatic handoff when session tokens reach $\ge 85\%$ context limit), `context-optimized`, `cache-optimized` (KV cache affinity).
+- **Heuristic Ensembles**: `auto` (16-factor dynamic multi-objective scoring), `fusion` (multi-candidate speculative ranking).
+
+### 2. Zero-Stub Native Inference Runtime
+- **On-Demand `llama-server` Daemon**: Managed GPU offloading (`-ngl 99`, `--ctx-size 8192`, `--port 8081`) with real-time health polling and PID lifecycle supervision.
+- **Recursive Disk Discovery**: Auto-indexes local `.gguf` weights across `~/models`, `~/.cache/huggingface`, `~/.ollama/models`, and `/opt/models`.
+- **Zero Fake Stubs**: Elimination of all mock/fallback synthesizers; every inference request executes genuine weights locally or routes via active cloud providers.
 
 ---
 
@@ -26,7 +44,9 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ JSON-RPC 2.0 / SSE / QUIC HTTP/3
 ┌───────────────────────────────────▼────────────────────────────────────┐
-│ Gateway & Control Plane (crates/gateway, :8080)                        │
+│ Gateway & Universal Control Plane (crates/oxide-gateway, :8080)        │
+│ - 19 Routing Strategies + 16-Factor Scoring Engine                     │
+│ - Native llama-server runtime (:8081) + Ollama bridge (:11434)        │
 │ - Actix-Web + Quinn HTTP/3, JWT Guards, Prometheus /metrics            │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │
@@ -68,7 +88,7 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | Crate | Directory | Purpose & Agent Capability |
 | --- | --- | --- |
 | **`oxide-protocol`** | `crates/oxide-protocol/` | Universal communication specification, JSON-RPC 2.0 schemas for EDA/CAD, and time-ordered UUIDv7 Distributed Transaction IDs (`DtxId`). |
-| **`gateway`** | `crates/gateway/` | Dual-protocol high-performance gateway (Actix-web HTTP/2 + Quinn QUIC HTTP/3 + SSE streamable endpoints). |
+| **`oxide-gateway`** | `crates/oxide-gateway/` | Universal AI Gateway server with 19 routing strategies, 16-factor scoring, token bucket rate-limiting, and OpenAI-compatible proxying. |
 | **`thinker`** | `crates/thinker/` | Autonomous reasoning loop, ReAct decision cycle, tool calling synthesizer, and multi-step plan decomposition. |
 | **`memory`** | `crates/memory/` | CrossDomainContextPacker, scoped working memory (`Global`, `Session`, `Task`, `Scratchpad`), causal action graphs, and Memanto decision conflict auditor. |
 | **`router`** | `crates/router/` | Fast/Slow cascading intent router, multi-persona supervisor swarm, and operational mode enforcement. |
@@ -80,10 +100,10 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`mcp-server`** | `crates/mcp-server/` | Modern RMCP server with parameterized workspace boundaries and autonomous reasoning tools. |
 | **`blog`** | `crates/blog/` | Automated technical documentation, mdBook knowledge base synchronization, and docstring crystallization. |
 | **`scheduler`** | `crates/scheduler/` | Distributed Transaction Coordinator (`DtxCoordinator`), Human-in-the-Loop (HITL) interrupt channels, and GPU governor. |
-| **`forge-rust`** | `crates/forge-rust/` | Polyglot-to-Rust refactoring engine (C/C++, Python, TypeScript, Go, Java, Generic) lifting to UIR, converting ownership/errors/concurrency to idiomatic Rust 2024 with `syn` validation and Cargo crate scaffolding. |
-| **`cross-domain-verifier`** | `crates/cross-domain-verifier/` | Multi-physics electro-thermal-mechanical co-simulation loop (firmware duty cycle $\to$ PCB wattage $\to$ CAD thermal FEA mesh). |
-| **`re-forge`** | `crates/re-forge/` | Zero-copy pure-Rust CPU binary disassembler (`goblin`, `yaxpeax-arch`, `petgraph`) & GPU/CUDA cuDNN lifting (PTX parser, Tensor Core detection, neural decompilation to safe Rust and CUDA C++). |
-| **`circuit-forge`** | `crates/circuit-forge/` | EDA schematic builder, Electrical Rule Checking (ERC), topology analysis, and native KiCad S-expression serialization. |
+| **`forge-rust`** | `crates/forge-rust/` | Polyglot-to-Rust refactoring engine lifting foreign code to UIR and synthesizing idiomatic Rust 2024. |
+| **`cross-domain-verifier`** | `crates/cross-domain-verifier/` | Multi-physics electro-thermal-mechanical co-simulation loop. |
+| **`re-forge`** | `crates/re-forge/` | Zero-copy pure-Rust CPU binary disassembler & GPU/CUDA cuDNN decompilation. |
+| **`circuit-forge`** | `crates/circuit-forge/` | EDA schematic builder, Electrical Rule Checking (ERC), topology analysis, and KiCad S-expression serialization. |
 | **`cad-forge`** | `crates/cad-forge/` | Parametric 3D CAD modeling, B-Rep geometric kernel, and voxelized clearance validation. |
 | **`scene-forge`** | `crates/scene-forge/` | 3D scene graph, WGPU rendering pipeline integration, and Glam transformation matrices. |
 | **`parametric-forge`** | `crates/parametric-forge/` | Constraint solver for parametric sketches and kinematic linkages. |
@@ -93,22 +113,20 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`ratchet`** | `crates/ratchet/` | Dynamic native FFI hot-reloading and ABI validation runtime. |
 | **`surface-api`** | `crates/surface-api/` | Direct GPU compute and surface memory transfer abstractions. |
 | **`edge-swarm`** | `crates/edge-swarm/` | Decentralized edge agent gossip protocol and mesh coordination. |
-| **`oxide-engines`** | `crates/oxide-engines/` | Pure-Rust non-autoregressive decision engine (`DecisionEngine`), dynamic micro-batching via Flume MPMC, `CandidateVectorCache`, Brier score calibration, Fast-KAN head, and `AlignedTensorMap` memory-mapped SIMD tensor loader. |
-| **`oxide-protocol`** | `crates/oxide-protocol/` | Hermetic FlatBuffers IPC schemas, PCB layout serialization, and zero-allocation cross-process DTOs. |
-| **`oxide-security`** | `crates/oxide-security/` | Ephemeral TLS bootstrap, Cloudroom-style process supervision, `< 2GB` circuit-breaker resource gater, idempotent session receipts, 16 KiB stderr ring sanitizer, bounded outbox, and process tree containment (`setpgid`). |
-| **`oxide-kernels`** | `crates/oxide-kernels/` | GPU architecture autotuning (Ampere, Ada, Hopper, Blackwell), tile sizing, and AVX-512F/BW SIMD tensor compression (4x FP32 $\to$ INT8). |
-| **`oxide-state`** | `crates/oxide-state/` | Centralized agent state holding SurrealDB connection, `ResourceGater`, `SessionSupervisor`, and model registries. |
-| **`oxide-gateway`** | `crates/oxide-gateway/` | High-performance Actix-web OpenAI-compatible HTTP server with token bucket rate-limiting and circuit-breaker preflight gating. |
-| **`model-trainer`** | `crates/model-trainer/` | HuggingFace `AutoModelForCausalLM` Safetensors sharding, Online RL (DPO, ORPO, GRPO), Multi-Node ZeRO-3 parameter sharding, and DDR5 RAM tier offloading. |
+| **`oxide-engines`** | `crates/oxide-engines/` | Pure-Rust non-autoregressive decision engine (`DecisionEngine`), dynamic micro-batching via Flume MPMC, `CandidateVectorCache`, Brier score calibration, and Fast-KAN head. |
+| **`oxide-security`** | `crates/oxide-security/` | Ephemeral TLS bootstrap, `< 2GB` circuit-breaker resource gater, idempotent session receipts, and process tree containment (`setpgid`). |
+| **`oxide-kernels`** | `crates/oxide-kernels/` | GPU architecture autotuning (Ampere, Ada, Hopper, Blackwell), tile sizing, and AVX-512F SIMD tensor compression. |
+| **`oxide-state`** | `crates/oxide-state/` | Centralized agent state holding SurrealDB connection, `ResourceGater`, and model registries. |
+| **`model-trainer`** | `crates/model-trainer/` | Safetensors sharding, Online RL (DPO, ORPO, GRPO), Multi-Node ZeRO-3 parameter sharding, and DDR5 RAM tier offloading. |
 | **`optio`** | `crates/optio/` | ReAct DAG orchestration engine, Personalized PageRank (PPR) AST slicing, oscillation guard, and task budgets. |
-| **`sandbox`** | `crates/sandbox/` | Bubblewrap (`bwrap`) Linux namespace sandbox with resource caps and unshared PID/mount namespaces. |
+| **`sandbox`** | `crates/sandbox/` | Bubblewrap (`bwrap`) Linux namespace sandbox with resource caps. |
 | **`vllm-client`** | `crates/vllm-client/` | Pluggable `InferenceProvider` (Ollama, SGLang, vLLM, Candle) with LoRA adapter hot-swapping. |
 | **`agent-journal`** | `crates/agent-journal/` | Event-sourced execution journaling using `rkyv` with deterministic state replay. |
 | **`config-loader`** | `crates/config-loader/` | Profile-aware configuration manager (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`). |
-| **`formal-verify`** | `crates/formal-verify/` | Bounded model checking, Kani formal proof generator, and LLM-as-Judge `TraceValidator` for soundness and hallucination checks. |
-| **`benchmark-harness`** | `crates/benchmark-harness/` | Multi-suite agent evaluation harness (ARC-AGI, GAIA, SWE-bench) with `StepInvariantMetrics` (tool accuracy, schema validity, recovery, cost). |
-| **`rag-pipeline`** | `crates/rag-pipeline/` | Hybrid retrieval with Tree-sitter AST symbol extraction and AST-to-netlist GraphRAG coupling. |
-| **`qdrant-service`** | `crates/qdrant-service/` | Local Qdrant vector database client for dense AST embeddings and semantic code search. |
+| **`formal-verify`** | `crates/formal-verify/` | Bounded model checking, Kani formal proof generator, and LLM-as-Judge `TraceValidator`. |
+| **`benchmark-harness`** | `crates/benchmark-harness/` | Multi-suite agent evaluation harness with `StepInvariantMetrics`. |
+| **`rag-pipeline`** | `crates/rag-pipeline/` | Hybrid retrieval with Tree-sitter AST symbol extraction and GraphRAG. |
+| **`qdrant-service`** | `crates/qdrant-service/` | Local Qdrant vector database client for dense AST embeddings. |
 | **`surrealdb-service`** | `crates/surrealdb-service/` | Multi-model graph and document database engine for AST and memory storage. |
 | **`tree-sitter-service`** | `crates/tree-sitter-service/` | Multi-language syntax tree parsing, symbol indexing, and AST extraction. |
 | **`gateway-router`** | `crates/gateway-router/` | Fast routing tables and middleware filters for API gateways. |
@@ -119,7 +137,7 @@ Oxide-Tech provides 5 target operating modes adapting from lightweight laptop en
 | **`mcp-qemu-redox`** | `crates/mcp-qemu-redox/` | Headless microVM Redox OS emulation and kernel driver validation. |
 | **`mcp-cargo-gatekeeper`** | `crates/mcp-cargo-gatekeeper/` | Sandboxed compiler checks, dependency security scanning, and policy gates. |
 | **`mcp-live-docs`** | `crates/mcp-live-docs/` | Real-time offline datasheet search and technical documentation RAG. |
-| **`ebpf-sentinel`** | `crates/ebpf-sentinel/` | Kernel-level LSM probe sandbox enforcing strict filesystem and hardware peripheral confinement. |
+| **`ebpf-sentinel`** | `crates/ebpf-sentinel/` | Kernel-level LSM probe sandbox enforcing strict filesystem confinement. |
 | **`self-evolver`** | `crates/self-evolver/` | GRPO reward harvesting (`VerificationDelta`), skill crystallization (`SKILL.md`), and automated tool synthesis. |
 
 ---

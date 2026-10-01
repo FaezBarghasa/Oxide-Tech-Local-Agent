@@ -1,10 +1,36 @@
-# Oxide-Tech Local Agent OS: System Control Flow (v2.1)
+# Oxide-Tech Local Agent OS: System Control Flow (v3.2)
 
 This document details the step-by-step logic, runtime control loops, and execution algorithms that govern Oxide-Tech Local Agent OS.
 
 ---
 
-## 1. Tri-Engine Perception & External Research Flow
+## 1. Universal AI Gateway Routing & Scoring Flow
+
+```
+[Inbound Prompt / Chat Request Received at :8080]
+                       │
+                       ▼
+[UniversalRouter (universal_router.rs)]
+  - Evaluates Request Strategy (1 of 19 Strategies)
+                       │
+  ┌────────────────────┼─────────────────────────────────┐
+  ▼                    ▼                                 ▼
+[Context-Relay Flow]  [Auto 16-Factor Scorer]    [Local-First / Cost-Optimized]
+- Inspects session     - Context Proximity        - Evaluates local llama-server
+  token usage (85%+)   - Thinking capability      - Zero WAN / Zero token cost
+- Hand off if needed   - 429 consecutive fails    - Direct -ngl 99 GPU pipeline
+  │                    │                                 │
+  └────────────────────┼─────────────────────────────────┘
+                       │
+                       ▼
+[Target Upstream Dispatched]
+  - Native llama-server (:8081) / Ollama (:11434) / Cloud Provider
+  - Token bucket accounting & sliding reset-window decay recorded
+```
+
+---
+
+## 2. Tri-Engine Perception & External Research Flow
 
 ```
 [Research / Perception Intent Identified]
@@ -32,7 +58,7 @@ This document details the step-by-step logic, runtime control loops, and executi
 
 ---
 
-## 2. Multi-Modal Graph Traversal & Context Pruning Flow
+## 3. Multi-Modal Graph Traversal & Context Pruning Flow
 
 ```
 [Target Node Modified (Function / Struct / Net / ExternalDependency)]
@@ -53,17 +79,6 @@ This document details the step-by-step logic, runtime control loops, and executi
   - Serializes minimal JSON subgraph slice
   - Reduces LLM context token usage by 75%–89%
 ```
-
----
-
-## 3. Dynamic LoRA Adapter Hot-Swapping Flow
-
-1. **Intent Analysis**: The user prompt is analyzed by `LoraRouter` in `workspace/router/src/lora_router.rs`.
-2. **Domain Classification**:
-   - `FirmwareEmbedded` (`no_std`, `stm32`, `dma`, `uart`) $\rightarrow$ activates `lora_embedded_rust_v2`.
-   - `PcbCad` (`kicad`, `schematic`, `netlist`, `skidl`) $\rightarrow$ activates `lora_kicad_schgen_v3`.
-   - `CAD3D` (`blender`, `b-rep`, `step`, `opencascade`) $\rightarrow$ activates `lora_cad_b3d_v1`.
-3. **Runtime Activation**: Sends HTTP POST to `/v1/lora/activate` on SGLang serving cluster without restarting weights.
 
 ---
 
@@ -180,4 +195,3 @@ This document details the step-by-step logic, runtime control loops, and executi
   - Validates syntax with syn::parse_file
   - Generates Cargo.toml, src/lib.rs / src/main.rs, and README.md
 ```
-

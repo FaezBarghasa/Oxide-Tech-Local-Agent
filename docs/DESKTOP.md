@@ -4,11 +4,11 @@ One binary runs everything; one `.deb` installs it all.
 
 ## What the binary does
 
-`oxide-agent` (crate `src-tauri`) is the only production artifact:
+`oxide-agent` (crate `src-tauri`) is the unified desktop & headless entry point:
 
 | Invocation | Behaviour |
 |---|---|
-| `oxide-agent` / `oxide-agent desktop [--config PATH]` | Tauri window (Oxide Agent Studio) + gateway embedded on a background thread (`127.0.0.1:8080`) + memory via bundled `oxide-embed` sidecar |
+| `oxide-agent` / `oxide-agent desktop [--config PATH]` | Tauri window (Oxide Agent Studio) + gateway embedded on a background thread (`127.0.0.1:8080`) + native `llama-server` orchestrator (`127.0.0.1:8081`) + memory via bundled `oxide-embed` sidecar |
 | `oxide-agent daemon [--config PATH]` | Headless gateway foreground process — this is what systemd runs |
 | `oxide-agent doctor [--gateway-url URL]` | Diagnostics: `oxide-embed` presence/version, `.oxide/manifest.json`, gateway probe |
 | `oxide-agent memory <args…>` | Direct `oxide-embed` passthrough (`init`, `index`, `search`, `context`, `remember`, `recall`, `conflicts`, `explain`) |
@@ -81,6 +81,8 @@ gateway at `:8080`); the Memory tab shows a banner there because direct
 
 The desktop application includes a comprehensive engineering studio:
 - **System Doctor (`DoctorTab.tsx`)**: Target probe discovery (`probe-rs`), Linux udev rules deployment, and database connectivity.
+- **Model Catalog & Manager (`CatalogTab.tsx`)**: Recursive GGUF weight scanning (`~/models`), GPU offload parameter controls (`-ngl 99`), and active `llama-server` lifecycle supervision.
+- **Universal Gateway (`GatewayTab.tsx`)**: 19 routing strategy policies, browser-authenticated cloud account management, and real-time token bucket gauges.
 - **RE-Forge Studio (`ReForgeTab.tsx`)**: Zero-copy binary parsing, ARM Cortex-M Vector Table decoding, Shannon entropy graphing, and neural safe-Rust decompilation.
 - **Verification Matrix (`VerificationTab.tsx`)**: Real-time test suite execution, atomic git stash checkpointer rollback, and signed cryptographic evidence bundle export.
 - **Project Memory & GraphRAG (`MemoryTab.tsx`)**: Integrated `oxide-embed` semantic memory fabric, STAIR Code-ToC leaf search, contradiction detection, and 2-hop topological call graphs.
@@ -89,7 +91,8 @@ The desktop application includes a comprehensive engineering studio:
 ## Files
 
 - `src-tauri/` — Tauri v2 app:
-  - `src/main.rs`: Entry point and 18 registered IPC commands.
+  - `src/main.rs`: Entry point and registered IPC commands.
+  - `src/model_ipc.rs`: Dedicated `llama-server` process management and real local GGUF discovery.
   - `src/doctor.rs`: Hardware and system diagnostics.
   - `src/reforge_ipc.rs`: Binary reverse engineering and decompilation.
   - `src/verifier_ipc.rs`: Deterministic verification and evidence bundles.
@@ -98,6 +101,7 @@ The desktop application includes a comprehensive engineering studio:
   - `src/gateway_rt.rs`: Embedded Actix-Web + Quinn QUIC runtime.
 - `ui/oxide-agent-studio/` — React 19 / Vite UI:
   - `src/components/DoctorTab.tsx`: Interactive hardware & permissions panel.
+  - `src/components/CatalogTab.tsx`: Model catalog and local GGUF manager.
   - `src/components/ReForgeTab.tsx`: Disassembly, vector table, and entropy viewer.
   - `src/components/VerificationTab.tsx`: Test runner & evidence exporter.
   - `src/components/MemoryTab.tsx`: Semantic memory & GraphRAG browser.
