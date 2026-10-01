@@ -147,6 +147,11 @@ impl BudgetTracker {
         let total_tokens = self.get_session_tokens_used() as f64;
         (total_tokens / 1_000_000.0) * 0.20
     }
+
+    /// Check if Small Decision Model (SDM) policy confidence bypasses foundation model forward pass (threshold >= 0.88)
+    pub fn should_bypass_foundation_model(policy_confidence: f32) -> bool {
+        policy_confidence >= 0.88
+    }
 }
 
 #[cfg(test)]

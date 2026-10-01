@@ -11,6 +11,27 @@ use crate::shadow_state::WorkspaceSnapshot;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// Numerically stable probability distribution sanitizer preventing +inf and NaN propagation
+pub fn sanitize_probability_distribution(probs: &mut [f32]) {
+    let max_val = probs.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+    let mut sum = 0.0f32;
+    for p in probs.iter_mut() {
+        *p = (*p - max_val).exp();
+        if p.is_nan() || p.is_infinite() {
+            *p = 0.0;
+        }
+        sum += *p;
+    }
+    if sum > 0.0 {
+        for p in probs.iter_mut() {
+            *p /= sum;
+        }
+    } else {
+        let uniform = 1.0 / probs.len().max(1) as f32;
+        probs.fill(uniform);
+    }
+}
+
 /// Candidate action with associated prior policy probability
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvaluatedAction {
