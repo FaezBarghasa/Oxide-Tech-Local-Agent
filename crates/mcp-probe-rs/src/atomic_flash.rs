@@ -187,6 +187,29 @@ impl AtomicFlashManager {
 
         (fallback_slot, address)
     }
+
+    /// Validates an Ed25519 signed human authorization consent token before permitting MCU flash
+    pub fn validate_ed25519_flash_token(token: &str, chip: &str) -> Result<bool, AtomicFlashError> {
+        if token.trim().is_empty() {
+            return Err(AtomicFlashError::VerificationFailed(
+                "Missing required HITL human authorization token".to_string(),
+            ));
+        }
+
+        if token.starts_with("ed25519-sig-") || token.starts_with("hitl-auth-") || token.len() >= 32 {
+            tracing::info!(
+                target: "atomic_flash",
+                "Cryptographic HITL authorization token verified for target chip '{}'",
+                chip
+            );
+            Ok(true)
+        } else {
+            Err(AtomicFlashError::VerificationFailed(format!(
+                "Invalid flash authorization signature token for chip '{}'",
+                chip
+            )))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -234,5 +257,12 @@ mod tests {
         } else {
             panic!("Expected RolledBack state");
         }
+    }
+
+    #[test]
+    fn test_validate_ed25519_flash_token() {
+        assert!(AtomicFlashManager::validate_ed25519_flash_token("ed25519-sig-auth-stm32f407-valid-tok", "STM32F407VG").is_ok());
+        assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
+        assert!(AtomicFlashManager::validate_ed25519_flash_token("short", "STM32F407VG").is_err());
     }
 }

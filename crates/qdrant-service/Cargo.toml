@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 qdrant-client = { workspace = true }
 anyhow = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
+tokio = { workspace = true }
 moka = { version = "0.12.5", features = ["future"] }
 

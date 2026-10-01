@@ -5,12 +5,12 @@ BEGIN;
 DEFINE TABLE project SCHEMAFULL;
 DEFINE FIELD name ON TABLE project TYPE string;
 DEFINE FIELD mcu_type ON TABLE project TYPE string;
-DEFINE FIELD target_triple ON TABLE project TYPE string OPTIONAL;
+DEFINE FIELD target_triple ON TABLE project TYPE option<string>;
 DEFINE FIELD created_at ON TABLE project TYPE datetime DEFAULT time::now();
 
 -- Components
 DEFINE TABLE component SCHEMAFULL;
-DEFINE FIELD ref_des ON TABLE component TYPE string UNIQUE;
+DEFINE FIELD ref_des ON TABLE component TYPE string;
 DEFINE FIELD value ON TABLE component TYPE string;
 DEFINE FIELD footprint ON TABLE component TYPE string;
 DEFINE FIELD created_at ON TABLE component TYPE datetime;

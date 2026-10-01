@@ -136,6 +136,128 @@ impl TernaryHadamardOp {
     }
 }
 
+/// Bitplane packed representation of ternary weights {-1, 0, 1}
+/// Uses two bitmasks:
+/// - `w_pos`: 1 if weight is +1, 0 otherwise
+/// - `w_neg`: 1 if weight is -1, 0 otherwise
+#[derive(Debug, Clone)]
+pub struct TernaryBitplaneMatrix {
+    pub rows: usize,
+    pub cols: usize,
+    pub words_per_row: usize,
+    pub w_pos: Vec<u64>,
+    pub w_neg: Vec<u64>,
+    pub scales: Vec<f32>,
+}
+
+impl TernaryBitplaneMatrix {
+    pub fn from_ternary_weights(weights: &[i8], rows: usize, cols: usize) -> Self {
+        let words_per_row = cols.div_ceil(64);
+        let mut w_pos = vec![0u64; rows * words_per_row];
+        let mut w_neg = vec![0u64; rows * words_per_row];
+        let mut scales = vec![1.0f32; rows];
+
+        for r in 0..rows {
+            let mut sum_abs = 0.0f32;
+            for c in 0..cols {
+                let w = weights[r * cols + c];
+                let word_idx = r * words_per_row + (c / 64);
+                let bit_idx = c % 64;
+
+                if w > 0 {
+                    w_pos[word_idx] |= 1u64 << bit_idx;
+                    sum_abs += 1.0;
+                } else if w < 0 {
+                    w_neg[word_idx] |= 1u64 << bit_idx;
+                    sum_abs += 1.0;
+                }
+            }
+            if sum_abs > 0.0 {
+                scales[r] = sum_abs / (cols as f32);
+            }
+        }
+
+        Self {
+            rows,
+            cols,
+            words_per_row,
+            w_pos,
+            w_neg,
+            scales,
+        }
+    }
+
+    /// Optimized bitwise XNOR-GEMM:
+    /// Y = scale * (popcount(A_pos ^ W_pos) - popcount(A_pos ^ W_neg))
+    pub fn xnor_gemm_cpu(&self, input_activations: &[f32], output: &mut [f32]) {
+        assert_eq!(input_activations.len(), self.cols);
+        assert_eq!(output.len(), self.rows);
+
+        // Pack 1-bit input activation sign masks: 1 if act >= 0, 0 if act < 0
+        let mut act_bits = vec![0u64; self.words_per_row];
+        for (c, &act) in input_activations.iter().enumerate() {
+            if act >= 0.0 {
+                let w_idx = c / 64;
+                let b_idx = c % 64;
+                act_bits[w_idx] |= 1u64 << b_idx;
+            }
+        }
+
+        for r in 0..self.rows {
+            let mut pos_matches = 0i32;
+            let mut neg_matches = 0i32;
+
+            for w in 0..self.words_per_row {
+                let w_idx = r * self.words_per_row + w;
+                let a = act_bits[w];
+                let wp = self.w_pos[w_idx];
+                let wn = self.w_neg[w_idx];
+
+                // Bitwise XNOR popcount
+                let match_pos = !(a ^ wp);
+                let match_neg = !(a ^ wn);
+
+                pos_matches += (match_pos & wp).count_ones() as i32;
+                neg_matches += (match_neg & wn).count_ones() as i32;
+            }
+
+            output[r] = self.scales[r] * ((pos_matches - neg_matches) as f32);
+        }
+    }
+
+    /// WGPU / WGSL compute shader for ternary matrix multiplication with subgroupBallot fallback
+    pub fn wgsl_compute_shader() -> &'static str {
+        r#"
+@group(0) @binding(0) var<storage, read> w_pos: array<u32>;
+@group(0) @binding(1) var<storage, read> w_neg: array<u32>;
+@group(0) @binding(2) var<storage, read> act_bits: array<u32>;
+@group(0) @binding(3) var<storage, read> scales: array<f32>;
+@group(0) @binding(4) var<storage, read_write> output: array<f32>;
+
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+    let row = global_id.x;
+    if (row >= arrayLength(&scales)) { return; }
+    
+    var pos_sum: i32 = 0;
+    var neg_sum: i32 = 0;
+    let words_per_row = arrayLength(&act_bits);
+    
+    for (var w: u32 = 0u; w < words_per_row; w = w + 1u) {
+        let a = act_bits[w];
+        let wp = w_pos[row * words_per_row + w];
+        let wn = w_neg[row * words_per_row + w];
+        
+        pos_sum = pos_sum + i32(countOneBits(~(a ^ wp) & wp));
+        neg_sum = neg_sum + i32(countOneBits(~(a ^ wn) & wn));
+    }
+    
+    output[row] = scales[row] * f32(pos_sum - neg_sum);
+}
+"#
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -184,5 +306,16 @@ mod tests {
         assert!(out[1].abs() < 1e-4);
         assert!(out[2].abs() < 1e-4);
         assert!(out[3].abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_ternary_bitplane_xnor_gemm() {
+        let weights = vec![1i8, 0, -1, 1, -1, 0, 1, 1];
+        let mat = TernaryBitplaneMatrix::from_ternary_weights(&weights, 2, 4);
+        let activations = vec![1.0f32, -1.0, 1.0, 1.0];
+        let mut output = vec![0.0f32; 2];
+
+        mat.xnor_gemm_cpu(&activations, &mut output);
+        assert_eq!(output.len(), 2);
     }
 }

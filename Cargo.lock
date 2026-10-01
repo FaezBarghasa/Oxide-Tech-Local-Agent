@@ -9125,7 +9125,9 @@ dependencies = [
  "anyhow",
  "moka",
  "qdrant-client",
+ "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -11680,6 +11682,8 @@ dependencies = [
  "serde_json",
  "surrealdb",
  "surrealdb-types",
+ "tokio",
+ "tracing",
  "tree-sitter-service",
 ]
 

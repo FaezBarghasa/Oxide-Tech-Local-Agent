@@ -30,6 +30,7 @@ pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
 pub mod tiered_kv_cache;
+pub mod universal_loader;
 
 pub use decision_engine::{
     CandidateVectorCache, DecisionDevice, DecisionEngine, DecisionInput, DecisionOutput,
@@ -43,6 +44,7 @@ pub use polymorphic::{
 pub use tiered_kv_cache::{
     KvCacheConfig, KvMemoryTier, KvPage, KvTierMetrics, TieredKvCacheManager,
 };
+pub use universal_loader::{ContainerFormat, QuantType, TensorDescriptor, UniversalModelContainer};
 
 pub use candle_provider::CandleProvider;
 pub use llama_cpp::LlamaCppProvider;

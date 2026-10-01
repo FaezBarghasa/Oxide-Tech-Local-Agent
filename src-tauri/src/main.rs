@@ -85,6 +85,14 @@ fn run_desktop(config: Option<String>) {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .register_uri_scheme_protocol("oxide", |_app, req| {
+            protocol::handle_oxide_protocol(&req).map_err(|e| {
+                tauri::http::Response::builder()
+                    .status(500)
+                    .body(e.to_string().into_bytes())
+                    .unwrap()
+            })
+        })
         .invoke_handler(tauri::generate_handler![
             // Memory & STAIR Code-ToC
             memory::memory_env,

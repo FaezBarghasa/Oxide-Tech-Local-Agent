@@ -107,6 +107,104 @@ impl AdamWOptimizer {
     }
 }
 
+/// 8-bit Quantized Blockwise AdamW State
+pub struct AdamW8bitState {
+    pub step: usize,
+    pub block_size: usize,
+    pub m_quant: Vec<i8>,
+    pub v_quant: Vec<u8>,
+    pub m_scales: Vec<f32>,
+    pub v_scales: Vec<f32>,
+}
+
+impl AdamW8bitState {
+    pub fn new(param_count: usize, block_size: usize) -> Self {
+        let blocks = param_count.div_ceil(block_size);
+        Self {
+            step: 0,
+            block_size,
+            m_quant: vec![0i8; param_count],
+            v_quant: vec![0u8; param_count],
+            m_scales: vec![1.0f32; blocks],
+            v_scales: vec![1.0f32; blocks],
+        }
+    }
+}
+
+/// Pure-Rust 8-bit Quantized Blockwise AdamW Optimizer
+pub struct AdamW8bitOptimizer {
+    pub config: AdamWConfig,
+    pub block_size: usize,
+}
+
+impl AdamW8bitOptimizer {
+    pub fn new(config: AdamWConfig) -> Self {
+        Self {
+            config,
+            block_size: 256,
+        }
+    }
+
+    pub fn step(
+        &self,
+        params: &mut [f32],
+        grads: &mut [f32],
+        state: &mut AdamW8bitState,
+    ) {
+        state.step += 1;
+        let t = state.step as f32;
+        let beta1 = self.config.beta1;
+        let beta2 = self.config.beta2;
+        let lr = self.config.lr;
+        let wd = self.config.weight_decay;
+        let eps = self.config.eps;
+
+        let bc1 = 1.0 - beta1.powf(t);
+        let bc2 = 1.0 - beta2.powf(t);
+
+        let num_blocks = params.len().div_ceil(state.block_size);
+
+        for b in 0..num_blocks {
+            let start = b * state.block_size;
+            let end = (start + state.block_size).min(params.len());
+
+            // Dequantize and update block
+            let mut m_block = Vec::with_capacity(end - start);
+            let mut v_block = Vec::with_capacity(end - start);
+
+            for i in start..end {
+                let g = grads[i];
+                params[i] -= lr * wd * params[i];
+
+                let m_real = (state.m_quant[i] as f32 / 127.0) * state.m_scales[b];
+                let v_real = (state.v_quant[i] as f32 / 255.0) * state.v_scales[b];
+
+                let new_m = beta1 * m_real + (1.0 - beta1) * g;
+                let new_v = beta2 * v_real + (1.0 - beta2) * g * g;
+
+                let m_hat = new_m / bc1;
+                let v_hat = new_v / bc2;
+                params[i] -= lr * m_hat / (v_hat.sqrt() + eps);
+
+                m_block.push(new_m);
+                v_block.push(new_v);
+            }
+
+            // Quantize block moments back to 8-bit
+            let max_m = m_block.iter().map(|x| x.abs()).fold(0.0f32, f32::max).max(1e-8);
+            let max_v = v_block.iter().fold(0.0f32, |acc, &x| acc.max(x)).max(1e-8);
+
+            state.m_scales[b] = max_m;
+            state.v_scales[b] = max_v;
+
+            for (idx, i) in (start..end).enumerate() {
+                state.m_quant[i] = ((m_block[idx] / max_m) * 127.0).clamp(-127.0, 127.0) as i8;
+                state.v_quant[i] = ((v_block[idx] / max_v) * 255.0).clamp(0.0, 255.0) as u8;
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -129,5 +227,24 @@ mod tests {
 
         assert!(params[0].abs() < 0.1);
         assert!(params[1].abs() < 0.1);
+    }
+
+    #[test]
+    fn test_adamw8bit_step_convergence() {
+        let mut params = vec![4.0f32, -2.0f32];
+        let mut state = AdamW8bitState::new(2, 64);
+        let opt = AdamW8bitOptimizer::new(AdamWConfig {
+            lr: 0.15,
+            weight_decay: 0.0,
+            ..Default::default()
+        });
+
+        for _ in 0..250 {
+            let mut grads = params.clone();
+            opt.step(&mut params, &mut grads, &mut state);
+        }
+
+        assert!(params[0].abs() < 0.25);
+        assert!(params[1].abs() < 0.25);
     }
 }

@@ -529,7 +529,7 @@ pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex
 pub use pure_rust_trainer::{PureRustTrainer, PureRustTrainerConfig, TrainingStepMetrics};
 pub use ipython_bridge::{IPythonNotebookConfig, IPythonTrainerBridge};
 pub use lora_engine::LoRATrainingEngine;
-pub use optimizer::{AdamWConfig, AdamWOptimizer, AdamWState};
+pub use optimizer::{AdamW8bitOptimizer, AdamW8bitState, AdamWConfig, AdamWOptimizer, AdamWState};
 pub use rewards::{
     EdaDrcReward, EmbeddedTimingReward, MathReasoningReward, MemorySafetyReward,
     RustCompilerReward, SpiceSimulationReward,

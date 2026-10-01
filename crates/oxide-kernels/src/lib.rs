@@ -22,4 +22,4 @@ pub use lora_fp8::{FP8LoraLayer, FP8Matrix};
 pub use moe_router::{FusedMoeRouterOp, MoeRoutingPlan};
 pub use norm::FusedRmsNormOp;
 pub use rope::FastRopeOp;
-pub use ternary::TernaryHadamardOp;
+pub use ternary::{TernaryBitplaneMatrix, TernaryHadamardOp};
