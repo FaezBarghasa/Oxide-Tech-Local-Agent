@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-10-01T19:27:36.677Z",
+  "baseUrl": "http://localhost:1420",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "tabsTested": 18,
+  "tabsPassed": 18,
+  "tabsFailed": 0,
+  "modalsTested": 3,
+  "modalsPassed": 3,
+  "interactionsTested": 3,
+  "interactionsPassed": 3,
+  "tabResults": [
+    {
+      "id": "overview",
+      "label": "Dashboard",
+      "passed": true,
+      "latencyMs": 634,
+      "error": null
+    },
+    {
+      "id": "chat",
+      "label": "Playground",
+      "passed": true,
+      "latencyMs": 504,
+      "error": null
+    },
+    {
+      "id": "catalog",
+      "label": "Model Hub",
+      "passed": true,
+      "latencyMs": 852,
+      "error": null
+    },
+    {
+      "id": "arena",
+      "label": "Model Arena",
+      "passed": true,
+      "latencyMs": 513,
+      "error": null
+    },
+    {
+      "id": "sglang",
+      "label": "Engines",
+      "passed": true,
+      "latencyMs": 509,
+      "error": null
+    },
+    {
+      "id": "media",
+      "label": "Media Forge",
+      "passed": true,
+      "latencyMs": 495,
+      "error": null
+    },
+    {
+      "id": "endpoints",
+      "label": "Gateway",
+      "passed": true,
+      "latencyMs": 500,
+      "error": null
+    },
+    {
+      "id": "skills",
+      "label": "Skills Studio",
+      "passed": true,
+      "latencyMs": 496,
+      "error": null
+    },
+    {
+      "id": "mcp",
+      "label": "Agents",
+      "passed": true,
+      "latencyMs": 532,
+      "error": null
+    },
+    {
+      "id": "library",
+      "label": "Doc Library",
+      "passed": true,
+      "latencyMs": 505,
+      "error": null
+    },
+    {
+      "id": "research",
+      "label": "Research",
+      "passed": true,
+      "latencyMs": 517,
+      "error": null
+    },
+    {
+      "id": "dataset",
+      "label": "Datasets",
+      "passed": true,
+      "latencyMs": 510,
+      "error": null
+    },
+    {
+      "id": "soup",
+      "label": "Export",
+      "passed": true,
+      "latencyMs": 512,
+      "error": null
+    },
+    {
+      "id": "memory",
+      "label": "Memory",
+      "passed": true,
+      "latencyMs": 503,
+      "error": null
+    },
+    {
+      "id": "graph",
+      "label": "Graph",
+      "passed": true,
+      "latencyMs": 519,
+      "error": null
+    },
+    {
+      "id": "doctor",
+      "label": "Diagnostics",
+      "passed": true,
+      "latencyMs": 489,
+      "error": null
+    },
+    {
+      "id": "reforge",
+      "label": "RE-Forge",
+      "passed": true,
+      "latencyMs": 506,
+      "error": null
+    },
+    {
+      "id": "settings",
+      "label": "Settings",
+      "passed": true,
+      "latencyMs": 516,
+      "error": null
+    }
+  ],
+  "modalResults": [
+    {
+      "name": "MobileCompanionModal",
+      "passed": true
+    },
+    {
+      "name": "HITLGateModal",
+      "passed": true
+    },
+    {
+      "name": "CommandPalette",
+      "passed": true
+    }
+  ],
+  "interactionResults": [
+    {
+      "name": "DoctorScan",
+      "passed": true
+    },
+    {
+      "name": "ModelHubScan",
+      "passed": true
+    },
+    {
+      "name": "ChatPlayground",
+      "passed": true
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "readyForProduction": true
+}

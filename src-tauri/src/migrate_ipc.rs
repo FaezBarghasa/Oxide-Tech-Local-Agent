@@ -53,6 +53,9 @@ pub async fn scan_unsloth_data() -> Result<UnslothScanResultDto, String> {
         PathBuf::from(&home).join(".unsloth"),
         PathBuf::from(&home).join(".cache/unsloth"),
         PathBuf::from(&home).join("unsloth_models"),
+        PathBuf::from(&home).join(".cache/lm-studio/models"),
+        PathBuf::from(&home).join(".lmstudio/models"),
+        PathBuf::from(&home).join("models"),
     ];
 
     let mut found = false;

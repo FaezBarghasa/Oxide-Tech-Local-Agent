@@ -410,16 +410,19 @@ fn scan_default_local_gguf_models() -> Vec<ModelInfo> {
     let mut models = Vec::new();
     let search_dirs = [
         std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("lm-studio").join("models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".lmstudio").join("models")),
         std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("huggingface").join("hub")),
         std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".ollama").join("models")),
         Some(PathBuf::from("/var/lib/oxide-tech/models")),
         Some(PathBuf::from("/opt/models")),
         std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("models")),
+        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("Downloads").join("models")),
         Some(PathBuf::from("/tmp/models")),
     ];
 
     for dir in search_dirs.into_iter().flatten() {
-        scan_dir_recursive(&dir, 3, 0, &mut models);
+        scan_dir_recursive(&dir, 4, 0, &mut models);
     }
 
     // Deduplicate by path
