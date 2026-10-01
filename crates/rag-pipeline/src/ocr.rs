@@ -14,6 +14,7 @@ pub struct OcrDocumentResult {
 }
 
 pub struct DocumentOcrPipeline {
+    #[allow(dead_code)]
     languages: Vec<String>,
 }
 

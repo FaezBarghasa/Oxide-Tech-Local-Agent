@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMode, ChatMessage } from '../types';
-import { desktop, ModelInfo } from '../lib/desktop';
+import { desktop, ModelInfo, audioStartRecording, audioStopAndTranscribe, audioSynthesizeSpeech } from '../lib/desktop';
 import { ModelSelector } from './ModelSelector';
 import {
   Bot,
@@ -16,6 +16,9 @@ import {
   ChevronDown,
   ChevronUp,
   Cpu,
+  Mic,
+  MicOff,
+  Volume2,
 } from 'lucide-react';
 
 let msgId = 0;
@@ -26,7 +29,7 @@ export const ChatTab: React.FC = () => {
     {
       id: 'welcome-1',
       role: 'assistant',
-      content: 'Welcome to **Oxide-Tech Playground**. Connected to local CUDA inference engine. Ready for embedded firmware tasks, systems code generation, and low-latency testing.',
+      content: 'Welcome to **Oxide-Tech Playground**. Connected to local CUDA inference engine. Ready for embedded firmware tasks, systems code generation, audio/media synthesis, and low-latency testing.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -34,12 +37,18 @@ export const ChatTab: React.FC = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [showParameters, setShowParameters] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
 
   // Model & Sampling Parameters
   const [selectedModel, setSelectedModel] = useState('Qwen2.5-Coder-7B');
   const [selectedProvider, setSelectedProvider] = useState('candle');
   const [temperature, setTemperature] = useState(0.2);
   const [topP, setTopP] = useState(0.95);
+  const [presencePenalty, setPresencePenalty] = useState(0.0);
+  const [frequencyPenalty, setFrequencyPenalty] = useState(0.0);
+  const [repetitionPenalty, setRepetitionPenalty] = useState(1.1);
+  const [mirostatMode, setMirostatMode] = useState<0 | 1 | 2>(0);
   const [maxTokens, setMaxTokens] = useState(4096);
   const [systemPrompt, setSystemPrompt] = useState(
     'You are Oxide-Tech Local Agent — expert in embedded systems, bare-metal no_std Rust, PCB design, and high-performance local AI computing.'
@@ -63,6 +72,45 @@ export const ChatTab: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleToggleRecording = async () => {
+    if (!isRecording) {
+      try {
+        await audioStartRecording();
+        setIsRecording(true);
+      } catch (e) {
+        console.error('Audio recording start error:', e);
+      }
+    } else {
+      setIsRecording(false);
+      try {
+        const res = await audioStopAndTranscribe();
+        if (res.text && res.text.trim()) {
+          setInput((prev) => (prev ? `${prev} ${res.text}` : res.text));
+        }
+      } catch (e) {
+        console.error('Audio transcribe error:', e);
+      }
+    }
+  };
+
+  const handlePlayTts = async (msgId: string, text: string) => {
+    setPlayingTtsId(msgId);
+    try {
+      const res = await audioSynthesizeSpeech(text);
+      if (res.audio_base64) {
+        const audio = new Audio(`data:audio/wav;base64,${res.audio_base64}`);
+        audio.onended = () => setPlayingTtsId(null);
+        audio.onerror = () => setPlayingTtsId(null);
+        await audio.play();
+      } else {
+        setPlayingTtsId(null);
+      }
+    } catch (e) {
+      console.error('TTS playback error:', e);
+      setPlayingTtsId(null);
+    }
+  };
+
   const handleSend = async () => {
     const textToSend = input.trim();
     if (!textToSend || isStreaming) return;
@@ -80,7 +128,6 @@ export const ChatTab: React.FC = () => {
     setStreamingContent('');
 
     try {
-      // Simulate real-time streaming or call backend
       const result = await desktop.modelRunPrompt({
         prompt: textToSend,
         system_prompt: systemPrompt,
@@ -92,7 +139,6 @@ export const ChatTab: React.FC = () => {
 
       const responseText = result.text || result.error || 'Execution finished.';
       
-      // Animate streaming tokens smoothly
       let currentLen = 0;
       const step = Math.max(1, Math.floor(responseText.length / 30));
       const interval = setInterval(() => {
@@ -145,7 +191,7 @@ export const ChatTab: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-[#27272A]">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-[#8B5CF6]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#FAFAFA]">Parameters</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#FAFAFA]">Sampling Matrix</h3>
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25">
               {selectedModel}
@@ -158,7 +204,7 @@ export const ChatTab: React.FC = () => {
             <textarea
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
-              rows={4}
+              rows={3}
               className="w-full bg-[#18181b] border border-[#27272A] rounded-lg p-2.5 text-xs text-zinc-200 focus:border-[#8B5CF6] focus:outline-none font-mono resize-none"
               placeholder="System prompt context…"
             />
@@ -180,7 +226,7 @@ export const ChatTab: React.FC = () => {
               className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
             />
             <div className="flex justify-between text-[9px] font-mono text-zinc-500">
-              <span>Deterministic (0.0)</span>
+              <span>Exact (0.0)</span>
               <span>Creative (1.5)</span>
             </div>
           </div>
@@ -188,7 +234,7 @@ export const ChatTab: React.FC = () => {
           {/* Top-P Slider */}
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs font-mono">
-              <span className="text-zinc-400">Top-P</span>
+              <span className="text-zinc-400">Top-P (Nucleus)</span>
               <span className="text-[#FAFAFA] font-bold">{topP.toFixed(2)}</span>
             </div>
             <input
@@ -200,6 +246,47 @@ export const ChatTab: React.FC = () => {
               onChange={(e) => setTopP(parseFloat(e.target.value))}
               className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
             />
+          </div>
+
+          {/* Repetition Penalty Slider */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs font-mono">
+              <span className="text-zinc-400">Repetition Penalty</span>
+              <span className="text-[#FAFAFA] font-bold">{repetitionPenalty.toFixed(2)}</span>
+            </div>
+            <input
+              type="range"
+              min="0.8"
+              max="1.5"
+              step="0.05"
+              value={repetitionPenalty}
+              onChange={(e) => setRepetitionPenalty(parseFloat(e.target.value))}
+              className="w-full accent-[#8B5CF6] bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
+            />
+          </div>
+
+          {/* Mirostat Mode Selector */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Mirostat Sampling</label>
+            <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+              {[
+                { id: 0, label: 'Off' },
+                { id: 1, label: 'v1.0' },
+                { id: 2, label: 'v2.0' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setMirostatMode(m.id as 0 | 1 | 2)}
+                  className={`py-1.5 px-2 rounded-lg border transition ${
+                    mirostatMode === m.id
+                      ? 'bg-[#8B5CF6]/20 border-[#8B5CF6] text-white font-bold'
+                      : 'bg-[#18181b] border-[#27272A] text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Max Tokens Slider */}
@@ -226,6 +313,8 @@ export const ChatTab: React.FC = () => {
             onClick={() => {
               setTemperature(0.2);
               setTopP(0.95);
+              setRepetitionPenalty(1.1);
+              setMirostatMode(0);
               setMaxTokens(4096);
             }}
             className="text-[11px] font-mono text-zinc-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
@@ -233,7 +322,7 @@ export const ChatTab: React.FC = () => {
             <RotateCcw className="w-3 h-3" />
             Reset Defaults
           </button>
-          <span className="text-[10px] font-mono text-zinc-500">Candle Runner</span>
+          <span className="text-[10px] font-mono text-zinc-500">Audio Forge Active</span>
         </div>
       </div>
 
@@ -244,7 +333,7 @@ export const ChatTab: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
             <span className="text-xs font-bold text-[#FAFAFA]">{selectedModel}</span>
-            <span className="text-[10px] font-mono text-zinc-500">· Playground Mode</span>
+            <span className="text-[10px] font-mono text-zinc-500">· Playground & Audio-Forge</span>
           </div>
           <button
             onClick={() => setMessages([])}
@@ -268,13 +357,24 @@ export const ChatTab: React.FC = () => {
                   <span>{isUser ? 'You' : selectedModel}</span>
                   <span>{m.timestamp}</span>
                   {!isUser && (
-                    <button
-                      onClick={() => handleCopy(m.id, m.content)}
-                      className="hover:text-zinc-300 transition cursor-pointer"
-                      title="Copy content"
-                    >
-                      {copiedId === m.id ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handlePlayTts(m.id, m.content)}
+                        className={`hover:text-zinc-300 transition cursor-pointer ${
+                          playingTtsId === m.id ? 'text-[#10B981] animate-pulse' : ''
+                        }`}
+                        title="TTS Voice Playback (Kokoro/Piper)"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleCopy(m.id, m.content)}
+                        className="hover:text-zinc-300 transition cursor-pointer"
+                        title="Copy content"
+                      >
+                        {copiedId === m.id ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -320,6 +420,17 @@ export const ChatTab: React.FC = () => {
             >
               <Paperclip className="w-4 h-4" />
             </button>
+            <button
+              onClick={handleToggleRecording}
+              title={isRecording ? 'Stop Recording & Transcribe' : 'Voice Input (STT)'}
+              className={`p-2 rounded-lg transition cursor-pointer shrink-0 ${
+                isRecording
+                  ? 'bg-red-500/20 text-red-400 border border-red-500 animate-pulse'
+                  : 'text-zinc-400 hover:text-[#FAFAFA] hover:bg-[#18181b]'
+              }`}
+            >
+              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
             <textarea
               ref={inputRef}
               rows={1}
@@ -331,7 +442,11 @@ export const ChatTab: React.FC = () => {
                   handleSend();
                 }
               }}
-              placeholder="Ask a question, test prompts, generate Rust kernels… (Enter to send)"
+              placeholder={
+                isRecording
+                  ? 'Listening to microphone… speak now.'
+                  : 'Ask a question, test prompts, generate Rust kernels… (Enter to send)'
+              }
               className="flex-1 bg-transparent text-sm text-[#FAFAFA] placeholder-zinc-500 outline-none resize-none py-1.5 max-h-32 font-sans"
             />
             <button

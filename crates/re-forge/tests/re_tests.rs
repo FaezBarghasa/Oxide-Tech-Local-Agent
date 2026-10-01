@@ -49,8 +49,8 @@ impl InferenceProvider for MockInferenceProvider {
     async fn health(&self) -> Result<BackendHealth> {
         Ok(BackendHealth {
             healthy: true,
-            provider_name: "MockProvider".to_string(),
-            active_model: "mock-model".to_string(),
+            provider_name: "TestLLMProvider".to_string(),
+            active_model: "test-model".to_string(),
             memory_used_mb: Some(0),
             vram_used_mb: None,
             available_slots: None,

@@ -6,6 +6,8 @@ export type TabId =
   | 'infra'
   | 'grpc'
   | 'rag'
+  | 'media'
+  | 'research'
   | 'mcp'
   | 'catalog'
   | 'dataset'

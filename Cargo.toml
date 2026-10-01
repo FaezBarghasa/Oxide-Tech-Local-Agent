@@ -53,6 +53,8 @@ members = [
     "crates/surface-api",
     "crates/ratchet",
     "crates/forge-rust",
+    "crates/audio-forge",
+    "crates/media-forge",
     "targets/llm-pretraining-rs/surface",
     "targets/llm-pretraining-rs/harness",
     "src-tauri",
@@ -62,8 +64,11 @@ resolver = "3"
 
 
 [workspace.dependencies]
+rust-embed = { version = "8.5", features = ["mime-guess", "include-exclude"] }
+mime_guess = "2.0"
+cpal = "0.18.2"
 rmcp = { version = "3.2.0", features = ["server", "transport-io"] }
-reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.13.5", features = ["json", "stream", "rustls-tls"] }
 tokio = { version = "1.52", features = ["full"] }
 tokio-stream = "0.1"
 anyhow = "1.0"
@@ -117,7 +122,7 @@ polars = { version = "0.55.2", default-features = false, features = [
 argon2 = "0.6.0"
 mdns-sd = "0.21.3"
 sysinfo = "0.39.6"
-actix-web-lab = "0.27.0"
+actix-web-lab = "0.28.0"
 
 ndarray = "0.17.2"
 petgraph = { version = "0.8.3", features = ["serde-1"] }
@@ -128,7 +133,7 @@ memmap2 = "0.9"
 rkyv = { version = "0.8", features = ["bytecheck", "std"] }
 rayon = "1.10"
 postcard = { version = "1.0", features = ["alloc"] }
-wasmtime = { version = "48.0.1", features = ["async", "cranelift"] }
+wasmtime = { version = "49.0.1", features = ["async", "cranelift"] }
 wat = "1.220"
 rumqttc = "0.25"
 mqtt-async-embedded = { git = "https://github.com/FaezBarghasa/mqtt-async-embedded" }
@@ -144,7 +149,7 @@ forge-rust = { path = "crates/forge-rust" }
 [profile.release]
 opt-level = 3       # Enable maximum performance optimizations
 lto = "thin"        # Fast Link-Time Optimization without OOM exhaustion
-codegen-units = 16  # Parallelize compilation and linking within memory budget
+codegen-units = 1   # Parallelize compilation and linking within memory budget
 panic = "unwind"    # Required for catch_unwind FFI fault boundary isolation
 strip = "debuginfo" # Strip debuginfo while preserving panic unwinding tables
 incremental = false

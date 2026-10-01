@@ -11,6 +11,7 @@ pub struct VisualCaptionResult {
 }
 
 pub struct DiagramCaptioner {
+    #[allow(dead_code)]
     model_name: String,
 }
 

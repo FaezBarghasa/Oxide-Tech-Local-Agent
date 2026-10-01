@@ -22,6 +22,7 @@ import {
   Binary,
   Smartphone,
   ShieldAlert,
+  Sparkles,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,6 +53,7 @@ const navSections: NavSection[] = [
     items: [
       { id: 'catalog', label: 'Model Hub', icon: <Boxes className="w-4 h-4" />, desc: 'Universal loader' },
       { id: 'sglang', label: 'Engines', icon: <Zap className="w-4 h-4" />, desc: 'Candle / vLLM / SGLang' },
+      { id: 'media', label: 'Media Forge', icon: <Sparkles className="w-4 h-4" />, desc: 'Flux / SDXL & Video' },
     ],
   },
   {
@@ -64,6 +66,7 @@ const navSections: NavSection[] = [
   {
     title: 'Tooling',
     items: [
+      { id: 'research', label: 'Research', icon: <Search className="w-4 h-4" />, desc: 'Citations & Scanned OCR' },
       { id: 'dataset', label: 'Datasets', icon: <Database className="w-4 h-4" />, desc: 'Formatting & recipes' },
       { id: 'soup', label: 'Export', icon: <Flame className="w-4 h-4" />, desc: 'GGUF & weight soups' },
       { id: 'memory', label: 'Memory', icon: <Brain className="w-4 h-4" />, desc: 'STAIR & compaction' },

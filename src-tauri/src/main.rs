@@ -16,14 +16,19 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 mod assets;
+mod audio_ipc;
 mod config_ipc;
 mod doctor;
 mod gateway_rt;
 mod hardware_ipc;
+mod hub_ipc;
 mod installer;
+mod media_ipc;
 mod memory;
 mod model_ipc;
+mod protocol;
 mod reforge_ipc;
+mod updater_ipc;
 mod verifier_ipc;
 
 use anyhow::Result;
@@ -107,11 +112,25 @@ fn run_desktop(config: Option<String>) {
             model_ipc::trainer_abort_job,
             model_ipc::trainer_harvest_trajectories,
             model_ipc::trainer_export_gguf,
+            // Audio Forge
+            audio_ipc::audio_list_devices,
+            audio_ipc::audio_start_recording,
+            audio_ipc::audio_stop_and_transcribe,
+            audio_ipc::audio_synthesize_speech,
+            // Media Forge
+            media_ipc::media_generate_image,
+            media_ipc::media_generate_video,
+            // Model Hub
+            hub_ipc::hub_download_model,
             // RE-Forge
             reforge_ipc::reforge_analyze_file,
             // Verifier
             verifier_ipc::verifier_run_suite,
             verifier_ipc::verifier_export_evidence,
+            // Updater
+            updater_ipc::updater_check,
+            updater_ipc::updater_download_and_apply,
+            updater_ipc::updater_restart,
             // Config
             config_ipc::config_read,
             config_ipc::config_save,

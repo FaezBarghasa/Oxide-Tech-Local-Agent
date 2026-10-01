@@ -26,7 +26,6 @@ pub mod llama_cpp;
 pub mod mistral_rs;
 pub mod mmap_tensor;
 pub mod mobile;
-pub mod mock;
 pub mod polymorphic;
 pub mod prism_sidecar;
 pub mod sidecar;
@@ -52,7 +51,6 @@ pub use mmap_tensor::{
     AlignedTensorMap, GgufTensorInfo, GgufTensorType, HardenedTensorMap, MemoryAdvice, MmapModel,
     TensorSlice,
 };
-pub use mock::MockProvider;
 pub use prism_sidecar::PrismBonsaiEngine;
 pub use sidecar::SidecarProvider;
 

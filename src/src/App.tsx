@@ -17,6 +17,8 @@ import { VerificationTab } from './components/VerificationTab';
 import { KnowledgeGraphTab } from './components/KnowledgeGraphTab';
 import { MemoryTab } from './components/MemoryTab';
 import { GraphTopologyTab } from './components/GraphTopologyTab';
+import { MediaForgeTab } from './components/MediaForgeTab';
+import { ResearchTab } from './components/ResearchTab';
 import { DoctorTab } from './components/DoctorTab';
 import { ReForgeTab } from './components/ReForgeTab';
 import { SettingsTab } from './components/SettingsTab';
@@ -124,6 +126,10 @@ function Shell() {
         return <GrpcBridgeTab />;
       case 'rag':
         return <RagPipelineTab />;
+      case 'media':
+        return <MediaForgeTab />;
+      case 'research':
+        return <ResearchTab />;
       case 'mcp':
         return <McpToolsTab />;
       case 'catalog':

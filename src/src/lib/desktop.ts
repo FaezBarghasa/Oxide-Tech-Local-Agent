@@ -588,7 +588,6 @@ export async function trainerHarvestTrajectories(
   });
   return res.json();
 }
-
 export async function trainerExportGguf(
   baseModel: string,
   quantization?: string
@@ -606,6 +605,292 @@ export async function trainerExportGguf(
   });
   return res.json();
 }
+
+// ── Audio Forge Desktop API ──────────────────────────────────────────────────
+
+export interface AudioDeviceInfo {
+  name: string;
+  is_default: boolean;
+  sample_rate: number;
+  channels: number;
+}
+
+export interface AudioDevicesResponse {
+  default_input: string | null;
+  default_output: string | null;
+  input_devices: AudioDeviceInfo[];
+  output_devices: AudioDeviceInfo[];
+}
+
+export interface TranscriptionResult {
+  text: string;
+  confidence: number;
+  language: string;
+  duration_ms: number;
+}
+
+export interface TtsResponseDto {
+  audio_base64: string;
+  sample_rate: number;
+  channels: number;
+  duration_ms: number;
+}
+
+export async function audioListDevices(): Promise<AudioDevicesResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<AudioDevicesResponse>('audio_list_devices', {});
+  }
+  return {
+    default_input: 'Default Microphone',
+    default_output: 'Default Speaker',
+    input_devices: [],
+    output_devices: [],
+  };
+}
+
+export async function audioStartRecording(): Promise<boolean> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<boolean>('audio_start_recording', {});
+  }
+  return true;
+}
+
+export async function audioStopAndTranscribe(): Promise<TranscriptionResult> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<TranscriptionResult>('audio_stop_and_transcribe', {});
+  }
+  return {
+    text: 'Transcribed voice instruction for embedded agent.',
+    confidence: 0.98,
+    language: 'en',
+    duration_ms: 1200,
+  };
+}
+
+export async function audioSynthesizeSpeech(
+  text: string,
+  voiceId?: string,
+  speed?: number,
+  pitch?: number
+): Promise<TtsResponseDto> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<TtsResponseDto>('audio_synthesize_speech', {
+      req: { text, voice_id: voiceId ?? null, speed: speed ?? null, pitch: pitch ?? null },
+    });
+  }
+  return {
+    audio_base64: '',
+    sample_rate: 24000,
+    channels: 1,
+    duration_ms: 500,
+  };
+}
+
+// ── Media Forge Desktop API ──────────────────────────────────────────────────
+
+export interface DiffusionResponse {
+  image_bytes_base64: string;
+  width: number;
+  height: number;
+  seed: number;
+  scheduler: string;
+  generation_time_ms: number;
+}
+
+export interface VideoGenerationResponse {
+  video_bytes_base64: string;
+  num_frames: number;
+  fps: number;
+  width: number;
+  height: number;
+  generation_time_ms: number;
+}
+
+export async function mediaGenerateImage(
+  prompt: string,
+  opts: {
+    negative_prompt?: string;
+    width?: number;
+    height?: number;
+    steps?: number;
+    guidance_scale?: number;
+    seed?: number;
+    scheduler?: string;
+  } = {}
+): Promise<DiffusionResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<DiffusionResponse>('media_generate_image', {
+      req: {
+        prompt,
+        negative_prompt: opts.negative_prompt ?? null,
+        width: opts.width ?? null,
+        height: opts.height ?? null,
+        steps: opts.steps ?? null,
+        guidance_scale: opts.guidance_scale ?? null,
+        seed: opts.seed ?? null,
+        scheduler: opts.scheduler ?? null,
+      },
+    });
+  }
+  return {
+    image_bytes_base64: '',
+    width: opts.width ?? 512,
+    height: opts.height ?? 512,
+    seed: opts.seed ?? 42,
+    scheduler: opts.scheduler ?? 'FlowMatchEuler',
+    generation_time_ms: 120,
+  };
+}
+
+export async function mediaGenerateVideo(
+  prompt: string,
+  opts: { num_frames?: number; fps?: number; width?: number; height?: number } = {}
+): Promise<VideoGenerationResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<VideoGenerationResponse>('media_generate_video', {
+      req: {
+        prompt,
+        num_frames: opts.num_frames ?? null,
+        fps: opts.fps ?? null,
+        width: opts.width ?? null,
+        height: opts.height ?? null,
+      },
+    });
+  }
+  return {
+    video_bytes_base64: '',
+    num_frames: opts.num_frames ?? 24,
+    fps: opts.fps ?? 24,
+    width: opts.width ?? 512,
+    height: opts.height ?? 512,
+    generation_time_ms: 350,
+  };
+}
+
+// ── Model Hub Desktop API ────────────────────────────────────────────────────
+
+export interface HubDownloadResponse {
+  success: boolean;
+  file_path: string;
+  blake3_hash: string;
+  message: string;
+}
+
+export async function hubDownloadModel(
+  source: 'modelscope' | 'huggingface',
+  modelId: string,
+  filename: string,
+  targetDir?: string
+): Promise<HubDownloadResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<HubDownloadResponse>('hub_download_model', {
+      req: {
+        source,
+        model_id: modelId,
+        filename,
+        target_dir: targetDir ?? null,
+      },
+    });
+  }
+  return {
+    success: true,
+    file_path: `/tmp/${filename}`,
+    blake3_hash: 'mock_blake3_hash',
+    message: `Downloaded ${filename} in browser fallback`,
+  };
+}
+
+// ── Oxide In-App Updater Desktop API ──────────────────────────────────────────
+
+export interface PlatformRelease {
+  url: string;
+  blake3: string;
+  signature?: string;
+  size_bytes: number;
+}
+
+export interface UpdateCheckResponse {
+  update_available: boolean;
+  current_version: string;
+  target_version?: string;
+  changelog?: string;
+  platform_release?: PlatformRelease;
+  min_os_version?: string;
+}
+
+export type UpdateStage =
+  | 'Checking'
+  | 'Downloading'
+  | 'VerifyingSignature'
+  | 'ApplyingPayload'
+  | 'ReadyToRestart'
+  | { Failed: string };
+
+export interface UpdateProgress {
+  bytes_downloaded: number;
+  total_bytes: number;
+  speed_bytes_per_sec: number;
+  stage: UpdateStage;
+}
+
+export interface UpdateDownloadResponse {
+  success: boolean;
+  message: string;
+  target_path?: string;
+}
+
+export async function updaterCheck(manifestUrl?: string): Promise<UpdateCheckResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<UpdateCheckResponse>('updater_check', {
+      manifestUrl: manifestUrl ?? null,
+    });
+  }
+  return {
+    update_available: false,
+    current_version: '0.5.0',
+  };
+}
+
+export async function updaterDownloadAndApply(
+  binaryUrl: string,
+  expectedBlake3: string,
+  totalBytes: number
+): Promise<UpdateDownloadResponse> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<UpdateDownloadResponse>('updater_download_and_apply', {
+      req: {
+        binary_url: binaryUrl,
+        expected_blake3: expectedBlake3,
+        total_bytes: totalBytes,
+      },
+    });
+  }
+  return {
+    success: true,
+    message: 'Simulated update download in browser mode',
+  };
+}
+
+export async function updaterRestart(): Promise<void> {
+  if (isTauriRuntime()) {
+    return tauriInvoke<void>('updater_restart', {});
+  }
+  window.location.reload();
+}
+
+export async function onUpdateProgress(
+  callback: (progress: UpdateProgress) => void
+): Promise<() => void> {
+  if (isTauriRuntime()) {
+    const { listen } = await import('@tauri-apps/api/event');
+    const unlisten = await listen<UpdateProgress>('oxide-update-progress', (event) => {
+      callback(event.payload);
+    });
+    return unlisten;
+  }
+  return () => {};
+}
+
 
 
 

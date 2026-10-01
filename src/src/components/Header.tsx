@@ -21,6 +21,8 @@ const tabInfo: Record<TabId, { title: string; subtitle: string }> = {
   soup: { title: 'LoRA Model Soup', subtitle: 'Task arithmetic weight blending' },
   grpc: { title: 'KiCad & DRC Bridge', subtitle: 'Protobuf gRPC schematics' },
   rag: { title: 'AST Token Compactor', subtitle: 'Tree-Sitter scope pruner' },
+  media: { title: 'Generative Media Forge', subtitle: 'Candle Flux/SDXL & LTX-Video' },
+  research: { title: 'Document RAG & Research Mode', subtitle: 'BGE-M3 + BM25 Hybrid & Citation DAG' },
   mcp: { title: 'MCP Sandbox', subtitle: 'STDIO JSON-RPC 2.0' },
   sglang: { title: 'SGLang Engine', subtitle: 'RadixAttention prefix caching' },
   endpoints: { title: 'Endpoints', subtitle: 'API configuration' },

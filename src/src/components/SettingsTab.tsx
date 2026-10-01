@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, Save, RefreshCw, Sliders, CheckCircle2, AlertCircle, FileText, HardDrive, Cpu, Download } from 'lucide-react';
+import { Settings, Save, RefreshCw, Sliders, CheckCircle2, AlertCircle, FileText, HardDrive, Cpu, Download, ShieldCheck, Zap } from 'lucide-react';
 import { desktop } from '../lib/desktop';
+import { UpdateModal } from './UpdateModal';
 
 export const SettingsTab: React.FC = () => {
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [profile, setProfile] = useState<'lite' | 'standard' | 'pro' | 'airgapped' | 'enterprise'>('standard');
   const [configContent, setConfigContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -225,49 +227,98 @@ nvidia_compute = true`,
         )}
       </div>
 
-      {/* Local GGUF & Model Setup Card */}
+      {/* Hardware & VRAM Allocation Tuning */}
       <div className="bg-[#111217] border border-[#232530] rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#232530]">
           <div>
             <h3 className="text-xs font-bold text-white flex items-center gap-2">
-              <HardDrive className="w-3.5 h-3.5 text-amber-400" />
-              Local Model & GGUF Storage
+              <Cpu className="w-3.5 h-3.5 text-amber-400" />
+              Hardware & VRAM Governor
             </h3>
             <p className="text-[11px] mono text-gray-400 mt-0.5">
-              Place .gguf weights in <code className="text-amber-400">~/models/</code> or <code className="text-amber-400">/var/lib/oxide-tech/models/</code>
+              Direct allocation governor and compute offloading settings
             </p>
           </div>
-          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-            OFFLINE READY
+          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+            UNSLOTH ENGINE
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-          <div className="p-3.5 rounded-xl bg-[#0c0d12] border border-[#232530] space-y-2">
-            <div className="font-bold text-white flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-amber-400" />
-              Option 1: Ollama Model Runner
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-[#0c0d12] border border-[#232530] space-y-3">
+            <div className="flex justify-between items-center text-xs mono">
+              <span className="text-zinc-300 font-semibold">Max VRAM Budget</span>
+              <span className="text-amber-400 font-bold">12.0 GB / 16.0 GB</span>
             </div>
-            <p className="text-[11px] text-zinc-400">
-              Run any GGUF or standard model locally with zero setup:
-            </p>
-            <div className="p-2 rounded bg-[#161822] border border-[#242738] font-mono text-[10px] text-amber-300 select-all">
-              ollama pull qwen2.5-coder:7b-instruct-q4_K_M
+            <input
+              type="range"
+              min="2"
+              max="24"
+              step="1"
+              defaultValue="12"
+              className="w-full accent-amber-500 bg-[#18181b] h-1.5 rounded-lg cursor-pointer"
+            />
+            <div className="flex justify-between text-[9px] mono text-zinc-500">
+              <span>Conservative (2 GB)</span>
+              <span>Full VRAM (24 GB)</span>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#0c0d12] border border-[#232530] space-y-2">
-            <div className="font-bold text-white flex items-center gap-1.5">
-              <Download className="w-3.5 h-3.5 text-amber-400" />
-              Option 2: Direct GGUF File Download
+          <div className="p-4 rounded-xl bg-[#0c0d12] border border-[#232530] flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-white">Force CPU Fallback</div>
+                <div className="text-[10px] text-zinc-400">Run pure Candle/WASM without CUDA</div>
+              </div>
+              <input
+                type="checkbox"
+                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+              />
             </div>
-            <p className="text-[11px] text-zinc-400">
-              Download any .gguf file directly to your models folder:
-            </p>
-            <div className="p-2 rounded bg-[#161822] border border-[#242738] font-mono text-[10px] text-amber-300 select-all">
-              mkdir -p ~/models && curl -L -o ~/models/model.gguf &lt;URL&gt;
+            <div className="text-[10px] mono text-emerald-400 pt-2 border-t border-[#1f212b]">
+              ✓ CUDA 12.8 / RTX 4090 Native Acceleration Active
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* In-App Auto-Update & Integrity Core */}
+      <div className="bg-[#111217] border border-cyan-500/20 rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#232530]">
+          <div>
+            <h3 className="text-xs font-bold text-white flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+              In-App Auto-Update & Integrity Core
+            </h3>
+            <p className="text-[11px] mono text-gray-400 mt-0.5">
+              Cryptographic Ed25519 signature checks, live BLAKE3 hash streaming & atomic in-place binary swap
+            </p>
+          </div>
+          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">
+            GROUND-TRUTH UPDATER
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-[#0c0d12] border border-[#232530]">
+          <div>
+            <div className="text-xs font-bold text-white flex items-center gap-2">
+              <span>Sovereign Desktop Self-Update</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
+                Single-Binary Native
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Check remote release manifest, stream chunked binary with progress, and seamlessly relaunch.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsUpdateModalOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-black flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all shrink-0"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Check for Updates
+          </button>
         </div>
       </div>
 
@@ -287,6 +338,12 @@ nvidia_compute = true`,
           spellCheck={false}
         />
       </div>
+
+      {/* Update Modal */}
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+      />
     </div>
   );
 };

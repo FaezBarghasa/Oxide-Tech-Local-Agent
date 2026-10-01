@@ -3,8 +3,6 @@
 use anyhow::{Context, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -76,12 +74,11 @@ impl HubDownloader {
         let url = Self::resolve_url(req.source, &req.model_id, &req.filename);
         let resp = self.client.get(&url).send().await?.error_for_status()?;
 
-        let mut hasher = blake3::Hasher::new();
-        let mut file = File::create(dest_path)
-            .with_context(|| format!("Failed to create destination file {}", dest_path.display()))?;
+        let bytes = resp.bytes().await?;
+        let hash_str = blake3::hash(&bytes).to_hex().to_string();
+        std::fs::write(dest_path, &bytes)
+            .with_context(|| format!("Failed to write destination file {}", dest_path.display()))?;
 
-
-        let hash_str = hasher.finalize().to_hex().to_string();
         Ok(hash_str)
     }
 }
