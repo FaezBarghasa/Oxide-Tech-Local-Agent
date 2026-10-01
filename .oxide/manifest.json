@@ -1,17 +1,17 @@
 {
   "app": "oxide-embed",
   "kind": "project-memory",
-  "project_id": "01a0cf95-2992-76b2-83df-209239af9d04",
+  "project_id": "01a0f68e-c3a6-775a-b06c-5c9fd4ad772d",
   "project_name": "Oxide-Tech-Local-Agent",
   "schema_version": 1,
   "min_supported_schema_version": 1,
   "created_by": {
     "oxide_embed_version": "0.4.0",
-    "timestamp": "2026-09-23T18:44:14.354762801Z"
+    "timestamp": "2026-10-01T08:22:26.470251078Z"
   },
   "updated_by": {
     "oxide_embed_version": "0.4.0",
-    "timestamp": "2026-09-23T18:44:14.354785359Z"
+    "timestamp": "2026-10-01T08:22:26.470266513Z"
   },
   "storage": {
     "engine": "surrealdb",

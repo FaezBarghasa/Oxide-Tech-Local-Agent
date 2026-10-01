@@ -511,6 +511,7 @@ pub mod gguf_exporter;
 pub mod hf_hub;
 pub mod ipython_bridge;
 pub mod lora_engine;
+pub mod modelscope;
 pub mod optimizer;
 pub mod rewards;
 pub mod rl_engine;

@@ -1,9 +1,15 @@
 pub mod docker_sandbox;
 pub mod execution;
+pub mod landlock_sandbox;
+pub mod sandbox_macos;
+pub mod sandbox_windows;
 pub mod wasm_compiler;
 
 pub use docker_sandbox::DockerSandbox;
 pub use execution::{execute_in_sandbox, execute_wasm_sandbox, ExecutionResult};
+pub use landlock_sandbox::LandlockSandbox;
+pub use sandbox_macos::MacosSandboxManager;
+pub use sandbox_windows::WindowsSandboxManager;
 pub use wasm_compiler::WasmCompiler;
 
 #[cfg(test)]

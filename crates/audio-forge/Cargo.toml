@@ -1,0 +1,16 @@
+[package]
+name = "audio-forge"
+version = "0.1.0"
+edition = "2024"
+description = "Pure-Rust native audio capture, STT (Whisper), and TTS (Piper/Kokoro) engine"
+license = "MIT"
+
+[dependencies]
+tokio = { workspace = true }
+cpal = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+byteorder = "1.5"

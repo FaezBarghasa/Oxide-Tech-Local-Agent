@@ -20,9 +20,11 @@ use qdrant_service::client::QdrantServiceClient;
 use surrealdb_service::client::SurrealClient;
 use tree_sitter_service::ast::ParsedSymbol;
 
+pub mod captioner;
 pub mod fable_router;
 pub mod graph_rag;
 pub mod live_docs;
+pub mod ocr;
 pub mod okf;
 pub mod updater;
 

@@ -15,10 +15,12 @@
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+mod assets;
 mod config_ipc;
 mod doctor;
 mod gateway_rt;
 mod hardware_ipc;
+mod installer;
 mod memory;
 mod model_ipc;
 mod reforge_ipc;
@@ -36,6 +38,7 @@ fn usage() -> String {
          \n\
          Usage:\n  \
            oxide-tech-local-agent [desktop] [--config PATH]       Launch Desktop UI (Embedded Gateway + Memory)\n  \
+           oxide-tech-local-agent --install [--force]             Self-Install Desktop Entry, Udev Rules & Paths\n  \
            oxide-tech-local-agent daemon [--config PATH]          Run Headless Gateway (Systemd Service Mode)\n  \
            oxide-tech-local-agent doctor [--json]                 Run Environment & Toolchain Diagnostics\n  \
            oxide-tech-local-agent re-forge <FILE> [--arch ARCH] [--json] Reverse Engineer Binary / PTX GPU Code\n  \
@@ -345,6 +348,13 @@ fn main() {
 
     match cmd {
         "desktop" => run_desktop(flag_value(&raw, "--config")),
+        "install" | "--install" => {
+            let force = raw.iter().any(|a| a == "--force" || a == "-f");
+            if let Err(e) = installer::run_self_install(force) {
+                eprintln!("install error: {e:?}");
+                std::process::exit(1);
+            }
+        }
         "daemon" => {
             if let Err(e) = gateway_rt::run_headless(flag_value(&raw, "--config").as_deref()) {
                 eprintln!("gateway fatal: {e:?}");
