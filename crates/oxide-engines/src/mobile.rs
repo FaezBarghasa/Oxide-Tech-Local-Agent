@@ -62,6 +62,16 @@ impl MobileDecisionEngine {
 
 // --- C-ABI Exported Functions for Swift / Kotlin Native JNI / FFI ---
 
+use std::sync::RwLock;
+
+static LAST_FFI_ERROR: RwLock<Option<String>> = RwLock::new(None);
+
+fn set_last_error(err: String) {
+    if let Ok(mut guard) = LAST_FFI_ERROR.write() {
+        *guard = Some(err);
+    }
+}
+
 /// Allocate and initialize a new `DecisionEngine` on the heap.
 ///
 /// # Safety
@@ -100,39 +110,77 @@ pub unsafe extern "C" fn oxide_decision_engine_decide_json(
     engine_ptr: *const DecisionEngine,
     input_json_ptr: *const c_char,
 ) -> *mut c_char {
-    if engine_ptr.is_null() || input_json_ptr.is_null() {
+    if engine_ptr.is_null() {
+        set_last_error("Null engine_ptr provided to oxide_decision_engine_decide_json".to_string());
+        return std::ptr::null_mut();
+    }
+    if input_json_ptr.is_null() {
+        set_last_error("Null input_json_ptr provided to oxide_decision_engine_decide_json".to_string());
         return std::ptr::null_mut();
     }
 
     let c_str = unsafe { CStr::from_ptr(input_json_ptr) };
     let json_str = match c_str.to_str() {
         Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
+        Err(e) => {
+            set_last_error(format!("Invalid UTF-8 in input_json_ptr: {}", e));
+            return std::ptr::null_mut();
+        }
     };
 
     let input: DecisionInput = match serde_json::from_str(json_str) {
         Ok(inp) => inp,
-        Err(_) => return std::ptr::null_mut(),
+        Err(e) => {
+            set_last_error(format!("JSON deserialization failed: {}", e));
+            return std::ptr::null_mut();
+        }
     };
 
     let engine = unsafe { &*engine_ptr };
     let output = match engine.decide(input) {
         Ok(out) => out,
-        Err(_) => return std::ptr::null_mut(),
+        Err(e) => {
+            set_last_error(format!("Engine decision failed: {}", e));
+            return std::ptr::null_mut();
+        }
     };
 
     let output_json = match serde_json::to_string(&output) {
         Ok(s) => s,
-        Err(_) => return std::ptr::null_mut(),
+        Err(e) => {
+            set_last_error(format!("JSON serialization failed: {}", e));
+            return std::ptr::null_mut();
+        }
     };
 
     match CString::new(output_json) {
         Ok(c_out) => c_out.into_raw(),
-        Err(_) => std::ptr::null_mut(),
+        Err(e) => {
+            set_last_error(format!("CString creation failed: {}", e));
+            std::ptr::null_mut()
+        }
     }
 }
 
-/// Free a C-string allocated by `oxide_decision_engine_decide_json`.
+/// Retrieve the last error message recorded during FFI execution.
+///
+/// # Safety
+/// Returned string must be freed with `oxide_decision_engine_free_string` if non-null.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn oxide_decision_engine_last_error() -> *mut c_char {
+    let err_opt = if let Ok(guard) = LAST_FFI_ERROR.read() {
+        guard.clone()
+    } else {
+        None
+    };
+
+    match err_opt.and_then(|s| CString::new(s).ok()) {
+        Some(c_str) => c_str.into_raw(),
+        None => std::ptr::null_mut(),
+    }
+}
+
+/// Free a C-string allocated by `oxide_decision_engine_decide_json` or `oxide_decision_engine_last_error`.
 ///
 /// # Safety
 /// `str_ptr` must be a valid pointer allocated by Rust or NULL.

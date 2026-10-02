@@ -170,7 +170,8 @@ pub struct TensorSlice {
     len: usize,
 }
 
-// TensorSlice is Send and Sync because the underlying Mmap is read-only and immutable.
+// SAFETY: TensorSlice is Send and Sync because the underlying Mmap is read-only,
+// immutable, and kept alive by the internal Arc<_owner> across thread boundaries.
 unsafe impl Send for TensorSlice {}
 unsafe impl Sync for TensorSlice {}
 
