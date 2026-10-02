@@ -40,6 +40,14 @@
       "original_bytes": 3421,
       "saved_bytes": 3147,
       "estimated_tokens_saved": 786
+    },
+    {
+      "timestamp": 1790964252,
+      "session_id": "cli_run",
+      "category": "condenser",
+      "original_bytes": 13809,
+      "saved_bytes": 12407,
+      "estimated_tokens_saved": 3101
     }
   ]
 }

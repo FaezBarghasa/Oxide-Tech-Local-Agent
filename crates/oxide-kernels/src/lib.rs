@@ -1,3 +1,5 @@
+#![allow(clippy::needless_range_loop, clippy::missing_safety_doc)]
+
 pub mod autotune;
 pub mod avx512_compress;
 pub mod flash_attention;

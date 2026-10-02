@@ -1,3 +1,5 @@
+#![allow(clippy::needless_range_loop, clippy::type_complexity, clippy::collapsible_if, clippy::manual_div_ceil)]
+
 use async_trait::async_trait;
 use oxide_core::{ChatMessage, GenerationParams, OxideError};
 use tokio::sync::mpsc;
