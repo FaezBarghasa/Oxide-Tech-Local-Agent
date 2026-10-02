@@ -174,42 +174,45 @@ impl MoeGatingRouter {
         scores.insert(ExpertModel::Ornith1_5_9B_Q4KM, 0.9);
         scores.insert(ExpertModel::Llm4Decompile_22B_V2_Q6K, 0.8);
 
+        #[inline]
+        fn bump_score(scores: &mut HashMap<ExpertModel, f32>, model: ExpertModel, delta: f32) {
+            if let Some(val) = scores.get_mut(&model) {
+                *val += delta;
+            }
+        }
+
         // 1. Task-Type Priors
         match req.task_type {
             TaskType::Architecture | TaskType::Debugging => {
-                *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 4.0;
-                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 2.5;
+                bump_score(&mut scores, ExpertModel::Ornith1_5_35B_Q4KM, 4.0);
+                bump_score(&mut scores, ExpertModel::Ornith1_5_9B_Q4KM, 2.5);
             }
             TaskType::CodeCompletion => {
-                *scores
-                    .get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion)
-                    .unwrap() += 4.5;
+                bump_score(&mut scores, ExpertModel::Qwen3_8_27B_TurboFCFusion, 4.5);
             }
             TaskType::Syntax => {
-                *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 3.5;
-                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 2.0;
+                bump_score(&mut scores, ExpertModel::Qwen3_8_27B, 3.5);
+                bump_score(&mut scores, ExpertModel::Gemma4_E2B_IT_Q8_0, 2.0);
             }
             TaskType::Training => {
-                *scores.get_mut(&ExpertModel::Gemma4_26B_A4B).unwrap() += 3.5;
+                bump_score(&mut scores, ExpertModel::Gemma4_26B_A4B, 3.5);
             }
             TaskType::PcbLayout | TaskType::SceneModeling => {
-                *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 3.0;
-                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 2.0;
+                bump_score(&mut scores, ExpertModel::Ornith1_5_35B_Q4KM, 3.0);
+                bump_score(&mut scores, ExpertModel::Ornith1_5_9B_Q4KM, 2.0);
             }
             TaskType::BinaryAnalysis => {
-                *scores
-                    .get_mut(&ExpertModel::Llm4Decompile_22B_V2_Q6K)
-                    .unwrap() += 5.0;
+                bump_score(&mut scores, ExpertModel::Llm4Decompile_22B_V2_Q6K, 5.0);
             }
             TaskType::ToolSynthesis => {
-                *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 4.0;
+                bump_score(&mut scores, ExpertModel::Qwen3_8_27B, 4.0);
             }
             TaskType::Research => {
-                *scores.get_mut(&ExpertModel::Gemma4_26B_A4B).unwrap() += 4.0;
+                bump_score(&mut scores, ExpertModel::Gemma4_26B_A4B, 4.0);
             }
             TaskType::Verification => {
-                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 4.5;
-                *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 3.0;
+                bump_score(&mut scores, ExpertModel::Gemma4_E2B_IT_Q8_0, 4.5);
+                bump_score(&mut scores, ExpertModel::Ornith1_5_35B_Q4KM, 3.0);
             }
         }
 
@@ -306,54 +309,50 @@ impl MoeGatingRouter {
 
         for sig in decompile_signals {
             if p_lower.contains(sig) {
-                *scores
-                    .get_mut(&ExpertModel::Llm4Decompile_22B_V2_Q6K)
-                    .unwrap() += 4.0;
+                bump_score(&mut scores, ExpertModel::Llm4Decompile_22B_V2_Q6K, 4.0);
             }
         }
 
         for sig in edge_micro_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::SparkX2_5_4B_Q8_0).unwrap() += 3.5;
+                bump_score(&mut scores, ExpertModel::SparkX2_5_4B_Q8_0, 3.5);
             }
         }
 
         for sig in low_vram_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Gemma4_V2_Q3KM).unwrap() += 3.0;
+                bump_score(&mut scores, ExpertModel::Gemma4_V2_Q3KM, 3.0);
             }
         }
 
         for sig in edge_verifier_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Gemma4_E2B_IT_Q8_0).unwrap() += 3.0;
+                bump_score(&mut scores, ExpertModel::Gemma4_E2B_IT_Q8_0, 3.0);
             }
         }
 
         for sig in embedded_heavy_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Ornith1_5_35B_Q4KM).unwrap() += 1.5;
-                *scores.get_mut(&ExpertModel::Ornith1_5_9B_Q4KM).unwrap() += 1.0;
+                bump_score(&mut scores, ExpertModel::Ornith1_5_35B_Q4KM, 1.5);
+                bump_score(&mut scores, ExpertModel::Ornith1_5_9B_Q4KM, 1.0);
             }
         }
 
         for sig in code_synthesis_signals {
             if p_lower.contains(sig) {
-                *scores
-                    .get_mut(&ExpertModel::Qwen3_8_27B_TurboFCFusion)
-                    .unwrap() += 1.3;
+                bump_score(&mut scores, ExpertModel::Qwen3_8_27B_TurboFCFusion, 1.3);
             }
         }
 
         for sig in fast_triage_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Gemma4_26B_A4B).unwrap() += 1.2;
+                bump_score(&mut scores, ExpertModel::Gemma4_26B_A4B, 1.2);
             }
         }
 
         for sig in general_signals {
             if p_lower.contains(sig) {
-                *scores.get_mut(&ExpertModel::Qwen3_8_27B).unwrap() += 1.0;
+                bump_score(&mut scores, ExpertModel::Qwen3_8_27B, 1.0);
             }
         }
 

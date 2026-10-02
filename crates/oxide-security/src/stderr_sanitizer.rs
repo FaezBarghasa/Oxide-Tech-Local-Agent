@@ -34,19 +34,36 @@ impl StderrSanitizer {
 
     /// Append chunk into 16 KiB bounded ring buffer
     pub fn append_chunk(&self, chunk: &[u8]) {
-        let mut buf = self.buffer.lock().unwrap();
-        for &byte in chunk {
-            if buf.len() >= MAX_STDERR_TAIL_BYTES {
-                buf.pop_front();
-            }
-            buf.push_back(byte);
+        if chunk.is_empty() {
+            return;
         }
+        let mut buf = match self.buffer.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let to_keep = MAX_STDERR_TAIL_BYTES.saturating_sub(chunk.len());
+        while buf.len() > to_keep {
+            buf.pop_front();
+        }
+        let slice_to_add = if chunk.len() > MAX_STDERR_TAIL_BYTES {
+            &chunk[chunk.len() - MAX_STDERR_TAIL_BYTES..]
+        } else {
+            chunk
+        };
+        buf.extend(slice_to_add);
     }
 
     /// Get sanitized tail as string with secret patterns scrubbed
     pub fn get_sanitized_tail(&self) -> String {
-        let buf = self.buffer.lock().unwrap();
-        let raw = String::from_utf8_lossy(&buf.iter().cloned().collect::<Vec<u8>>()).to_string();
+        let buf = match self.buffer.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        let (s1, s2) = buf.as_slices();
+        let mut raw_bytes = Vec::with_capacity(s1.len() + s2.len());
+        raw_bytes.extend_from_slice(s1);
+        raw_bytes.extend_from_slice(s2);
+        let raw = String::from_utf8_lossy(&raw_bytes).to_string();
 
         let mut sanitized = raw;
         for pattern in &self.patterns {
