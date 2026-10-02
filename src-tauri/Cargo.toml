@@ -57,12 +57,19 @@ tauri-build = { version = "2", features = [] }
 name = "pure_rust_stack_test"
 path = "../tests/pure_rust_stack_test.rs"
 
+[[test]]
+name = "realtime_user_experience_test"
+path = "../tests/realtime_user_experience_test.rs"
+
 [dev-dependencies]
 edge-swarm = { path = "../crates/edge-swarm" }
 mcp-probe-rs = { path = "../crates/mcp-probe-rs" }
 oxide-engines = { path = "../crates/oxide-engines" }
+oxide-security = { path = "../crates/oxide-security" }
 qdrant-service = { path = "../crates/qdrant-service" }
+router = { path = "../crates/router" }
 surrealdb-service = { path = "../crates/surrealdb-service" }
+tempfile = "3"
 
 # Release tuning (opt-level, LTO, strip) is inherited from the workspace root
 # [profile.release]; per-package profiles are ignored in a workspace.

@@ -1,10 +1,63 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 
 const SCREENSHOT_DIR = path.resolve(__dirname, '../docs/assets/screenshots/gui_audit');
 if (!fs.existsSync(SCREENSHOT_DIR)) {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+}
+
+async function ensureServerRunning() {
+  const isRunning = await new Promise((resolve) => {
+    const req = http.get('http://localhost:1420', (res) => {
+      resolve(true);
+    });
+    req.on('error', () => resolve(false));
+    req.setTimeout(800, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+
+  if (isRunning) {
+    console.log('[*] Using existing server on http://localhost:1420');
+    return null;
+  }
+
+  console.log('[*] Starting built-in SPA server on http://localhost:1420 for GUI tests...');
+  const distDir = path.resolve(__dirname, '../src/dist');
+  const server = http.createServer((req, res) => {
+    let reqPath = req.url.split('?')[0];
+    if (reqPath === '/') reqPath = '/index.html';
+    let filePath = path.join(distDir, reqPath);
+    if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+      filePath = path.join(distDir, 'index.html');
+    }
+    const ext = path.extname(filePath);
+    const mimeMap = {
+      '.html': 'text/html',
+      '.js': 'application/javascript',
+      '.css': 'text/css',
+      '.png': 'image/png',
+      '.json': 'application/json',
+      '.svg': 'image/svg+xml',
+      '.woff2': 'font/woff2',
+      '.woff': 'font/woff',
+    };
+    res.writeHead(200, { 'Content-Type': mimeMap[ext] || 'application/octet-stream' });
+    fs.createReadStream(filePath).pipe(res);
+  });
+
+  await new Promise((resolve, reject) => {
+    server.listen(1420, '127.0.0.1', () => {
+      console.log('[✓] Built-in SPA server active on http://localhost:1420');
+      resolve();
+    });
+    server.on('error', reject);
+  });
+
+  return server;
 }
 
 // Exact sidebar navigation items from Sidebar.tsx
@@ -33,6 +86,8 @@ async function runGuiDesktopSuite() {
   console.log('================================================================');
   console.log('   Oxide-Tech Local Agent — Automated Desktop GUI Test Suite    ');
   console.log('================================================================\n');
+
+  const internalServer = await ensureServerRunning();
 
   const browser = await chromium.launch({
     headless: true,
@@ -293,6 +348,14 @@ async function runGuiDesktopSuite() {
 
   } finally {
     await browser.close();
+    if (internalServer) {
+      console.log('[*] Shutting down built-in test server...');
+      await new Promise((resolve) => internalServer.close(resolve));
+    }
+  }
+
+  if (!auditReport.readyForProduction) {
+    throw new Error(`GUI desktop suite failed verification: ${auditReport.tabsFailed} tabs failed, ${auditReport.pageErrors.length} page errors.`);
   }
 
   return auditReport;
