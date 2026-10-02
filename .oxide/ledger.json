@@ -1,0 +1,29 @@
+{
+  "usage_records": [],
+  "savings_records": [
+    {
+      "timestamp": 1790962935,
+      "session_id": "surgical_read",
+      "category": "symbol_slicer",
+      "original_bytes": 12484,
+      "saved_bytes": 12397,
+      "estimated_tokens_saved": 3099
+    },
+    {
+      "timestamp": 1790962937,
+      "session_id": "surgical_read",
+      "category": "symbol_slicer",
+      "original_bytes": 5815,
+      "saved_bytes": 4808,
+      "estimated_tokens_saved": 1202
+    },
+    {
+      "timestamp": 1790963147,
+      "session_id": "surgical_read",
+      "category": "symbol_slicer",
+      "original_bytes": 12484,
+      "saved_bytes": 12366,
+      "estimated_tokens_saved": 3091
+    }
+  ]
+}
