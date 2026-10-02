@@ -117,7 +117,7 @@ impl DesktopTesterServer {
         let wait_time = input.wait_secs.unwrap_or(8);
 
         // Find executable (check ~/.local/bin/oxide-tech-local-agent, /usr/bin/oxide-tech-local-agent, or path)
-        let exe_path = if let Some(home) = std::env::var("HOME").ok() {
+        let exe_path = if let Ok(home) = std::env::var("HOME") {
             let local_bin = std::path::PathBuf::from(home).join(".local/bin/oxide-tech-local-agent");
             if local_bin.exists() {
                 local_bin.display().to_string()
@@ -146,10 +146,10 @@ impl DesktopTesterServer {
                     .unwrap_or_default();
 
                 let mut gateway_status = "unreachable";
-                if let Ok(resp) = client.get("http://127.0.0.1:8080/health").send().await {
-                    if resp.status().is_success() {
-                        gateway_status = "healthy";
-                    }
+                if let Ok(resp) = client.get("http://127.0.0.1:8080/health").send().await
+                    && resp.status().is_success()
+                {
+                    gateway_status = "healthy";
                 }
 
                 let result = format!(
@@ -293,11 +293,11 @@ impl DesktopTesterServer {
             }
 
             // Test model availability
-            if let Ok(resp) = client.get("http://127.0.0.1:8080/v1/models").send().await {
-                if let Ok(json) = resp.json::<serde_json::Value>().await {
-                    let count = json.get("data").and_then(|d| d.as_array()).map(|a| a.len()).unwrap_or(0);
-                    log.push(format!("Cycle {}: Model catalog responsive ({} registered models).", i, count));
-                }
+            if let Ok(resp) = client.get("http://127.0.0.1:8080/v1/models").send().await
+                && let Ok(json) = resp.json::<serde_json::Value>().await
+            {
+                let count = json.get("data").and_then(|d| d.as_array()).map(|a| a.len()).unwrap_or(0);
+                log.push(format!("Cycle {}: Model catalog responsive ({} registered models).", i, count));
             }
 
             tokio::time::sleep(Duration::from_secs(1)).await;
@@ -419,17 +419,17 @@ impl DesktopTesterServer {
         if let Ok(out) = gui_out {
             let report_path = std::path::Path::new("docs/assets/screenshots/gui_audit/audit_report.json");
             if report_path.exists() {
-                if let Ok(content) = tokio::fs::read_to_string(report_path).await {
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
-                        let tabs_passed = json.get("tabsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
-                        let tabs_total = json.get("tabsTested").and_then(|v| v.as_u64()).unwrap_or(0);
-                        let modals_passed = json.get("modalsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
-                        let ready = json.get("readyForProduction").and_then(|v| v.as_bool()).unwrap_or(false);
-                        report.push(format!(
-                            "[5/5] Desktop GUI Suite: {}/{} tabs passed, {} modals passed, Ready: {}",
-                            tabs_passed, tabs_total, modals_passed, if ready { "YES [✓]" } else { "NO [✗]" }
-                        ));
-                    }
+                if let Ok(content) = tokio::fs::read_to_string(report_path).await
+                    && let Ok(json) = serde_json::from_str::<serde_json::Value>(&content)
+                {
+                    let tabs_passed = json.get("tabsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
+                    let tabs_total = json.get("tabsTested").and_then(|v| v.as_u64()).unwrap_or(0);
+                    let modals_passed = json.get("modalsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
+                    let ready = json.get("readyForProduction").and_then(|v| v.as_bool()).unwrap_or(false);
+                    report.push(format!(
+                        "[5/5] Desktop GUI Suite: {}/{} tabs passed, {} modals passed, Ready: {}",
+                        tabs_passed, tabs_total, modals_passed, if ready { "YES [✓]" } else { "NO [✗]" }
+                    ));
                 }
             } else {
                 report.push(format!("[5/5] Desktop GUI Suite: Exited with code {}", out.status.code().unwrap_or(-1)));

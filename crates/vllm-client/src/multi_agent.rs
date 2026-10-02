@@ -951,7 +951,7 @@ mod tests {
         }
 
         async fn stream_chat(&self, _req: ChatRequest) -> anyhow::Result<StreamResult> {
-            unimplemented!()
+            anyhow::bail!("stream_chat is not supported for EchoProvider test double")
         }
 
         async fn health(&self) -> anyhow::Result<BackendHealth> {

@@ -37,6 +37,12 @@ pub struct VectorStore {
     storage_path: Option<PathBuf>,
 }
 
+impl Default for VectorStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VectorStore {
     pub fn new() -> Self {
         Self {
