@@ -59,5 +59,10 @@ impl ContextCompactor {
     }
 }
 
+pub mod native_tools;
 pub mod ornith_formatter;
+pub use native_tools::{
+    HardwareProbeTool, MemoryRecallTool, NativeTool, NativeToolRegistry, PtxDecompileTool,
+    StairSearchTool,
+};
 pub use ornith_formatter::{ExtractedToolCall, OrnithPromptFormatter};

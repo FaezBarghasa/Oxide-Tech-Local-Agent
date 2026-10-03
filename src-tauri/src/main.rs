@@ -36,6 +36,7 @@ mod skills_ipc;
 mod tunnel_ipc;
 mod updater_ipc;
 mod verifier_ipc;
+pub mod controllers;
 
 use anyhow::Result;
 use std::path::PathBuf;
@@ -94,94 +95,75 @@ fn run_desktop(config: Option<String>) {
             })
         })
         .invoke_handler(tauri::generate_handler![
-            // Memory & STAIR Code-ToC
-            memory::memory_env,
-            memory::memory_status,
-            memory::memory_init,
-            memory::memory_index,
-            memory::memory_search,
-            memory::memory_context,
-            memory::memory_remember,
-            memory::memory_recall,
-            memory::memory_explain,
-            memory::memory_conflicts,
-            // Gateway
-            gateway_status,
-            // Doctor
-            doctor::doctor_run_diagnostics,
-            doctor::doctor_install_udev_rules,
-            // Hardware & probe-rs
-            hardware_ipc::get_system_telemetry,
-            hardware_ipc::hardware_list_probes,
-            hardware_ipc::hardware_get_chip_info,
-            hardware_ipc::hardware_flash_firmware,
-            // Model & Unsloth-Style Execution
-            model_ipc::model_list_available,
-            model_ipc::model_run_prompt,
-            model_ipc::scan_local_gguf_models,
-            model_ipc::get_engine_matrix_status,
-            model_ipc::get_tiered_cache_metrics,
-            model_ipc::trainer_start_job,
-            model_ipc::trainer_get_job_status,
-            model_ipc::trainer_abort_job,
-            model_ipc::trainer_harvest_trajectories,
-            model_ipc::trainer_export_gguf,
-            // Audio Forge
-            audio_ipc::audio_list_devices,
-            audio_ipc::audio_start_recording,
-            audio_ipc::audio_stop_and_transcribe,
-            audio_ipc::audio_synthesize_speech,
-            // Media Forge
-            media_ipc::media_generate_image,
-            media_ipc::media_generate_video,
-            // Model Hub
-            hub_ipc::hub_download_model,
-            // RE-Forge
-            reforge_ipc::reforge_analyze_file,
-            // Verifier
-            verifier_ipc::verifier_run_suite,
-            verifier_ipc::verifier_export_evidence,
-            // Updater
-            updater_ipc::updater_check,
-            updater_ipc::updater_download_and_apply,
-            updater_ipc::updater_restart,
-            // Skills Studio
-            skills_ipc::skill_list,
-            skills_ipc::skill_load,
-            skills_ipc::skill_save,
-            skills_ipc::skill_test,
-            skills_ipc::skill_delete,
-            // Model Arena
-            arena_ipc::arena_run_comparison,
-            // Document Library & Attachments
-            document_ipc::document_list,
-            document_ipc::document_read_text,
-            document_ipc::document_read_pdf_pages,
-            document_ipc::read_attachment,
-            // Search & Deep Research
-            search_ipc::web_search,
-            search_ipc::deep_research_execute,
-            // Tunnel & LAN
-            tunnel_ipc::start_cloudflare_tunnel,
-            tunnel_ipc::stop_cloudflare_tunnel,
-            tunnel_ipc::get_tunnel_status,
-            tunnel_ipc::start_lan_broadcast,
-            tunnel_ipc::stop_lan_broadcast,
-            // Unsloth Migration
-            migrate_ipc::scan_unsloth_data,
-            migrate_ipc::import_unsloth_items,
-            // Config
-            config_ipc::config_read,
-            config_ipc::config_save,
+            // Agent Domain
+            controllers::agent_controller::model_list_available,
+            controllers::agent_controller::model_run_prompt,
+            controllers::agent_controller::execute_agent_prompt,
+            controllers::agent_controller::scan_local_gguf_models,
+            controllers::agent_controller::get_engine_matrix_status,
+            controllers::agent_controller::get_tiered_cache_metrics,
+            controllers::agent_controller::trainer_start_job,
+            controllers::agent_controller::trainer_get_job_status,
+            controllers::agent_controller::trainer_abort_job,
+            controllers::agent_controller::trainer_harvest_trajectories,
+            controllers::agent_controller::trainer_export_gguf,
+            controllers::agent_controller::hub_download_model,
+            controllers::agent_controller::skill_list,
+            controllers::agent_controller::skill_load,
+            controllers::agent_controller::skill_save,
+            controllers::agent_controller::skill_test,
+            controllers::agent_controller::skill_delete,
+            controllers::agent_controller::arena_run_comparison,
+            // System Domain
+            controllers::system_controller::get_system_telemetry,
+            controllers::system_controller::hardware_list_probes,
+            controllers::system_controller::hardware_get_chip_info,
+            controllers::system_controller::hardware_flash_firmware,
+            controllers::system_controller::gateway_status,
+            controllers::system_controller::doctor_run_diagnostics,
+            controllers::system_controller::doctor_install_udev_rules,
+            controllers::system_controller::start_cloudflare_tunnel,
+            controllers::system_controller::stop_cloudflare_tunnel,
+            controllers::system_controller::get_tunnel_status,
+            controllers::system_controller::start_lan_broadcast,
+            controllers::system_controller::stop_lan_broadcast,
+            controllers::system_controller::config_read,
+            controllers::system_controller::config_save,
+            controllers::system_controller::updater_check,
+            controllers::system_controller::updater_download_and_apply,
+            controllers::system_controller::updater_restart,
+            // Workspace Domain
+            controllers::workspace_controller::memory_env,
+            controllers::workspace_controller::memory_status,
+            controllers::workspace_controller::memory_init,
+            controllers::workspace_controller::memory_index,
+            controllers::workspace_controller::memory_search,
+            controllers::workspace_controller::memory_context,
+            controllers::workspace_controller::memory_remember,
+            controllers::workspace_controller::memory_recall,
+            controllers::workspace_controller::memory_explain,
+            controllers::workspace_controller::memory_conflicts,
+            controllers::workspace_controller::document_list,
+            controllers::workspace_controller::document_read_text,
+            controllers::workspace_controller::document_read_pdf_pages,
+            controllers::workspace_controller::read_attachment,
+            controllers::workspace_controller::web_search,
+            controllers::workspace_controller::deep_research_execute,
+            controllers::workspace_controller::scan_unsloth_data,
+            controllers::workspace_controller::import_unsloth_items,
+            // Forge Domain
+            controllers::forge_controller::audio_list_devices,
+            controllers::forge_controller::audio_start_recording,
+            controllers::forge_controller::audio_stop_and_transcribe,
+            controllers::forge_controller::audio_synthesize_speech,
+            controllers::forge_controller::media_generate_image,
+            controllers::forge_controller::media_generate_video,
+            controllers::forge_controller::reforge_analyze_file,
+            controllers::forge_controller::verifier_run_suite,
+            controllers::forge_controller::verifier_export_evidence,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Oxide-Tech Local Agent desktop");
-}
-
-#[tauri::command]
-async fn gateway_status(base_url: Option<String>) -> Result<u16, String> {
-    let base = base_url.unwrap_or_else(|| DEFAULT_GATEWAY_URL.to_string());
-    gateway_rt::probe_gateway(&base, 3).await
 }
 
 fn run_doctor_cli(json_output: bool) {
