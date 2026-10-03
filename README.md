@@ -142,36 +142,47 @@ Oxide-Tech incorporates a pure-Rust **Universal AI Gateway** and zero-stub **Nat
 
 ---
 
-## 🖥️ Desktop-First Application & Unified CLI
+## 🖥️ Desktop-First Application & Unified Monolith CLI
 
-Oxide-Tech Local Agent is built as a **Desktop-First Application** powered by Tauri v2 and React 19 (`ui/oxide-agent-studio`). All agent capabilities—from hardware diagnostics and binary decompilation to verification and memory audits—are available directly within the desktop UI without needing the command line.
+Oxide-Tech Local Agent is engineered as a **Hermetic Single-Binary Desktop Monolith** powered by Tauri v2 and React 19 (`src/`). All agent capabilities—from in-process gateway server and hardware diagnostics to binary decompilation, verification suites, and STAIR Code-ToC project memory—are compiled directly into one production executable (`oxide-tech-local-agent`) with zero external service or Python runtime dependencies.
 
 ### Launching Desktop Studio
 
 ```bash
-# Launch the desktop studio (Tauri v2)
+# Launch the desktop studio (Builds and runs the single monolith binary)
+cargo run
+# Or via Tauri dev runner
 cargo tauri dev
 ```
 
-### Unified Headless CLI
+### Unified Headless & Systems CLI
 
-For headless environments or automation scripts, the root binary `Oxide-Tech-Local-Agent` delegates directly to the shared engine:
+The single production binary `oxide-tech-local-agent` supports complete desktop, daemon, and diagnostic subcommands:
 
 ```bash
-# 1. Run system diagnostics
-oxide-agent doctor
+# 1. Launch Desktop UI (Embedded In-Process Gateway + STAIR Memory)
+oxide-tech-local-agent desktop [--config PATH]
 
-# 2. Start the Daemon
-oxide-agent daemon --profile standard --port 8080
+# 2. Self-Install Desktop Entry, udev rules & user paths
+oxide-tech-local-agent --install
 
-# 3. Disassemble and reverse-engineer a binary / PTX file
-oxide-agent re-forge path/to/binary --arch x86_64 --decompile
+# 3. Start the Headless Gateway (Systemd Service Mode)
+oxide-tech-local-agent daemon [--config PATH]
 
-# 4. Run deterministic verifier and export signed evidence bundle
-oxide-agent verify --workspace . --export-evidence ./target/evidence
+# 4. Run system diagnostics & toolchain checks
+oxide-tech-local-agent doctor [--json]
 
-# 5. Check running daemon status
-oxide-agent status
+# 5. Disassemble and reverse-engineer a binary / PTX file
+oxide-tech-local-agent re-forge path/to/binary [--arch ARCH] [--json]
+
+# 6. Run deterministic verifier and export evidence bundle
+oxide-tech-local-agent verify [--workspace PATH] [--json]
+
+# 7. STAIR Code-ToC & Memanto memory operations (in-process or CLI passthrough)
+oxide-tech-local-agent memory <subcommand> [args...]
+
+# 8. Probe running gateway liveness
+oxide-tech-local-agent status
 ```
 
 ---

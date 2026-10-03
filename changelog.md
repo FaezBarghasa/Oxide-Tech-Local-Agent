@@ -2,6 +2,25 @@
 
 All notable changes to the Oxide-Tech Local Agent OS codebase are documented here.
 
+## [v3.3.0-desktop-monolith] - 2026-10-03
+
+This milestone delivers the **Pure-Rust Hermetic Single-Binary Desktop Monolith & Non-Blocking Async Concurrency Architecture**, establishing the single unified desktop binary as the workspace default executable.
+
+### Major Upgrades & Enhancements
+
+#### 1. Single-Binary Monolith Configuration (`Cargo.toml` & `src-tauri/Cargo.toml`)
+- **Default Workspace Executable**: Configured root `default-members = ["src-tauri"]` with `resolver = "3"`. `cargo run`, `cargo build`, and `cargo check` compile and run `oxide-tech-local-agent` directly.
+- **Unified Subcommand Surface**: Single binary execution matrix supporting `desktop` (with in-process gateway and inlined `rust-embed` assets), `daemon` (headless systemd service mode), `doctor` (hardware and toolchain diagnostics), `re-forge` (binary and PTX GPU reverse engineering), `verify` (deterministic verification suite), and `memory` (STAIR Code-ToC and Memanto memory integration).
+
+#### 2. Non-Blocking Async Concurrency & Hygiene (`src-tauri/src/model_ipc.rs`)
+- **Blocking Disk I/O Offloading**: Encapsulated blocking recursive directory traversals (`scan_default_local_gguf_models` and `scan_local_gguf_models`) and synchronous GGUF header parsing inside `tokio::task::spawn_blocking`.
+- **Concurrent Engine Probing**: Probing local GGUFs, Ollama (`query_ollama_models`), and SGLang (`query_sglang_models`) now executes concurrently via `tokio::join!`.
+
+#### 3. Zero-Warning Quality Gate
+- **Clippy Clean**: Complete repository passes `cargo clippy --workspace --all-targets -- -D warnings` with zero warnings.
+- **Kernel Simd Alignment**: Resolved SIMD 512-bit vector memory alignment test in `crates/oxide-kernels/tests/alignment_test.rs`.
+- **Comprehensive Test Suite**: `pure_rust_stack_test` (11/11 passed), `realtime_user_experience_test` (4/4 passed), and full workspace tests verified.
+
 ---
 
 ## [v3.2.0-universal-gateway-native-engine] - 2026-10-01

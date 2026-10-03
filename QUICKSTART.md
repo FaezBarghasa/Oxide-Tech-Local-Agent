@@ -11,14 +11,14 @@ Before running Oxide-Tech, verify your host environment using the unified CLI:
 ```bash
 # Run the automated diagnostics
 cargo run -- doctor
-# Or using the installed binary:
-oxide-agent doctor
+# Or using the single installed binary:
+oxide-tech-local-agent doctor
 ```
 
 ### Optional: Install Hardware Probe udev Rules
 If flashing physical microcontrollers (STM32, ESP32, nRF52) via `probe-rs`:
 ```bash
-sudo ./scripts/install_udev_rules.sh
+sudo oxide-tech-local-agent doctor --install-udev
 ```
 
 ---
@@ -34,7 +34,7 @@ Runs directly on your host GPU/CPU with zero cloud dependency:
 # Supported models: Ternary-Bonsai-2-27B, DeepSeek-R1-8B, gemma4-v2, etc.
 
 # 2. Start the Daemon with native model orchestrator
-oxide-agent daemon --profile standard --port 8080
+oxide-tech-local-agent daemon --profile standard --port 8080
 ```
 
 ### 🔵 Mode B: Local Ollama Bridge
@@ -44,14 +44,14 @@ Connects to an existing Ollama daemon:
 ollama pull qwen2.5-coder:7b
 
 # 2. Start the Daemon in Lite Mode
-oxide-agent daemon --profile lite --port 8080
+oxide-tech-local-agent daemon --profile lite --port 8080
 ```
 
 ### 🟣 Mode C: Universal AI Gateway (19 Routing Strategies)
 Route queries dynamically across multiple browser-authenticated accounts and local engines:
 ```bash
 # 1. Start the Universal AI Gateway
-oxide-agent daemon --profile enterprise --port 8080
+oxide-tech-local-agent daemon --profile enterprise --port 8080
 
 # 2. Test dynamic routing (e.g. priority, context-relay, or cost-optimized)
 curl -X POST http://127.0.0.1:8080/api/v1/gateway/route \
@@ -63,7 +63,7 @@ curl -X POST http://127.0.0.1:8080/api/v1/gateway/route \
 
 ## 3. Launching the Desktop Application (Studio UI)
 
-Oxide-Tech Local Agent is designed **Desktop-First**. The native Tauri v2 desktop application integrates all subsystems into an interactive workspace:
+Oxide-Tech Local Agent is designed **Desktop-First**. The single hermetic binary `oxide-tech-local-agent` runs the desktop window with embedded background gateway and inlined frontend assets:
 - **Doctor Tab**: Hardware connectivity, toolchain checks, and udev rules installer.
 - **Catalog Tab**: Real-time GGUF model manager, GPU layer offloading (`-ngl`), and native `llama-server` lifecycle.
 - **Gateway Tab**: Universal router policy configuration (19 strategies), browser authentication status, and token buckets.
@@ -73,13 +73,11 @@ Oxide-Tech Local Agent is designed **Desktop-First**. The native Tauri v2 deskto
 - **Settings Tab**: Fast profile switching (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`).
 
 ```bash
-# Launch Native Desktop Studio
-cargo tauri dev
-
-# Or launch local web studio server
-oxide-agent studio --port 3000
+# Launch Native Desktop Studio (Single hermetic binary)
+cargo run
+# Or via installed binary:
+oxide-tech-local-agent desktop
 ```
-Access the desktop app directly or open **http://localhost:3000** for headless web access.
 
 ---
 
@@ -87,22 +85,23 @@ Access the desktop app directly or open **http://localhost:3000** for headless w
 
 ### High-Throughput Binary Reverse Engineering & Decompilation
 ```bash
-oxide-agent re-forge path/to/binary --arch x86_64 --decompile
-```
-
-### Polyglot to Rust Refactoring & Synthesis
-```bash
-oxide-agent forge-rust path/to/source.py --out ./refactored_rust --verify
+oxide-tech-local-agent re-forge path/to/binary --arch x86_64
 ```
 
 ### Deterministic Verifier & Evidence Bundling
 ```bash
-oxide-agent verify --workspace . --export-evidence ./target/evidence
+oxide-tech-local-agent verify --workspace . --json
+```
+
+### STAIR Code-ToC & Memanto Memory Passthrough
+```bash
+oxide-tech-local-agent memory search "my_function" --stair
+oxide-tech-local-agent memory recall "architectural decision"
 ```
 
 ### Probe Daemon Health
 ```bash
-oxide-agent status --gateway-url http://127.0.0.1:8080
+oxide-tech-local-agent status --gateway-url http://127.0.0.1:8080
 ```
 
 ---

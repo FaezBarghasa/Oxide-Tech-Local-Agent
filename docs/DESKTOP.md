@@ -1,18 +1,20 @@
-# Oxide Agent — single-binary desktop (Tauri) + single `.deb`
+# Oxide-Tech Local Agent — Single-Binary Desktop Monolith (Tauri v2)
 
-One binary runs everything; one `.deb` installs it all.
+One binary runs everything; one package installs it all.
 
 ## What the binary does
 
-`oxide-agent` (crate `src-tauri`) is the unified desktop & headless entry point:
+`oxide-tech-local-agent` (crate `src-tauri`) is the unified desktop & headless entry point:
 
 | Invocation | Behaviour |
-|---|---|
-| `oxide-agent` / `oxide-agent desktop [--config PATH]` | Tauri window (Oxide Agent Studio) + gateway embedded on a background thread (`127.0.0.1:8080`) + native `llama-server` orchestrator (`127.0.0.1:8081`) + memory via bundled `oxide-embed` sidecar |
-| `oxide-agent daemon [--config PATH]` | Headless gateway foreground process — this is what systemd runs |
-| `oxide-agent doctor [--gateway-url URL]` | Diagnostics: `oxide-embed` presence/version, `.oxide/manifest.json`, gateway probe |
-| `oxide-agent memory <args…>` | Direct `oxide-embed` passthrough (`init`, `index`, `search`, `context`, `remember`, `recall`, `conflicts`, `explain`) |
-| `oxide-agent status [--gateway-url URL]` | Gateway liveness probe |
+| --- | --- |
+| `oxide-tech-local-agent` / `oxide-tech-local-agent desktop [--config PATH]` | Tauri window (Oxide Agent Studio) + gateway embedded on a background thread (`127.0.0.1:8080`) + native `llama-server` orchestrator (`127.0.0.1:8081`) + memory via bundled `oxide-embed` sidecar |
+| `oxide-tech-local-agent daemon [--config PATH]` | Headless gateway foreground process — this is what systemd runs |
+| `oxide-tech-local-agent doctor [--gateway-url URL] [--json]` | Diagnostics: `oxide-embed` presence/version, `.oxide/manifest.json`, gateway probe, toolchains |
+| `oxide-tech-local-agent re-forge <FILE> [--arch ARCH]` | Pure-Rust binary and PTX GPU reverse engineering and decompilation |
+| `oxide-tech-local-agent verify [--workspace PATH] [--json]` | Deterministic verifier suite & cryptographic evidence bundle |
+| `oxide-tech-local-agent memory <args…>` | Direct `oxide-embed` passthrough (`init`, `index`, `search`, `context`, `remember`, `recall`, `conflicts`, `explain`) |
+| `oxide-tech-local-agent status [--gateway-url URL]` | Gateway liveness probe |
 
 All project memory flows through `oxide-embed` — the desktop UI calls the
 `memory_*` Tauri commands (`src-tauri/src/memory.rs`), which resolve the
@@ -31,8 +33,7 @@ sudo apt update && sudo apt install -y \
   librsvg2-dev patchelf xdg-utils
 ```
 
-Plus: Rust ≥ 1.85, pnpm, and an `oxide-embed` 0.3.x binary
-(`~/.local/bin/oxide-embed`, `./bin/oxide-embed`, or `$OXIDE_EMBED_BIN`).
+Plus: Rust ≥ 1.85, pnpm, and an `oxide-embed` binary on `PATH`.
 
 ```bash
 # from the repo root
@@ -40,31 +41,27 @@ pnpm install
 pnpm run desktop:build
 ```
 
-This stages the sidecar (`scripts/fetch-sidecar.sh` →
-`src-tauri/binaries/oxide-embed-<triple>`), builds the studio frontend, and
-emits exactly one installer, e.g.:
+Emits exactly one installer:
 
 ```text
-src-tauri/target/release/bundle/deb/oxide-agent_0.5.0_amd64.deb
+src-tauri/target/release/bundle/deb/oxide-tech-local-agent_0.6.0_amd64.deb
 ```
 
 Install:
 
 ```bash
-sudo apt install ./src-tauri/target/release/bundle/deb/oxide-agent_0.5.0_amd64.deb
-oxide-agent doctor
-oxide-agent            # desktop
+sudo apt install ./src-tauri/target/release/bundle/deb/oxide-tech-local-agent_0.6.0_amd64.deb
+oxide-tech-local-agent doctor
+oxide-tech-local-agent            # desktop
 ```
 
 ## Headless / service mode
 
 ```bash
-oxide-agent daemon --config /etc/oxide-tech/config.toml
+oxide-tech-local-agent daemon --config /etc/oxide-tech/config.toml
 ```
 
-Legacy `debian/oxide-agent.service` keeps working unchanged because the new
-binary honours the same `daemon --config …` CLI (`ExecStart=/usr/bin/oxide-agent
-daemon --config /etc/oxide-tech/config.toml`).
+Legacy `debian/oxide-agent.service` keeps working because the binary honours the same `daemon --config …` CLI (`ExecStart=/usr/bin/oxide-tech-local-agent daemon --config /etc/oxide-tech/config.toml`).
 
 ## Dev loop (no packaging)
 
@@ -80,6 +77,7 @@ gateway at `:8080`); the Memory tab shows a banner there because direct
 ## Desktop Studio View Matrix
 
 The desktop application includes a comprehensive engineering studio:
+
 - **System Doctor (`DoctorTab.tsx`)**: Target probe discovery (`probe-rs`), Linux udev rules deployment, and database connectivity.
 - **Model Catalog & Manager (`CatalogTab.tsx`)**: Recursive GGUF weight scanning (`~/models`), GPU offload parameter controls (`-ngl 99`), and active `llama-server` lifecycle supervision.
 - **Universal Gateway (`GatewayTab.tsx`)**: 19 routing strategy policies, browser-authenticated cloud account management, and real-time token bucket gauges.
@@ -99,7 +97,7 @@ The desktop application includes a comprehensive engineering studio:
   - `src/config_ipc.rs`: Dynamic TOML profile persistence.
   - `src/memory.rs`: `oxide-embed` bridge, STAIR search, and conflict auditor.
   - `src/gateway_rt.rs`: Embedded Actix-Web + Quinn QUIC runtime.
-- `ui/oxide-agent-studio/` — React 19 / Vite UI:
+- `src/` — React 19 / Vite UI (packaged via `rust-embed` into the desktop binary):
   - `src/components/DoctorTab.tsx`: Interactive hardware & permissions panel.
   - `src/components/CatalogTab.tsx`: Model catalog and local GGUF manager.
   - `src/components/ReForgeTab.tsx`: Disassembly, vector table, and entropy viewer.
