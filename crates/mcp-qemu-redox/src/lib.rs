@@ -57,11 +57,30 @@ struct QemuState {
 impl QemuRedoxServer {
     async fn spawn_qemu(&self, image_path: &str) -> Result<(), McpError> {
         let mut state = self.state.lock().await;
-        if state.child.is_some() {
-            return Ok(());
+        if let Some(child) = &mut state.child {
+            match child.try_wait() {
+                Ok(None) => {
+                    // Process is still actively running
+                    return Ok(());
+                }
+                Ok(Some(status)) => {
+                    tracing::info!(
+                        "Previous QEMU process terminated with status {:?}, respawning",
+                        status
+                    );
+                    state.child = None;
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to query QEMU process status: {:?}, resetting", e);
+                    state.child = None;
+                }
+            }
         }
-        let full_image = self.workspace_root.join(image_path);
-        let image_str = full_image.to_string_lossy();
+
+        let canonical_image = oxide_core::WorkspacePath::new(&self.workspace_root, image_path)
+            .map_err(|e| McpError::invalid_params(format!("Invalid image path: {}", e), None))?;
+        let image_str = canonical_image.as_path().to_string_lossy();
+
         let mut cmd = Command::new("qemu-system-x86_64");
         cmd.arg("-machine")
             .arg("q35")
@@ -80,7 +99,9 @@ impl QemuRedoxServer {
         let mut child = cmd
             .spawn()
             .map_err(|e| McpError::internal_error(format!("Failed to spawn QEMU: {}", e), None))?;
-        let stdout = child.stdout.take().unwrap();
+        let stdout = child.stdout.take().ok_or_else(|| {
+            McpError::internal_error("Failed to capture QEMU stdout stream".to_string(), None)
+        })?;
         let mut reader = BufReader::new(stdout).lines();
         let log_arc = self.state.clone();
         tokio::spawn(async move {
@@ -196,9 +217,9 @@ impl QemuRedoxServer {
         tokio::time::sleep(Duration::from_secs(5)).await;
         let log = {
             let state = self.state.lock().await;
-            state.log.clone()
-        };
-        let re = Regex::new(r"(?m)^KERNEL PANIC: (.*)$").unwrap();
+        let re = Regex::new(r"(?m)^KERNEL PANIC: (.*)$").map_err(|e| {
+            McpError::internal_error(format!("Failed to compile panic regex: {e}"), None)
+        })?;
         let mut panic_msg = String::new();
         for cap in re.captures_iter(&log) {
             panic_msg.push_str(&cap[1]);
