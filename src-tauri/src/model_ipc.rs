@@ -648,9 +648,14 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut local_ggufs = scan_default_local_gguf_models();
-    let mut ollama_models = query_ollama_models(&client).await;
-    let mut sglang_models = query_sglang_models(&client).await;
+    let local_ggufs_handle = tokio::task::spawn_blocking(scan_default_local_gguf_models);
+    let ollama_models_handle = query_ollama_models(&client);
+    let sglang_models_handle = query_sglang_models(&client);
+
+    let (local_ggufs_res, mut ollama_models, mut sglang_models) =
+        tokio::join!(local_ggufs_handle, ollama_models_handle, sglang_models_handle);
+
+    let mut local_ggufs = local_ggufs_res.map_err(|e| e.to_string())?;
 
     let gguf_count = local_ggufs.len();
     let ollama_count = ollama_models.len();
@@ -751,8 +756,10 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
             .or_else(|| model_name.strip_prefix("local/"))
             .unwrap_or(model_name);
 
-        // Find the model's actual file path on disk
-        let all_local = scan_default_local_gguf_models();
+        // Find the model's actual file path on disk (offloaded to blocking pool to prevent blocking async runtime)
+        let all_local = tokio::task::spawn_blocking(scan_default_local_gguf_models)
+            .await
+            .map_err(|e| e.to_string())?;
         let target_model = all_local.iter().find(|m| {
             m.name == clean_model
                 || m.id == req.model
@@ -1232,39 +1239,43 @@ fn inspect_gguf_file(path: &std::path::Path) -> Option<DiscoveredGgufModel> {
 pub async fn scan_local_gguf_models(
     custom_paths: Vec<String>,
 ) -> std::result::Result<Vec<DiscoveredGgufModel>, String> {
-    let mut discovered = Vec::new();
-    let mut search_dirs: Vec<PathBuf> = Vec::new();
+    tokio::task::spawn_blocking(move || {
+        let mut discovered = Vec::new();
+        let mut search_dirs: Vec<PathBuf> = Vec::new();
 
-    if let Ok(home) = std::env::var("HOME") {
-        search_dirs.push(PathBuf::from(&home).join(".cache/huggingface/hub"));
-        search_dirs.push(PathBuf::from(&home).join("models"));
-        search_dirs.push(PathBuf::from(&home).join(".local/share/nomic.ai/GPT4All"));
-        search_dirs.push(PathBuf::from(&home).join(".ollama/models"));
-    }
-    search_dirs.push(PathBuf::from("/opt/models"));
-    search_dirs.push(PathBuf::from("."));
-
-    for custom in custom_paths {
-        search_dirs.push(PathBuf::from(custom));
-    }
-
-    for dir in search_dirs {
-        if !dir.exists() {
-            continue;
+        if let Ok(home) = std::env::var("HOME") {
+            search_dirs.push(PathBuf::from(&home).join(".cache/huggingface/hub"));
+            search_dirs.push(PathBuf::from(&home).join("models"));
+            search_dirs.push(PathBuf::from(&home).join(".local/share/nomic.ai/GPT4All"));
+            search_dirs.push(PathBuf::from(&home).join(".ollama/models"));
         }
-        if let Ok(entries) = std::fs::read_dir(&dir) {
-            for entry in entries.flatten() {
-                let p = entry.path();
-                if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("gguf") {
-                    if let Some(m) = inspect_gguf_file(&p) {
-                        discovered.push(m);
+        search_dirs.push(PathBuf::from("/opt/models"));
+        search_dirs.push(PathBuf::from("."));
+
+        for custom in custom_paths {
+            search_dirs.push(PathBuf::from(custom));
+        }
+
+        for dir in search_dirs {
+            if !dir.exists() {
+                continue;
+            }
+            if let Ok(entries) = std::fs::read_dir(&dir) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("gguf") {
+                        if let Some(m) = inspect_gguf_file(&p) {
+                            discovered.push(m);
+                        }
                     }
                 }
             }
         }
-    }
 
-    Ok(discovered)
+        Ok(discovered)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]

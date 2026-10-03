@@ -61,6 +61,7 @@ members = [
     "targets/llm-pretraining-rs/harness",
     "src-tauri",
 ]
+default-members = ["src-tauri"]
 
 resolver = "3"
 
@@ -132,7 +133,7 @@ polars = { version = "0.55.2", default-features = false, features = [
 argon2 = "0.6.0"
 mdns-sd = "0.21.3"
 sysinfo = "0.39.6"
-actix-web-lab = "0.28.0"
+actix-web-lab = "0.29.0"
 
 ndarray = "0.17.2"
 petgraph = { version = "0.8.3", features = ["serde-1"] }

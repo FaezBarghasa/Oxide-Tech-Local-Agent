@@ -48,6 +48,22 @@
       "original_bytes": 13809,
       "saved_bytes": 12407,
       "estimated_tokens_saved": 3101
+    },
+    {
+      "timestamp": 1791011362,
+      "session_id": "surgical_read",
+      "category": "symbol_slicer",
+      "original_bytes": 58996,
+      "saved_bytes": 58821,
+      "estimated_tokens_saved": 14705
+    },
+    {
+      "timestamp": 1791011423,
+      "session_id": "surgical_read",
+      "category": "symbol_slicer",
+      "original_bytes": 2315,
+      "saved_bytes": 2092,
+      "estimated_tokens_saved": 523
     }
   ]
 }
