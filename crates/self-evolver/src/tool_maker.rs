@@ -254,20 +254,32 @@ Output ONLY a JSON object:
     pub async fn test_generated_tool(
         &self,
         script_path: &Path,
-        _sample_inputs: &serde_json::Value,
+        sample_inputs: &serde_json::Value,
     ) -> Result<TestResult> {
         let parent = script_path.parent().unwrap_or_else(|| Path::new("."));
         let parent_str = parent.to_str().unwrap_or(".");
         let script_str = script_path.to_str().unwrap_or("");
 
+        let sample_str = sample_inputs.to_string();
+        let cmd: Vec<&str> = if sample_inputs.is_null()
+            || (sample_inputs.is_object()
+                && sample_inputs.as_object().map_or(false, |o| o.is_empty()))
+        {
+            vec!["python3", script_str]
+        } else {
+            vec!["python3", script_str, &sample_str]
+        };
+
         // Run in the native sandbox process
-        let cmd = vec!["python3", script_str];
         match sandbox::execute_in_sandbox(&cmd, parent_str).await {
-            Ok(exec_res) => Ok(TestResult {
-                passed: exec_res.exit_code == 0 || !exec_res.stdout.is_empty(),
-                stdout: exec_res.stdout,
-                stderr: exec_res.stderr,
-            }),
+            Ok(exec_res) => {
+                let passed = exec_res.exit_code == 0 && !exec_res.stderr.contains("Traceback");
+                Ok(TestResult {
+                    passed,
+                    stdout: exec_res.stdout,
+                    stderr: exec_res.stderr,
+                })
+            }
             Err(e) => Ok(TestResult {
                 passed: false,
                 stdout: String::new(),
@@ -320,5 +332,18 @@ impl WasmToolRegistry {
 
     pub fn list_tools(&self) -> Vec<String> {
         self.tools.keys().cloned().collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_tool_maker_wasm_test_rejects_corrupted_wasm() {
+        let maker = ToolMaker::new(PathBuf::from("/tmp"), "http://localhost:8000");
+        let corrupted_bytes = vec![0xDE, 0xAD, 0xBE, 0xEF];
+        let res = maker.test_wasm_tool(&corrupted_bytes, b"input").await.unwrap();
+        assert!(!res.passed);
     }
 }

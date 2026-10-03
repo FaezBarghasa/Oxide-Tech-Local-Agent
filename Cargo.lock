@@ -6043,6 +6043,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "config-loader",
+ "oxide-core",
  "regex",
  "rmcp 3.2.0",
  "sandbox",

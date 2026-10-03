@@ -15,6 +15,10 @@ pub enum RiskLevel {
     Critical,
 }
 
+fn default_hitl_nonce() -> String {
+    uuid::Uuid::new_v4().to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HitlRequest {
     pub id: String,
@@ -23,12 +27,44 @@ pub struct HitlRequest {
     pub risk_level: RiskLevel,
     pub description: String,
     pub arguments: serde_json::Value,
+    #[serde(default = "default_hitl_nonce")]
+    pub nonce: String,
     pub created_at: DateTime<Utc>,
+}
+
+impl HitlRequest {
+    pub fn new(
+        id: impl Into<String>,
+        task_id: impl Into<String>,
+        tool_name: impl Into<String>,
+        risk_level: RiskLevel,
+        description: impl Into<String>,
+        arguments: serde_json::Value,
+    ) -> Self {
+        Self {
+            id: id.into(),
+            task_id: task_id.into(),
+            tool_name: tool_name.into(),
+            risk_level,
+            description: description.into(),
+            arguments,
+            nonce: default_hitl_nonce(),
+            created_at: Utc::now(),
+        }
+    }
+
+    /// Verifies that a decision matches this exact request and was bound to its unique nonce
+    pub fn validate_decision(&self, decision: &HitlDecision) -> bool {
+        match decision {
+            HitlDecision::Approved { nonce, .. } => nonce == &self.nonce,
+            HitlDecision::Rejected { .. } | HitlDecision::TimedOut => true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum HitlDecision {
-    Approved { approved_by: String },
+    Approved { approved_by: String, nonce: String },
     Rejected { reason: String },
     TimedOut,
 }
@@ -111,15 +147,15 @@ mod tests {
     #[tokio::test]
     async fn test_hitl_approval_flow() {
         let channel = HitlApprovalChannel::new();
-        let req = HitlRequest {
-            id: "req-123".to_string(),
-            task_id: "task-01".to_string(),
-            tool_name: "mcp-probe-rs::flash".to_string(),
-            risk_level: RiskLevel::Critical,
-            description: "Flashing STM32 target hardware".to_string(),
-            arguments: serde_json::json!({ "chip": "STM32F407VG" }),
-            created_at: Utc::now(),
-        };
+        let req = HitlRequest::new(
+            "req-123",
+            "task-01",
+            "mcp-probe-rs::flash",
+            RiskLevel::Critical,
+            "Flashing STM32 target hardware",
+            serde_json::json!({ "chip": "STM32F407VG" }),
+        );
+        let req_nonce = req.nonce.clone();
 
         let channel_clone = channel.clone();
         tokio::spawn(async move {
@@ -129,19 +165,22 @@ mod tests {
                     "req-123",
                     HitlDecision::Approved {
                         approved_by: "lead_systems_engineer".to_string(),
+                        nonce: req_nonce,
                     },
                 )
                 .await;
         });
 
         let decision = channel
-            .request_approval(req, Duration::from_secs(2))
+            .request_approval(req.clone(), Duration::from_secs(2))
             .await
             .unwrap();
 
+        assert!(req.validate_decision(&decision));
         match decision {
-            HitlDecision::Approved { approved_by } => {
+            HitlDecision::Approved { approved_by, nonce } => {
                 assert_eq!(approved_by, "lead_systems_engineer");
+                assert_eq!(nonce, req.nonce);
             }
             _ => panic!("Expected approval decision"),
         }
