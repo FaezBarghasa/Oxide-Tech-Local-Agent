@@ -62,14 +62,22 @@ name = "realtime_user_experience_test"
 path = "../tests/realtime_user_experience_test.rs"
 
 [dev-dependencies]
+cad-forge = { path = "../crates/cad-forge" }
+circuit-forge = { path = "../crates/circuit-forge" }
+cross-domain-verifier = { path = "../crates/cross-domain-verifier" }
 edge-swarm = { path = "../crates/edge-swarm" }
+formal-verify = { path = "../crates/formal-verify" }
+glam = { workspace = true }
 mcp-probe-rs = { path = "../crates/mcp-probe-rs" }
 oxide-core = { path = "../crates/oxide-core" }
 oxide-engines = { path = "../crates/oxide-engines" }
+oxide-network = { path = "../crates/oxide-network" }
+oxide-protocol = { path = "../crates/oxide-protocol" }
 oxide-security = { path = "../crates/oxide-security" }
 oxide-tooling = { path = "../crates/oxide-tooling" }
 qdrant-service = { path = "../crates/qdrant-service" }
 router = { path = "../crates/router" }
+self-evolver = { path = "../crates/self-evolver" }
 surrealdb-service = { path = "../crates/surrealdb-service" }
 tempfile = "3"
 

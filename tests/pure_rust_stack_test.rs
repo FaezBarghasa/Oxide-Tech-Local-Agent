@@ -241,3 +241,164 @@ async fn test_native_tool_registry_and_agentic_tool_dispatch() {
     assert_eq!(result["action"], "list_probes");
     assert_eq!(result["count"], 1);
 }
+
+#[test]
+fn test_horizon3_closed_loop_eda_and_smt_circuit_safety() {
+    use circuit_forge::{CircuitBuilder, run_erc};
+    use formal_verify::smt_solver::{CircuitState, verify_circuit_safety_invariants};
+
+    let mut builder = CircuitBuilder::new();
+    builder.add_component("U1", "MCU_ST_STM32F401:STM32F401RETx", "STM32F401");
+    builder.add_component("C1", "Device:C_Small", "100nF");
+    builder.connect_net("U1", "1", "+3.3V").unwrap();
+    builder.connect_net("U1", "64", "GND").unwrap();
+    builder.connect_net("C1", "1", "+3.3V").unwrap();
+    builder.connect_net("C1", "2", "GND").unwrap();
+
+    let graph = builder.build();
+    let erc_report = run_erc(&graph);
+    assert!(erc_report.errors.is_empty());
+
+    let states = vec![
+        CircuitState {
+            state_id: "Normal_Idle".to_string(),
+            voltage: 3.3,
+            max_voltage: 3.6,
+            current: 0.045,
+            max_current: 0.150,
+            has_fault: false,
+            is_isolated: false,
+        },
+        CircuitState {
+            state_id: "PLL_Active_84MHz".to_string(),
+            voltage: 3.3,
+            max_voltage: 3.6,
+            current: 0.082,
+            max_current: 0.150,
+            has_fault: false,
+            is_isolated: false,
+        },
+    ];
+
+    let proof = verify_circuit_safety_invariants(&states);
+    assert!(proof.is_safe, "SMT-LIB2 invariant proof failed");
+    assert!(proof.violated_states.is_empty());
+    assert!(proof.smt_lib2_formula.contains("(set-logic QF_LRA)"));
+}
+
+#[test]
+fn test_horizon4_mechanical_cad_brep_and_voxelization() {
+    use cad_forge::dsl::CadBuilder;
+    use cad_forge::voxelizer::VoxelGrid;
+    use glam::Vec3;
+
+    let builder = CadBuilder::new();
+    let (builder, box_idx) = builder.add_box(Vec3::ZERO, Vec3::new(40.0, 40.0, 10.0));
+    let (builder, hole_idx) = builder.add_cylinder(Vec3::ZERO, 2.5, 12.0);
+    let script = builder.subtract(box_idx, hole_idx).build();
+
+    assert_eq!(script.primitives.len(), 2);
+    assert_eq!(script.operations.len(), 1);
+
+    let voxels = VoxelGrid::from_box(Vec3::ZERO, Vec3::new(40.0, 40.0, 10.0), 1.0);
+    assert!(
+        !voxels.occupied.is_empty(),
+        "Solid must produce active voxels"
+    );
+}
+
+#[test]
+fn test_horizon5_sovereign_quic_mesh_wire_packet_security() {
+    use oxide_network::wire::{PROTOCOL_MAGIC, PreParseVerdict, ReplayWindow128, pre_parse_packet};
+
+    let mut window = ReplayWindow128::new();
+    assert!(window.check_and_update(1));
+    assert!(window.check_and_update(2));
+    assert!(window.check_and_update(10));
+    assert!(window.check_and_update(5));
+    assert!(!window.check_and_update(5));
+    assert!(!window.check_and_update(1));
+
+    // 2. Anti-DPI junk frame classification and malformed packet rejection
+    let junk = vec![0xDE, 0xAD, 0xBE, 0xEF];
+    assert_eq!(pre_parse_packet(&junk), PreParseVerdict::JunkIgnored);
+
+    let malformed = vec![0x01, 0x02, 0x03, 0x04];
+    assert_eq!(pre_parse_packet(&malformed), PreParseVerdict::Malformed);
+
+    // 3. Header verification with PROTOCOL_MAGIC (16 bytes aligned)
+    let mut valid_header = vec![0u8; 16];
+    valid_header[0..4].copy_from_slice(&PROTOCOL_MAGIC.to_le_bytes());
+    valid_header[6] = 0x10;
+    assert_eq!(
+        pre_parse_packet(&valid_header),
+        PreParseVerdict::ValidControl {
+            packet_id: 0,
+            payload_len: 0
+        }
+    );
+}
+
+#[tokio::test]
+async fn test_horizon6_self_evolution_wasm_tool_registry() {
+    use self_evolver::skill_crystallizer::CrystallizedSkill;
+    use self_evolver::tool_maker::WasmToolRegistry;
+
+    let mut registry = WasmToolRegistry::new();
+    let dummy_wasm_bytes = vec![0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00];
+    registry.register_tool("synthesized_crc32_calc", dummy_wasm_bytes.clone());
+
+    let registered = registry.get_tool("synthesized_crc32_calc");
+    assert!(registered.is_some());
+    assert_eq!(registered.unwrap(), &dummy_wasm_bytes);
+
+    let skill = CrystallizedSkill {
+        name: "stm32-swd-flasher".to_string(),
+        description: "Automated firmware flash and watchdog verification for STM32".to_string(),
+        tags: vec![
+            "embedded".to_string(),
+            "stm32".to_string(),
+            "swd".to_string(),
+        ],
+        prompt_template: "Flash firmware {{binary}} to {{chip}}".to_string(),
+        step_sequence: vec![
+            "Probe target SWD connection".to_string(),
+            "Erase sector 0 and program binary".to_string(),
+            "Verify hardware watchdog refresh".to_string(),
+        ],
+        source_task_id: "task_01a".to_string(),
+    };
+
+    let markdown = skill.to_markdown();
+    assert!(markdown.contains("name: stm32-swd-flasher"));
+    assert!(markdown.contains("## Execution Workflow"));
+    assert!(markdown.contains("1. Probe target SWD connection"));
+}
+
+#[tokio::test]
+async fn test_horizon7_heterogeneous_cross_domain_co_simulation() {
+    use cross_domain_verifier::CrossDomainVerifier;
+    use oxide_protocol::DtxId;
+
+    let verifier = CrossDomainVerifier::new(85.0, 1.5);
+    let dtx_id = DtxId::new_v7();
+
+    let report = verifier
+        .run_co_simulation(dtx_id, 1.0, 0.45, "Aluminum_6061")
+        .await
+        .expect("Co-simulation must converge safely");
+
+    assert!(report.passed, "Verification report must pass");
+    assert!(
+        report.peak_temperature_c < 85.0,
+        "Silicon temp must not exceed 85C"
+    );
+    assert!(
+        report.residual < 1e-3,
+        "Co-simulation residual must converge"
+    );
+    assert!(
+        report.iterations < 20,
+        "Fixed point iteration must converge within max iterations"
+    );
+}
