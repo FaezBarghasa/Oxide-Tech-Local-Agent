@@ -217,6 +217,8 @@ impl QemuRedoxServer {
         tokio::time::sleep(Duration::from_secs(5)).await;
         let log = {
             let state = self.state.lock().await;
+            state.log.clone()
+        };
         let re = Regex::new(r"(?m)^KERNEL PANIC: (.*)$").map_err(|e| {
             McpError::internal_error(format!("Failed to compile panic regex: {e}"), None)
         })?;

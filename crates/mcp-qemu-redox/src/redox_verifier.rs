@@ -124,6 +124,7 @@ impl RedoxKvmVerifier {
         }
 
         let _ = child.kill().await;
+        let _ = child.wait().await;
 
         Ok(RedoxTestResult {
             passed,

@@ -22,6 +22,9 @@ pub enum CrossDomainVerifierError {
 
     #[error("Distributed transaction rollback failed: {0}")]
     RollbackFailed(String),
+
+    #[error("Invalid co-simulation inputs: {0}")]
+    InvalidInput(String),
 }
 
 /// Verification outcome report for a multi-physics cycle
@@ -75,6 +78,17 @@ impl CrossDomainVerifier {
         mcu_base_watts: f64,
         enclosure_material: &str,
     ) -> Result<CrossDomainVerificationReport, CrossDomainVerifierError> {
+        if !firmware_duty_cycle.is_finite() || !(0.0..=1.0).contains(&firmware_duty_cycle) {
+            return Err(CrossDomainVerifierError::InvalidInput(format!(
+                "firmware_duty_cycle must be a finite number in [0.0, 1.0], got {firmware_duty_cycle}"
+            )));
+        }
+        if !mcu_base_watts.is_finite() || mcu_base_watts < 0.0 {
+            return Err(CrossDomainVerifierError::InvalidInput(format!(
+                "mcu_base_watts must be a finite non-negative number, got {mcu_base_watts}"
+            )));
+        }
+
         info!(dtx = %dtx_id, "Executing Electro-Thermal-Mechanical Co-Simulation loop...");
 
         // Material thermal conductivity scaling factor
@@ -114,6 +128,7 @@ impl CrossDomainVerifier {
             current_power = effective_power;
         }
 
+        let converged = residual <= self.convergence_eps;
         let passes_thermal = current_temp <= self.max_silicon_temp_c;
         let clearance_margin_mm = 2.0;
 
@@ -132,6 +147,31 @@ impl CrossDomainVerifier {
             }],
             passes_threshold: passes_thermal,
         };
+
+        if !converged {
+            warn!(
+                dtx = %dtx_id,
+                residual,
+                iterations = iteration,
+                eps = self.convergence_eps,
+                "Co-simulation failed: Fixed-point relaxation did not converge within iteration limit!"
+            );
+
+            return Ok(CrossDomainVerificationReport {
+                dtx_id,
+                passed: false,
+                firmware_power_watts: current_power,
+                peak_temperature_c: current_temp,
+                clearance_margin_mm,
+                thermal_fea,
+                iterations: iteration,
+                residual,
+                recommended_action: Some(
+                    "Decrease relaxation_omega under-relaxation parameter or increase max_iterations for convergence"
+                        .to_string(),
+                ),
+            });
+        }
 
         if !passes_thermal {
             warn!(
@@ -209,6 +249,32 @@ mod tests {
 
         assert!(!report.passed);
         assert!(report.peak_temperature_c > 85.0);
+        assert!(report.recommended_action.is_some());
+    }
+
+    #[tokio::test]
+    async fn test_co_simulation_rejects_nan_duty_cycle() {
+        let verifier = CrossDomainVerifier::default();
+        let dtx = DtxId::new_v7();
+        let res = verifier
+            .run_co_simulation(dtx, f64::NAN, 1.0, "Aluminum_6061")
+            .await;
+        assert!(matches!(res, Err(CrossDomainVerifierError::InvalidInput(_))));
+    }
+
+    #[tokio::test]
+    async fn test_co_simulation_fails_closed_when_diverged() {
+        // Zero iterations means it cannot converge below convergence_eps
+        let verifier = CrossDomainVerifier {
+            max_iterations: 0,
+            ..Default::default()
+        };
+        let dtx = DtxId::new_v7();
+        let report = verifier
+            .run_co_simulation(dtx, 0.5, 1.0, "Aluminum_6061")
+            .await
+            .unwrap();
+        assert!(!report.passed);
         assert!(report.recommended_action.is_some());
     }
 }
