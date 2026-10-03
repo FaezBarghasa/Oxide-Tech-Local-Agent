@@ -104,6 +104,20 @@ oxide-tech-local-agent memory recall "architectural decision"
 oxide-tech-local-agent status --gateway-url http://127.0.0.1:8080
 ```
 
+### Full Horizon Verification Suite (Horizons 0–VII)
+Verify the pure-Rust desktop monolith across all 8 capability horizons:
+```bash
+# Run the pure-Rust stack verification suite (Horizons 0 through VII)
+cargo test --test pure_rust_stack_test
+
+# Run the real-time UX and latency validation test
+cargo test --test realtime_user_experience_test
+
+# Run the complete workspace test suite
+cargo test --workspace
+```
+
+
 ---
 
 ## 5. The Oxide Protocol & Multi-Physics Verification

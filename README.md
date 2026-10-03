@@ -137,8 +137,29 @@ Oxide-Tech incorporates a pure-Rust **Universal AI Gateway** and zero-stub **Nat
 | **`mcp-qemu-redox`** | `crates/mcp-qemu-redox/` | Headless microVM Redox OS emulation and kernel driver validation. |
 | **`mcp-cargo-gatekeeper`** | `crates/mcp-cargo-gatekeeper/` | Sandboxed compiler checks, dependency security scanning, and policy gates. |
 | **`mcp-live-docs`** | `crates/mcp-live-docs/` | Real-time offline datasheet search and technical documentation RAG. |
+| **`oxide-tooling`** | `crates/oxide-tooling/` | In-process native agent tool calling (`NativeToolRegistry`), Ornith XML prompt formatter, and zero-latency tool dispatch (`StairSearchTool`, `MemoryRecallTool`, `HardwareProbeTool`, `PtxDecompileTool`). |
+| **`oxide-network`** | `crates/oxide-network/` | Sovereign QUIC mesh transport, anti-DPI preamble filtering, 128-packet anti-replay window, and 16-byte encrypted wire frames. |
+| **`oxide-core`** | `crates/oxide-core/` | Fundamental primitives, unified diff patcher, token streaming channels, FFI panic boundaries, and sealed shared memory. |
+| **`audio-forge`** | `crates/audio-forge/` | Local audio transcription (Whisper STT), voice synthesis, and audio device streaming. |
+| **`media-forge`** | `crates/media-forge/` | Local diffusion pipelines, image generation, and multi-modal asset synthesis. |
 | **`ebpf-sentinel`** | `crates/ebpf-sentinel/` | Kernel-level LSM probe sandbox enforcing strict filesystem confinement. |
 | **`self-evolver`** | `crates/self-evolver/` | GRPO reward harvesting (`VerificationDelta`), skill crystallization (`SKILL.md`), and automated tool synthesis. |
+
+---
+
+## 🏛️ Capability Horizons (Horizons 0 – VII) & Verification
+
+The architecture is formally validated across 8 capability horizons via [`tests/pure_rust_stack_test.rs`](tests/pure_rust_stack_test.rs):
+
+- **Horizon 0: Pure Rust Foundations**: GGUF mmap zero-copy loading, ternary GEMM (-1, 0, 1), embedded SurrealKV storage, and local Qdrant vectors.
+- **Horizon I: Monolith Integration**: Single production executable (`oxide-tech-local-agent`) containing desktop UI, embedded gateway, and diagnostic engines with zero external Python runtimes.
+- **Horizon II: In-Process Agent Tool Calling**: Native dispatch via [`NativeToolRegistry`](crates/oxide-tooling/src/native_tools.rs) with sub-10ms MoE expert routing SLA.
+- **Horizon III: Closed-Loop EDA & Circuit Safety**: Electrical Rule Checking ([`circuit-forge`](crates/circuit-forge/)) decoupling analysis and SMT-LIB2 invariant proof generation ([`formal-verify`](crates/formal-verify/)).
+- **Horizon IV: Mechanical CAD & B-Rep**: Constructive Solid Geometry (CSG) boolean difference and 3D [`VoxelGrid`](crates/cad-forge/src/voxel.rs) volumetric collision checks.
+- **Horizon V: Sovereign QUIC Mesh Transport**: Wire protocol anti-replay filtering ([`ReplayWindow128`](crates/oxide-network/src/wire.rs)), anti-DPI junk preamble suppression, and 16-byte encrypted headers.
+- **Horizon VI: Self-Evolution & Sandboxed WASI**: Dynamic Wasm tool execution ([`self-evolver`](crates/self-evolver/)) and automated skill crystallization to `SKILL.md`.
+- **Horizon VII: Heterogeneous Cross-Domain Co-Simulation**: Electro-thermal-mechanical fixed-point relaxation loop ([`cross-domain-verifier`](crates/cross-domain-verifier/)) simulating MCU power dissipation against heat sink thermal resistance.
+
 
 ---
 
@@ -184,6 +205,15 @@ oxide-tech-local-agent memory <subcommand> [args...]
 # 8. Probe running gateway liveness
 oxide-tech-local-agent status
 ```
+
+### In-Process Domain Controllers (`src-tauri/src/controllers/`)
+
+The desktop IPC layer is organized using the **Controller Facade Pattern**, consolidating 18 discrete IPC handler modules into 4 domain controllers:
+- **`AgentController`** ([`src-tauri/src/controllers/agent_controller.rs`](src-tauri/src/controllers/agent_controller.rs)): In-process ReAct reasoning loop, native tool dispatch (`NativeToolRegistry`), and prompt generation.
+- **`SystemController`** ([`src-tauri/src/controllers/system_controller.rs`](src-tauri/src/controllers/system_controller.rs)): Hardware health diagnostics, probe-rs udev rules deployment, and dynamic configuration management.
+- **`WorkspaceController`** ([`src-tauri/src/controllers/workspace_controller.rs`](src-tauri/src/controllers/workspace_controller.rs)): STAIR Code-ToC leaf search, Memanto decision conflict auditor, and semantic memory graph.
+- **`ForgeController`** ([`src-tauri/src/controllers/forge_controller.rs`](src-tauri/src/controllers/forge_controller.rs)): Zero-copy binary reverse engineering, PTX decompilation, and deterministic verification suites.
+
 
 ---
 

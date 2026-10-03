@@ -89,7 +89,13 @@ The desktop application includes a comprehensive engineering studio:
 ## Files
 
 - `src-tauri/` — Tauri v2 app:
-  - `src/main.rs`: Entry point and registered IPC commands.
+  - `src/main.rs`: Entry point, command registration, and route facade dispatch.
+  - `src/controllers/`: In-process Domain Controller Facades:
+    - `agent_controller.rs`: In-process reasoning, native tool execution (`NativeToolRegistry`), and prompt generation.
+    - `system_controller.rs`: Hardware diagnostics, probe-rs udev rules, and configuration.
+    - `workspace_controller.rs`: STAIR Code-ToC leaf search, Memanto decision conflict auditor, and memory graph.
+    - `forge_controller.rs`: Zero-copy binary reverse engineering, PTX decompilation, and verifiers.
+    - `mod.rs`: Domain controller exports and facade interfaces.
   - `src/model_ipc.rs`: Dedicated `llama-server` process management and real local GGUF discovery.
   - `src/doctor.rs`: Hardware and system diagnostics.
   - `src/reforge_ipc.rs`: Binary reverse engineering and decompilation.

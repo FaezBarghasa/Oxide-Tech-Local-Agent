@@ -2,6 +2,43 @@
 
 All notable changes to the Oxide-Tech Local Agent OS codebase are documented here.
 
+## [v3.4.0-pure-rust-horizons] - 2026-10-03
+
+This milestone completes the **In-Process Native Tool Calling Architecture, Domain Controller Facades, and Horizons 0–VII Formal Verification Suite** for the pure-Rust desktop monolith.
+
+### Major Upgrades & Enhancements
+
+#### 1. Native In-Process Tool Calling (`crates/oxide-tooling/src/native_tools.rs`)
+- **NativeToolRegistry**: Direct zero-latency in-memory tool dispatch without network serialization or IPC boundaries.
+- **Built-In Native Tools**: Implemented `StairSearchTool` (STAIR Code-ToC search), `MemoryRecallTool` (Memanto decision and concept recall), `HardwareProbeTool` (target MCU and probe-rs status), and `PtxDecompileTool` (zero-copy PTX/SASS decompiler).
+- **Ornith Prompt Formatter**: Implemented `OrnithPromptFormatter` providing `<tools>` XML schema generation and robust `<tool_call>` extraction.
+
+#### 2. IPC Controller Facade Pattern (`src-tauri/src/controllers/`)
+- **Consolidation of 18 Modules**: Restructured loose IPC handlers into 4 cohesive domain controllers:
+  - `AgentController`: Reasoning loops, native tool calling, and prompt synthesis.
+  - `SystemController`: Hardware diagnostics, udev rules installation, and configuration persistence.
+  - `WorkspaceController`: STAIR Code-ToC leaf search and Memanto memory graph.
+  - `ForgeController`: Zero-copy binary reverse engineering, PTX decompilation, and verifiers.
+- **100% Backward Compatibility**: Maintained exact frontend Tauri `invoke()` signatures while routing through centralized controllers.
+
+#### 3. Formal Verification Matrix (Horizons 0 through VII)
+- **Comprehensive Integration Suite (`tests/pure_rust_stack_test.rs`)**:
+  - `Horizon 0`: Pure Rust foundations (GGUF mmap zero-copy loading, ternary GEMM, SurrealKV, Qdrant).
+  - `Horizon I`: Monolith package integration (single release executable, zero Python runtime).
+  - `Horizon II`: In-process agent tool dispatch and sub-10ms MoE routing SLA.
+  - `Horizon III`: Closed-loop EDA (`circuit-forge` ERC decoupling check and `formal-verify` SMT-LIB2 invariant proof).
+  - `Horizon IV`: Mechanical CAD (`cad-forge` CSG subtraction and 3D `VoxelGrid` volumetric collision).
+  - `Horizon V`: Sovereign QUIC mesh transport (`oxide-network` `ReplayWindow128` anti-replay, anti-DPI junk preamble filtering, 16-byte wire header).
+  - `Horizon VI`: Self-evolution runtime (`self-evolver` Wasm tool registry and `CrystallizedSkill` synthesis).
+  - `Horizon VII`: Heterogeneous cross-domain co-simulation (`cross-domain-verifier` electro-thermal fixed-point loop).
+
+#### 4. Workspace Test & Clippy Verification
+- **Workspace Test Suite**: 100% passed across all crates (`cargo test --workspace`).
+- **Integration Test Suites**: `pure_rust_stack_test` (17/17 passed), `realtime_user_experience_test` (4/4 passed).
+- **Clippy Quality Gate**: Zero warnings (`cargo clippy --workspace --all-targets -- -D warnings`).
+
+---
+
 ## [v3.3.0-desktop-monolith] - 2026-10-03
 
 This milestone delivers the **Pure-Rust Hermetic Single-Binary Desktop Monolith & Non-Blocking Async Concurrency Architecture**, establishing the single unified desktop binary as the workspace default executable.

@@ -181,13 +181,22 @@ The decision engine runs **strictly non-autoregressive** (single forward pass, d
 
 ---
 
-## 5. Desktop-First Integration (`src-tauri` & `ui/oxide-agent-studio`)
+## 5. Desktop-First Monolith Architecture & Controller Facades (`src-tauri`)
 
-The desktop application directly mounts the full suite of backend capabilities across specialized studio views:
-- **System Doctor**: Direct target connectivity, hardware permissions, and udev rule deployment.
-- **Catalog & Model Manager**: Native GGUF model scanning, GPU offload controls, and `llama-server` process lifecycle management.
-- **Gateway Dashboard**: Real-time routing strategy configuration, account rate-limit gauges, and token bucket monitors.
-- **RE-Forge Studio**: Binary architecture analysis, ARM vector table parsing, entropy graphs, and safe-Rust decompilation.
-- **Verification Matrix**: Real-time multi-suite verification execution, checkpointer rollback, and evidence bundle generation.
-- **Memory & Rule Fabric**: Persistent decision inspection, contradiction detection, and 2-hop GraphRAG traversals.
-- **Settings & Profile Manager**: Real-time TOML profile switching (`Lite`, `Standard`, `Pro`, `AirGapped`, `Enterprise`).
+The desktop application is engineered as a single-binary hermetic monolith targeting `target/release/oxide-tech-local-agent`. It mounts the full suite of backend capabilities across specialized studio views and in-process controller facades:
+
+### Controller Facade Pattern (`src-tauri/src/controllers/`)
+To eliminate IPC sprawl and enforce strict domain boundaries, 18 discrete IPC handler modules are consolidated into 4 domain controllers:
+- **`AgentController`**: In-process ReAct loop, model inference routing, and native tool execution.
+- **`SystemController`**: Hardware diagnostics (`probe-rs`), Linux udev rules deployment, and TOML profile management.
+- **`WorkspaceController`**: `oxide-embed` semantic graph, STAIR Code-ToC leaf search, and Memanto decision conflict auditor.
+- **`ForgeController`**: Zero-copy binary reverse engineering, PTX/SASS decompilation, and deterministic verification suites.
+
+### In-Process Native Tool Calling (`crates/oxide-tooling`)
+Eliminates out-of-process IPC and HTTP roundtrip penalties for local agent tool execution:
+- **`NativeToolRegistry`**: Direct in-memory invocation of core tools (`StairSearchTool`, `MemoryRecallTool`, `HardwareProbeTool`, `PtxDecompileTool`).
+- **`OrnithPromptFormatter`**: Produces standard `<tools>` XML schemas and parses `<tool_call>` invocations.
+
+### Verification Horizons (Horizons 0–VII)
+- Formal test suite in [`tests/pure_rust_stack_test.rs`](tests/pure_rust_stack_test.rs) verifying GGUF loading, monolith packaging, native tool dispatch, EDA ERC, CAD voxelization, QUIC security, WASI self-evolution, and multi-physics co-simulation.
+
