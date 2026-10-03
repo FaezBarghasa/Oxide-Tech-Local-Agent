@@ -192,13 +192,14 @@ fn test_pure_rust_trainer_and_8bit_adamw() {
 
 #[test]
 fn test_atomic_flash_hitl_token_validation() {
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&[42u8; 32]);
+    let valid_token =
+        AtomicFlashManager::sign_chip_authorization(&signing_key, "STM32F407VG", Some("flash_v1"));
+
     assert!(
-        AtomicFlashManager::validate_ed25519_flash_token(
-            "ed25519-sig-auth-stm32f407-valid-tok",
-            "STM32F407VG"
-        )
-        .is_ok()
+        AtomicFlashManager::validate_ed25519_flash_token(&valid_token, "STM32F407VG").is_ok()
     );
+    assert!(AtomicFlashManager::validate_ed25519_flash_token(&valid_token, "STM32F103").is_err());
     assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
 }
 

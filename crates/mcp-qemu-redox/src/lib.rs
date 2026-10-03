@@ -148,25 +148,25 @@ impl QemuRedoxServer {
         Parameters(input): Parameters<UartInput>,
     ) -> Result<CallToolResult, McpError> {
         let mut state = self.state.lock().await;
-        if let Some(child) = &mut state.child {
-            if let Some(mut stdin) = child.stdin.take() {
-                stdin
-                    .write_all(input.message.as_bytes())
-                    .await
-                    .map_err(|e| {
-                        McpError::internal_error(
-                            format!("Failed writing to QEMU stdin: {}", e),
-                            None,
-                        )
-                    })?;
-                stdin.write_all(b"\n").await.map_err(|e| {
-                    McpError::internal_error(format!("Failed writing newline: {}", e), None)
+        if let Some(mut stdin) = state.child.as_mut().and_then(|c| c.stdin.take()) {
+            stdin
+                .write_all(input.message.as_bytes())
+                .await
+                .map_err(|e| {
+                    McpError::internal_error(
+                        format!("Failed writing to QEMU stdin: {}", e),
+                        None,
+                    )
                 })?;
+            stdin.write_all(b"\n").await.map_err(|e| {
+                McpError::internal_error(format!("Failed writing newline: {}", e), None)
+            })?;
+            if let Some(child) = &mut state.child {
                 child.stdin = Some(stdin);
-                return Ok(CallToolResult::success(vec![ContentBlock::text(
-                    "UART message sent".to_string(),
-                )]));
             }
+            return Ok(CallToolResult::success(vec![ContentBlock::text(
+                "UART message sent".to_string(),
+            )]));
         }
         Ok(CallToolResult::error(vec![ContentBlock::text(
             "QEMU not running".to_string(),

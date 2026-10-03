@@ -263,7 +263,7 @@ Output ONLY a JSON object:
         let sample_str = sample_inputs.to_string();
         let cmd: Vec<&str> = if sample_inputs.is_null()
             || (sample_inputs.is_object()
-                && sample_inputs.as_object().map_or(false, |o| o.is_empty()))
+                && sample_inputs.as_object().is_some_and(|o| o.is_empty()))
         {
             vec!["python3", script_str]
         } else {
