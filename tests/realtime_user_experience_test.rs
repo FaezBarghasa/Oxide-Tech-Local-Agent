@@ -7,16 +7,16 @@
 //! - Mobile FFI robustness against malformed user inputs with descriptive error capture.
 //! - Full-stack atomic firmware flash deployment, verification window, and auto-rollback.
 
+use common::contracts::{ContextSnapshot, InferenceRequest, TaskType};
 use mcp_probe_rs::{AtomicFlashManager, DeploymentState, PartitionSlot, RollbackReason};
-use oxide_engines::decision_engine::{CandidateVectorCache, DecisionEngine, DecisionInput};
 use oxide_engines::mobile::{
     oxide_decision_engine_create, oxide_decision_engine_decide_json,
     oxide_decision_engine_free, oxide_decision_engine_free_string,
     oxide_decision_engine_last_error,
 };
 use oxide_security::StderrSanitizer;
-use router::moe_router::{ExpertModel, MoeGatingRouter};
-use router::types::{InferenceRequest, TaskType};
+use router::moe_router::MoeGatingRouter;
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -46,13 +46,17 @@ fn test_realtime_concurrent_moe_routing_sla() {
             ];
 
             for i in 0..requests_per_user {
-                let (prompt, task_type) = prompts[(user_id + i) % prompts.len()];
+                let (prompt, task_type) = &prompts[(user_id + i) % prompts.len()];
                 let req = InferenceRequest {
                     prompt: prompt.to_string(),
-                    task_type,
-                    stream: false,
-                    max_tokens: Some(512),
-                    temperature: Some(0.7),
+                    task_type: task_type.clone(),
+                    context: ContextSnapshot {
+                        files: HashMap::new(),
+                        ast_summary: None,
+                        board_state: None,
+                    },
+                    tenant: "user_test".to_string(),
+                    local_failures: 0,
                 };
 
                 let t0 = Instant::now();
@@ -164,7 +168,7 @@ fn test_realtime_atomic_flash_lifecycle_with_rollback() {
     let mut manager = AtomicFlashManager::default();
 
     // 1. Stage firmware
-    let staged_slot = manager.stage_firmware(4096).expect("Stage failed");
+    let (staged_slot, _staged_addr) = manager.stage_firmware(4096).expect("Stage failed");
     assert_eq!(staged_slot, PartitionSlot::SlotB);
 
     // 2. Start boot verification window (100ms for test)
@@ -179,9 +183,15 @@ fn test_realtime_atomic_flash_lifecycle_with_rollback() {
     assert_eq!(rolled_addr, 0x08008000);
     assert_eq!(manager.active_slot(), PartitionSlot::SlotA);
 
-    if let DeploymentState::RolledBack { reason, fallback_slot } = manager.current_state() {
+    if let DeploymentState::RolledBack {
+        failed_slot,
+        active_slot,
+        reason,
+    } = manager.current_state()
+    {
         assert_eq!(reason, RollbackReason::BootTimeout);
-        assert_eq!(fallback_slot, PartitionSlot::SlotA);
+        assert_eq!(failed_slot, PartitionSlot::SlotB);
+        assert_eq!(active_slot, PartitionSlot::SlotA);
     } else {
         panic!("Expected RolledBack state!");
     }
