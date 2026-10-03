@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use tokio::io::{AsyncReadExt, BufReader};
+use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 use tokio::time::Duration;
 use tracing::info;
@@ -12,6 +12,9 @@ const MEMORY_LIMIT_BYTES: u64 = 1024 * 1024 * 1024;
 
 /// CPU time ceiling (seconds of CPU the process may consume before SIGKILL).
 const CPU_TIME_LIMIT_SECS: u64 = 60;
+
+/// Output ceiling per stream (8 MiB) to prevent host memory exhaustion.
+pub const MAX_SANDBOX_OUTPUT_BYTES: usize = 8 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NetPolicy {
@@ -58,6 +61,24 @@ pub struct ExecutionResult {
     pub stderr: String,
 }
 
+/// Reads from an async reader into a bounded buffer, discarding subsequent bytes if the limit is exceeded.
+async fn read_bounded<R: tokio::io::AsyncRead + Unpin>(mut reader: R, limit: usize) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let mut chunk = [0u8; 8192];
+    while let Ok(n) = reader.read(&mut chunk).await {
+        if n == 0 {
+            break;
+        }
+        if buf.len() + n > limit {
+            let take = limit.saturating_sub(buf.len());
+            buf.extend_from_slice(&chunk[..take]);
+            break;
+        }
+        buf.extend_from_slice(&chunk[..n]);
+    }
+    buf
+}
+
 impl SandboxSpec {
     pub async fn execute(&self, cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
         if cmd.is_empty() {
@@ -78,24 +99,21 @@ impl SandboxSpec {
             .map(|o| o.status.success())
             .unwrap_or(false);
 
-        if bwrap_available {
-            match self.execute_bwrap(cmd, work_dir).await {
-                Ok(res) if res.exit_code == 0 => Ok(res),
-                Ok(res) => {
-                    tracing::warn!(
-                        "bwrap exited with code {}, falling back to native sandbox",
-                        res.exit_code
-                    );
-                    self.execute_native(cmd, work_dir).await
-                }
-                Err(e) => {
-                    tracing::warn!("bwrap failed ({}), falling back to native sandbox", e);
-                    self.execute_native(cmd, work_dir).await
-                }
+        if !bwrap_available {
+            #[cfg(feature = "unsafe-native-execution")]
+            {
+                tracing::warn!("SECURITY WARNING: Running un-isolated native execution due to explicit unsafe-native-execution feature");
+                return self.execute_native(cmd, work_dir).await;
             }
-        } else {
-            self.execute_native(cmd, work_dir).await
+
+            #[cfg(not(feature = "unsafe-native-execution"))]
+            {
+                return Err("Bubblewrap ('bwrap') sandbox is unavailable. Host execution rejected under fail-closed security contract.".to_string());
+            }
         }
+
+        // Fail-closed: Never fall back to native host execution when bwrap fails
+        self.execute_bwrap(cmd, work_dir).await
     }
 
     async fn execute_bwrap(&self, cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
@@ -151,6 +169,9 @@ impl SandboxSpec {
         bwrap.arg("--chdir").arg(work_dir);
         bwrap.args(cmd);
 
+        #[cfg(unix)]
+        bwrap.process_group(0);
+
         bwrap
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped());
@@ -159,31 +180,41 @@ impl SandboxSpec {
             .spawn()
             .map_err(|e| format!("Failed to spawn bwrap: {}", e))?;
 
+        let pid = child.id();
+        let timeout_duration = self.timeout;
         let stdout_handle = child.stdout.take().ok_or("stdout missing")?;
         let stderr_handle = child.stderr.take().ok_or("stderr missing")?;
 
-        let (stdout, stderr) = tokio::join!(
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stdout_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
-            },
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stderr_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
+        let execution_future = async {
+            let (stdout_bytes, stderr_bytes) = tokio::join!(
+                read_bounded(stdout_handle, MAX_SANDBOX_OUTPUT_BYTES),
+                read_bounded(stderr_handle, MAX_SANDBOX_OUTPUT_BYTES)
+            );
+            let status = child.wait().await.map_err(|e| e.to_string())?;
+            Ok::<_, String>((status, stdout_bytes, stderr_bytes))
+        };
+
+        match tokio::time::timeout(timeout_duration, execution_future).await {
+            Ok(Ok((status, stdout_bytes, stderr_bytes))) => {
+                Ok(ExecutionResult {
+                    exit_code: status.code().unwrap_or(-1),
+                    stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+                    stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
+                })
             }
-        );
-
-        let status = child.wait().await.map_err(|e| e.to_string())?;
-
-        Ok(ExecutionResult {
-            exit_code: status.code().unwrap_or(-1),
-            stdout,
-            stderr,
-        })
+            Ok(Err(e)) => Err(e),
+            Err(_) => {
+                tracing::error!("Sandbox command {:?} timed out after {:?}. Terminating process group.", cmd, timeout_duration);
+                if let Some(pid_val) = pid {
+                    let _ = nix::sys::signal::killpg(
+                        nix::unistd::Pid::from_raw(pid_val as i32),
+                        nix::sys::signal::Signal::SIGKILL,
+                    );
+                }
+                let _ = child.wait().await;
+                Err(format!("Sandbox command {:?} timed out after {:?}", cmd, timeout_duration))
+            }
+        }
     }
 
     async fn execute_native(
@@ -218,31 +249,41 @@ impl SandboxSpec {
                 .map_err(|e| format!("Failed to spawn native sandboxed process: {}", e))?
         };
 
+        let pid = child.id();
+        let timeout_duration = self.timeout;
         let stdout_handle = child.stdout.take().ok_or("stdout pipe missing")?;
         let stderr_handle = child.stderr.take().ok_or("stderr pipe missing")?;
 
-        let (stdout, stderr) = tokio::join!(
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stdout_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
-            },
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stderr_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                String::from_utf8_lossy(&buf).to_string()
+        let execution_future = async {
+            let (stdout_bytes, stderr_bytes) = tokio::join!(
+                read_bounded(stdout_handle, MAX_SANDBOX_OUTPUT_BYTES),
+                read_bounded(stderr_handle, MAX_SANDBOX_OUTPUT_BYTES)
+            );
+            let status = child.wait().await.map_err(|e| e.to_string())?;
+            Ok::<_, String>((status, stdout_bytes, stderr_bytes))
+        };
+
+        match tokio::time::timeout(timeout_duration, execution_future).await {
+            Ok(Ok((status, stdout_bytes, stderr_bytes))) => {
+                Ok(ExecutionResult {
+                    exit_code: status.code().unwrap_or(-1),
+                    stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+                    stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
+                })
             }
-        );
-
-        let status = child.wait().await.map_err(|e| e.to_string())?;
-
-        Ok(ExecutionResult {
-            exit_code: status.code().unwrap_or(-1),
-            stdout,
-            stderr,
-        })
+            Ok(Err(e)) => Err(e),
+            Err(_) => {
+                tracing::error!("Native command {:?} timed out after {:?}. Terminating process group.", cmd, timeout_duration);
+                if let Some(pid_val) = pid {
+                    let _ = nix::sys::signal::killpg(
+                        nix::unistd::Pid::from_raw(pid_val as i32),
+                        nix::sys::signal::Signal::SIGKILL,
+                    );
+                }
+                let _ = child.wait().await;
+                Err(format!("Native command {:?} timed out after {:?}", cmd, timeout_duration))
+            }
+        }
     }
 }
 
@@ -255,15 +296,52 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
 pub async fn execute_wasm_sandbox(
     wasm_bytes: &[u8],
     _inputs: &[u8],
-    _fuel: u64,
+    fuel: u64,
 ) -> Result<ExecutionResult, String> {
-    info!("Executing Wasm sandbox for {} bytes", wasm_bytes.len());
+    info!("Executing Wasm sandbox for {} bytes with fuel limit {}", wasm_bytes.len(), fuel);
     if wasm_bytes.is_empty() {
         return Err("Wasm binary is empty".to_string());
     }
+
+    let mut config = wasmtime::Config::new();
+    config.consume_fuel(true);
+    let engine = wasmtime::Engine::new(&config).map_err(|e| format!("Failed to create Wasm engine: {}", e))?;
+
+    let module = wasmtime::Module::new(&engine, wasm_bytes).map_err(|e| format!("Wasm validation failed: {}", e))?;
+
+    let mut store = wasmtime::Store::new(&engine, ());
+    store.set_fuel(fuel).map_err(|e| format!("Failed to configure Wasm fuel: {}", e))?;
+
+    let linker = wasmtime::Linker::new(&engine);
+    let instance = linker.instantiate(&mut store, &module).map_err(|e| format!("Wasm instantiation failed: {}", e))?;
+
+    let mut exit_code = 0;
+    let mut stdout = format!("Wasm module validated successfully ({} bytes, {} exports).", wasm_bytes.len(), module.exports().count());
+
+    if let Ok(start_fn) = instance.get_typed_func::<(), ()>(&mut store, "_start") {
+        match start_fn.call(&mut store, ()) {
+            Ok(_) => stdout.push_str("\nExecuted _start successfully."),
+            Err(trap) => {
+                exit_code = 1;
+                stdout.push_str(&format!("\nTrap during _start: {}", trap));
+            }
+        }
+    } else if let Ok(run_fn) = instance.get_typed_func::<(), ()>(&mut store, "run") {
+        match run_fn.call(&mut store, ()) {
+            Ok(_) => stdout.push_str("\nExecuted run successfully."),
+            Err(trap) => {
+                exit_code = 1;
+                stdout.push_str(&format!("\nTrap during run: {}", trap));
+            }
+        }
+    }
+
+    let remaining_fuel = store.get_fuel().unwrap_or(0);
+    stdout.push_str(&format!("\nFuel consumed: {}", fuel.saturating_sub(remaining_fuel)));
+
     Ok(ExecutionResult {
-        exit_code: 0,
-        stdout: "Wasm execution successful".to_string(),
+        exit_code,
+        stdout,
         stderr: String::new(),
     })
 }
@@ -281,5 +359,12 @@ mod tests {
             .unwrap();
         assert_eq!(res.exit_code, 0);
         assert!(res.stdout.contains("oxide-sandbox-ok"));
+    }
+
+    #[tokio::test]
+    async fn test_wasm_sandbox_invalid_bytes_rejected() {
+        let bad_bytes = b"NOT_A_WASM_BINARY";
+        let res = execute_wasm_sandbox(bad_bytes, b"", 100_000).await;
+        assert!(res.is_err(), "Expected invalid Wasm bytes to fail validation");
     }
 }

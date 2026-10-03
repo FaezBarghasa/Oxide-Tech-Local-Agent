@@ -237,6 +237,7 @@ pub mod ffi_boundary;
 pub mod shm;
 pub mod state_machine;
 pub mod topology;
+pub mod workspace_path;
 
 pub use channel::{TokenReceiver, TokenSender, create_token_channel};
 pub use diff_patcher::{DiffHunk, DiffLine, PatchError, PatchResult, UnifiedDiffPatcher};
@@ -245,3 +246,5 @@ pub use ffi_boundary::call_ffi_safe;
 pub use shm::SealedSharedMemory;
 pub use state_machine::{AgentState, AgentStateMachine, StateTransition};
 pub use topology::RuntimeTopology;
+pub use workspace_path::{PathError, WorkspacePath};
+

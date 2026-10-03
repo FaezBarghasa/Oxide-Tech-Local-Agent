@@ -10465,6 +10465,7 @@ dependencies = [
  "tempfile",
  "tokio",
  "tracing",
+ "wasmtime",
 ]
 
 [[package]]
