@@ -60,11 +60,13 @@ impl VectorStore {
 
     /// Ensure collection exists
     pub fn create_collection(&mut self, name: &str, dimension: usize) {
-        self.collections.entry(name.to_string()).or_insert_with(|| VectorCollection {
-            name: name.to_string(),
-            dimension,
-            documents: HashMap::new(),
-        });
+        self.collections
+            .entry(name.to_string())
+            .or_insert_with(|| VectorCollection {
+                name: name.to_string(),
+                dimension,
+                documents: HashMap::new(),
+            });
     }
 
     /// Insert or update vector point
@@ -75,11 +77,14 @@ impl VectorStore {
         vector: Vec<f32>,
         payload: HashMap<String, serde_json::Value>,
     ) -> Result<()> {
-        let coll = self.collections.entry(collection.to_string()).or_insert_with(|| VectorCollection {
-            name: collection.to_string(),
-            dimension: vector.len(),
-            documents: HashMap::new(),
-        });
+        let coll = self
+            .collections
+            .entry(collection.to_string())
+            .or_insert_with(|| VectorCollection {
+                name: collection.to_string(),
+                dimension: vector.len(),
+                documents: HashMap::new(),
+            });
 
         coll.documents.insert(
             id.to_string(),
@@ -113,7 +118,11 @@ impl VectorStore {
             })
             .collect();
 
-        scored.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        scored.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         scored.truncate(limit);
         scored
     }
@@ -204,8 +213,12 @@ mod tests {
         let mut payload = HashMap::new();
         payload.insert("doc".to_string(), serde_json::json!("STM32F401 SPI driver"));
 
-        store.upsert("datasheets", "doc1", vec![1.0, 0.0, 0.0], payload.clone()).unwrap();
-        store.upsert("datasheets", "doc2", vec![0.0, 1.0, 0.0], payload).unwrap();
+        store
+            .upsert("datasheets", "doc1", vec![1.0, 0.0, 0.0], payload.clone())
+            .unwrap();
+        store
+            .upsert("datasheets", "doc2", vec![0.0, 1.0, 0.0], payload)
+            .unwrap();
 
         let results = store.search("datasheets", &[0.9, 0.1, 0.0], 1);
         assert_eq!(results.len(), 1);

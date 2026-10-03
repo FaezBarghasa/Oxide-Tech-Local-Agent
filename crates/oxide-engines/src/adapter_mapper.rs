@@ -22,7 +22,14 @@ pub struct LoraAdapterWeights {
 }
 
 impl LoraAdapterWeights {
-    pub fn new(lora_a: Vec<f32>, lora_b: Vec<f32>, in_dim: usize, rank: usize, out_dim: usize, alpha: f32) -> Result<Self, OxideError> {
+    pub fn new(
+        lora_a: Vec<f32>,
+        lora_b: Vec<f32>,
+        in_dim: usize,
+        rank: usize,
+        out_dim: usize,
+        alpha: f32,
+    ) -> Result<Self, OxideError> {
         if lora_a.len() != in_dim * rank {
             return Err(OxideError::Engine(format!(
                 "Lora A dimension mismatch: expected {}, got {}",
@@ -112,12 +119,13 @@ impl AdapterMapper {
     ) -> Result<(), OxideError> {
         let expected_bytes = out_dim * in_dim * 4;
         if weights.len() < expected_bytes {
-            return Err(OxideError::Engine("Weight slice smaller than expected for FP32".to_string()));
+            return Err(OxideError::Engine(
+                "Weight slice smaller than expected for FP32".to_string(),
+            ));
         }
 
-        let f32_weights: &[f32] = unsafe {
-            std::slice::from_raw_parts(weights.as_ptr() as *const f32, out_dim * in_dim)
-        };
+        let f32_weights: &[f32] =
+            unsafe { std::slice::from_raw_parts(weights.as_ptr() as *const f32, out_dim * in_dim) };
 
         for o in 0..out_dim {
             let row_offset = o * in_dim;
@@ -173,12 +181,13 @@ impl AdapterMapper {
     ) -> Result<(), OxideError> {
         let expected_bytes = out_dim * in_dim * 2;
         if weights.len() < expected_bytes {
-            return Err(OxideError::Engine("Weight slice smaller than expected for FP16".to_string()));
+            return Err(OxideError::Engine(
+                "Weight slice smaller than expected for FP16".to_string(),
+            ));
         }
 
-        let u16_weights: &[u16] = unsafe {
-            std::slice::from_raw_parts(weights.as_ptr() as *const u16, out_dim * in_dim)
-        };
+        let u16_weights: &[u16] =
+            unsafe { std::slice::from_raw_parts(weights.as_ptr() as *const u16, out_dim * in_dim) };
 
         for o in 0..out_dim {
             let row_offset = o * in_dim;
@@ -207,7 +216,9 @@ impl AdapterMapper {
         let row_byte_size = num_blocks_per_row * block_byte_size;
 
         if weights.len() < out_dim * row_byte_size {
-            return Err(OxideError::Engine("Weight slice smaller than expected for Q8_0".to_string()));
+            return Err(OxideError::Engine(
+                "Weight slice smaller than expected for Q8_0".to_string(),
+            ));
         }
 
         for o in 0..out_dim {
@@ -216,7 +227,8 @@ impl AdapterMapper {
 
             for b in 0..num_blocks_per_row {
                 let block_start = row_start + b * block_byte_size;
-                let scale_bits = u16::from_le_bytes([weights[block_start], weights[block_start + 1]]);
+                let scale_bits =
+                    u16::from_le_bytes([weights[block_start], weights[block_start + 1]]);
                 let scale = Self::f16_to_f32(scale_bits);
 
                 let quant_bytes = &weights[block_start + 2..block_start + 2 + block_size];
@@ -306,9 +318,8 @@ mod tests {
         let mut weights = vec![0.0f32; out_dim * in_dim];
         weights[0] = 1.0; // out 0, in 0
         weights[5] = 1.0; // out 1, in 1
-        let weight_bytes = unsafe {
-            std::slice::from_raw_parts(weights.as_ptr() as *const u8, weights.len() * 4)
-        };
+        let weight_bytes =
+            unsafe { std::slice::from_raw_parts(weights.as_ptr() as *const u8, weights.len() * 4) };
 
         // LoRA adapter: A = [1, 1, 1, 1], B = [2, 3], alpha = 0.5
         let lora_a = vec![1.0, 1.0, 1.0, 1.0];

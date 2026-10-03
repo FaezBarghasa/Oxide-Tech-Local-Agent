@@ -8,7 +8,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum PatchError {
-    #[error("Target content mismatch at hunk line {hunk_line}: expected '{expected}', found '{found}'")]
+    #[error(
+        "Target content mismatch at hunk line {hunk_line}: expected '{expected}', found '{found}'"
+    )]
     ContentMismatch {
         hunk_line: usize,
         expected: String,
@@ -138,7 +140,11 @@ impl UnifiedDiffPatcher {
         for hunk in hunks {
             let (matched_offset, is_fuzzy) = self.find_hunk_offset(&source_lines, &hunk)?;
             if is_fuzzy {
-                let target_start = if hunk.old_start > 0 { hunk.old_start - 1 } else { 0 };
+                let target_start = if hunk.old_start > 0 {
+                    hunk.old_start - 1
+                } else {
+                    0
+                };
                 total_fuzzy_offset += matched_offset as isize - target_start as isize;
             }
 
@@ -149,7 +155,8 @@ impl UnifiedDiffPatcher {
             for diff_line in &hunk.lines {
                 match diff_line {
                     DiffLine::Context(expected) => {
-                        if src_cursor >= source_lines.len() || &source_lines[src_cursor] != expected {
+                        if src_cursor >= source_lines.len() || &source_lines[src_cursor] != expected
+                        {
                             return Err(PatchError::ContentMismatch {
                                 hunk_line: src_cursor + 1,
                                 expected: expected.clone(),
@@ -160,7 +167,8 @@ impl UnifiedDiffPatcher {
                         src_cursor += 1;
                     }
                     DiffLine::Remove(expected) => {
-                        if src_cursor >= source_lines.len() || &source_lines[src_cursor] != expected {
+                        if src_cursor >= source_lines.len() || &source_lines[src_cursor] != expected
+                        {
                             return Err(PatchError::ContentMismatch {
                                 hunk_line: src_cursor + 1,
                                 expected: expected.clone(),
@@ -196,8 +204,16 @@ impl UnifiedDiffPatcher {
     }
 
     /// Locate hunk position considering small upstream offsets
-    fn find_hunk_offset(&self, source_lines: &[String], hunk: &DiffHunk) -> Result<(usize, bool), PatchError> {
-        let target_start = if hunk.old_start > 0 { hunk.old_start - 1 } else { 0 };
+    fn find_hunk_offset(
+        &self,
+        source_lines: &[String],
+        hunk: &DiffHunk,
+    ) -> Result<(usize, bool), PatchError> {
+        let target_start = if hunk.old_start > 0 {
+            hunk.old_start - 1
+        } else {
+            0
+        };
 
         // Test exact offset first
         if self.verify_hunk_match_at(source_lines, hunk, target_start) {
@@ -218,10 +234,18 @@ impl UnifiedDiffPatcher {
             }
         }
 
-        Err(PatchError::OutOfBounds(target_start + 1, source_lines.len()))
+        Err(PatchError::OutOfBounds(
+            target_start + 1,
+            source_lines.len(),
+        ))
     }
 
-    fn verify_hunk_match_at(&self, source_lines: &[String], hunk: &DiffHunk, start_idx: usize) -> bool {
+    fn verify_hunk_match_at(
+        &self,
+        source_lines: &[String],
+        hunk: &DiffHunk,
+        start_idx: usize,
+    ) -> bool {
         let mut cur = start_idx;
         for line in &hunk.lines {
             match line {
@@ -259,7 +283,10 @@ mod tests {
 
         let patcher = UnifiedDiffPatcher::default();
         let res = patcher.apply_patch(original, diff).unwrap();
-        assert_eq!(res.patched_content, "fn main() {\n    println!(\"Hello World\");\n}\n");
+        assert_eq!(
+            res.patched_content,
+            "fn main() {\n    println!(\"Hello World\");\n}\n"
+        );
         assert_eq!(res.hunks_applied, 1);
         assert_eq!(res.fuzzy_offset_applied, 0);
     }

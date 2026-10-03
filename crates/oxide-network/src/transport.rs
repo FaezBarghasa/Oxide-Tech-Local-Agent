@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{broadcast, Mutex, RwLock};
+use tokio::sync::{Mutex, RwLock, broadcast};
 
 /// Transport event notifications emitted across the mesh
 #[derive(Debug, Clone)]
@@ -193,9 +193,10 @@ impl TransportCircuitBreaker {
     pub fn is_peer_allowed(&self, node_id: &NodeId) -> bool {
         if let Some((failures, last_failure)) = self.peer_failures.get(node_id)
             && *failures >= self.config.failure_threshold
-                && last_failure.elapsed() < Duration::from_secs(self.config.recovery_timeout_secs) {
-                    return false; // Circuit open (tripped)
-                }
+            && last_failure.elapsed() < Duration::from_secs(self.config.recovery_timeout_secs)
+        {
+            return false; // Circuit open (tripped)
+        }
         true
     }
 
@@ -242,7 +243,11 @@ impl QuicMeshTransport {
     }
 
     /// Send an encrypted WirePacket datagram to target node
-    pub async fn send_datagram(&self, node_id: NodeId, packet: WirePacket) -> Result<(), OxideError> {
+    pub async fn send_datagram(
+        &self,
+        node_id: NodeId,
+        packet: WirePacket,
+    ) -> Result<(), OxideError> {
         // 1. Check circuit breaker
         let cb_allowed = self.circuit_breaker.lock().await.is_peer_allowed(&node_id);
         if !cb_allowed {

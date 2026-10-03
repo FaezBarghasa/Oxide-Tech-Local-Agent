@@ -401,11 +401,7 @@ impl LanguageParser for CAndCppLanguageParser {
                 && (trimmed.contains('{') || trimmed.contains(':'))
             {
                 let cleaned = trimmed.trim_start_matches("class ");
-                let name = cleaned
-                    .split([':', '{', ' '])
-                    .next()
-                    .unwrap_or("")
-                    .trim();
+                let name = cleaned.split([':', '{', ' ']).next().unwrap_or("").trim();
 
                 if !name.is_empty() {
                     symbols.push(ParsedSymbol {
@@ -450,11 +446,7 @@ impl LanguageParser for CAndCppLanguageParser {
                 }
             } else if trimmed.starts_with("#define ") {
                 let rest = trimmed.trim_start_matches("#define ").trim();
-                let macro_name = rest
-                    .split(['(', ' ', '\t'])
-                    .next()
-                    .unwrap_or("")
-                    .trim();
+                let macro_name = rest.split(['(', ' ', '\t']).next().unwrap_or("").trim();
 
                 if !macro_name.is_empty() {
                     symbols.push(ParsedSymbol {
@@ -525,11 +517,7 @@ impl LanguageParser for SystemVerilogParser {
 
             if trimmed.starts_with("module ") {
                 let rest = trimmed.trim_start_matches("module ").trim();
-                let name = rest
-                    .split(['#', '(', ';', ' '])
-                    .next()
-                    .unwrap_or("")
-                    .trim();
+                let name = rest.split(['#', '(', ';', ' ']).next().unwrap_or("").trim();
                 if !name.is_empty() {
                     symbols.push(ParsedSymbol {
                         name: name.to_string(),
@@ -548,11 +536,7 @@ impl LanguageParser for SystemVerilogParser {
                 }
             } else if trimmed.starts_with("interface ") {
                 let rest = trimmed.trim_start_matches("interface ").trim();
-                let name = rest
-                    .split(['#', '(', ';', ' '])
-                    .next()
-                    .unwrap_or("")
-                    .trim();
+                let name = rest.split(['#', '(', ';', ' ']).next().unwrap_or("").trim();
                 if !name.is_empty() {
                     symbols.push(ParsedSymbol {
                         name: name.to_string(),
@@ -594,7 +578,11 @@ impl LanguageParser for SystemVerilogParser {
                 let rest = trimmed.trim_start_matches(keyword).trim();
                 let cleaned = rest.trim_start_matches("automatic ").trim();
                 let before_paren = cleaned.split('(').next().unwrap_or("").trim();
-                let name = before_paren.split_whitespace().next_back().unwrap_or("").trim_end_matches(';');
+                let name = before_paren
+                    .split_whitespace()
+                    .next_back()
+                    .unwrap_or("")
+                    .trim_end_matches(';');
 
                 if !name.is_empty() {
                     symbols.push(ParsedSymbol {
@@ -692,7 +680,10 @@ impl LanguageParser for GenericConfigParser {
             }
             let line_no = idx + 1;
 
-            if trimmed.starts_with('#') && !trimmed.starts_with("#!") && !trimmed.starts_with("#include") {
+            if trimmed.starts_with('#')
+                && !trimmed.starts_with("#!")
+                && !trimmed.starts_with("#include")
+            {
                 let name = trimmed.trim_start_matches('#').trim();
                 if !name.is_empty() {
                     symbols.push(ParsedSymbol {
@@ -781,7 +772,10 @@ def global_health_check():
         assert_eq!(symbols.len(), 4);
         assert_eq!(symbols[0].name, "MotorController");
         assert_eq!(symbols[0].kind, "class");
-        assert_eq!(symbols[0].doc_comment.as_deref(), Some("Controls motor speeds and kinematics."));
+        assert_eq!(
+            symbols[0].doc_comment.as_deref(),
+            Some("Controls motor speeds and kinematics.")
+        );
 
         assert_eq!(symbols[1].name, "__init__");
         assert_eq!(symbols[1].kind, "method");
@@ -814,10 +808,18 @@ int send_can_packet(struct CanPacket* pkt) {
 }
 "#;
         let symbols = parse_file(c_code, "can_driver.c").expect("parse c");
-        assert!(symbols.iter().any(|s| s.name == "MAX_BUFFER_SIZE" && s.kind == "macro"));
-        assert!(symbols.iter().any(|s| s.name == "CanPacket" && s.kind == "struct"));
-        assert!(symbols.iter().any(|s| s.name == "SystemStatus" && s.kind == "enum"));
-        assert!(symbols.iter().any(|s| s.name == "send_can_packet" && s.kind == "function"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "MAX_BUFFER_SIZE" && s.kind == "macro"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "CanPacket" && s.kind == "struct"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "SystemStatus" && s.kind == "enum"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "send_can_packet" && s.kind == "function"));
     }
 
     #[test]
@@ -838,9 +840,15 @@ task automatic reset_bus();
 endtask
 "#;
         let symbols = parse_file(sv_code, "spi_master.sv").expect("parse sv");
-        assert!(symbols.iter().any(|s| s.name == "spi_master" && s.kind == "module"));
-        assert!(symbols.iter().any(|s| s.name == "axi_stream_if" && s.kind == "interface"));
-        assert!(symbols.iter().any(|s| s.name == "reset_bus" && s.kind == "task"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "spi_master" && s.kind == "module"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "axi_stream_if" && s.kind == "interface"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "reset_bus" && s.kind == "task"));
     }
 
     #[test]
@@ -853,8 +861,12 @@ module motor_mount(width, height) {
 function calculate_pitch(dia, teeth) = dia / teeth;
 "#;
         let symbols = parse_file(scad_code, "mount.scad").expect("parse scad");
-        assert!(symbols.iter().any(|s| s.name == "motor_mount" && s.kind == "module"));
-        assert!(symbols.iter().any(|s| s.name == "calculate_pitch" && s.kind == "function"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "motor_mount" && s.kind == "module"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "calculate_pitch" && s.kind == "function"));
     }
 
     #[test]
@@ -870,8 +882,11 @@ pub fn handle_packet(pkt: &TelemetryPacket) -> bool {
 }
 "#;
         let symbols = parse_file(rs_code, "lib.rs").expect("parse rust");
-        assert!(symbols.iter().any(|s| s.name == "TelemetryPacket" && s.kind == "struct"));
-        assert!(symbols.iter().any(|s| s.name == "handle_packet" && s.kind == "function"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "TelemetryPacket" && s.kind == "struct"));
+        assert!(symbols
+            .iter()
+            .any(|s| s.name == "handle_packet" && s.kind == "function"));
     }
 }
-

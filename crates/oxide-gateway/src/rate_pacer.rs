@@ -1,6 +1,6 @@
-use std::sync::atomic::{AtomicU64, AtomicU32, Ordering};
-use std::sync::Arc;
 use dashmap::DashMap;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
 #[derive(Debug, Clone)]
 pub struct ProviderRateState {
@@ -42,13 +42,14 @@ impl ProviderRateState {
         let count = self.consecutive_429s.fetch_add(1, Ordering::Relaxed) + 1;
         let factor = 2u64.pow(count.min(6));
         let backoff_secs = (self.base_backoff_secs * factor).min(self.max_backoff_secs);
-        
+
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis() as u64;
         let cooldown_until = now + (backoff_secs * 1000);
-        self.cooldown_until_ms.store(cooldown_until, Ordering::Relaxed);
+        self.cooldown_until_ms
+            .store(cooldown_until, Ordering::Relaxed);
 
         backoff_secs
     }

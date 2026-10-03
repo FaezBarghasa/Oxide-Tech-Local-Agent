@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use surrealdb::engine::any::{connect, Any};
 use surrealdb::Surreal;
+use surrealdb::engine::any::{Any, connect};
 use surrealdb_types::{RecordId, SurrealValue};
 
 #[derive(Debug, Clone, Serialize, Deserialize, SurrealValue)]
@@ -72,15 +72,20 @@ impl GatewayDb {
         let db_path = data_dir.as_ref().join("gateway_store");
         let _ = tokio::fs::create_dir_all(&db_path).await;
 
-        let db_url = std::env::var("OXIDE_GATEWAY_DB_URL").unwrap_or_else(|_| {
-            format!("surrealkv://{}", db_path.display())
-        });
+        let db_url = std::env::var("OXIDE_GATEWAY_DB_URL")
+            .unwrap_or_else(|_| format!("surrealkv://{}", db_path.display()));
 
         let db = match connect(&db_url).await {
             Ok(d) => d,
             Err(e) => {
-                tracing::warn!("Failed to open db at {}: {}. Falling back to mem://", db_url, e);
-                connect("mem://").await.context("Failed to open mem:// SurrealDB instance")?
+                tracing::warn!(
+                    "Failed to open db at {}: {}. Falling back to mem://",
+                    db_url,
+                    e
+                );
+                connect("mem://")
+                    .await
+                    .context("Failed to open mem:// SurrealDB instance")?
             }
         };
 
@@ -94,7 +99,8 @@ impl GatewayDb {
     }
 
     pub async fn init_mem() -> Result<Self> {
-        let db = connect("mem://").await
+        let db = connect("mem://")
+            .await
             .context("Failed to open mem:// SurrealDB instance")?;
         db.use_ns("oxide").use_db("gateway").await?;
         let instance = Self { db };
@@ -454,7 +460,13 @@ impl GatewayDb {
 
         for c in combos {
             let name = c.name.clone();
-            let _: Option<ComboRecord> = self.db.create(("combo", name)).content(c).await.ok().flatten();
+            let _: Option<ComboRecord> = self
+                .db
+                .create(("combo", name))
+                .content(c)
+                .await
+                .ok()
+                .flatten();
         }
         Ok(())
     }
@@ -586,7 +598,13 @@ impl GatewayDb {
 
         for m in models {
             let id = m.model_id.clone();
-            let _: Option<ModelRecord> = self.db.create(("model", id)).content(m).await.ok().flatten();
+            let _: Option<ModelRecord> = self
+                .db
+                .create(("model", id))
+                .content(m)
+                .await
+                .ok()
+                .flatten();
         }
         Ok(())
     }

@@ -115,7 +115,9 @@ pub unsafe extern "C" fn oxide_decision_engine_decide_json(
         return std::ptr::null_mut();
     }
     if input_json_ptr.is_null() {
-        set_last_error("Null input_json_ptr provided to oxide_decision_engine_decide_json".to_string());
+        set_last_error(
+            "Null input_json_ptr provided to oxide_decision_engine_decide_json".to_string(),
+        );
         return std::ptr::null_mut();
     }
 

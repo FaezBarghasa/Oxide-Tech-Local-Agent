@@ -127,7 +127,10 @@ fn fetch_real_system_telemetry() -> Result<SystemTelemetryPayload> {
     let mut vram_temp = None;
 
     if let Ok(output) = std::process::Command::new("nvidia-smi")
-        .args(["--query-gpu=memory.used,memory.total,temperature.gpu", "--format=csv,noheader,nounits"])
+        .args([
+            "--query-gpu=memory.used,memory.total,temperature.gpu",
+            "--format=csv,noheader,nounits",
+        ])
         .output()
     {
         if output.status.success() {
@@ -148,7 +151,12 @@ fn fetch_real_system_telemetry() -> Result<SystemTelemetryPayload> {
         .map(|entries| {
             entries
                 .filter_map(|e| e.ok())
-                .filter(|e| e.file_name().to_string_lossy().chars().all(|c| c.is_ascii_digit()))
+                .filter(|e| {
+                    e.file_name()
+                        .to_string_lossy()
+                        .chars()
+                        .all(|c| c.is_ascii_digit())
+                })
                 .count()
         })
         .unwrap_or(0);

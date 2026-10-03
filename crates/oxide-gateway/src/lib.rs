@@ -25,7 +25,6 @@ pub use rate_pacer::RatePacer;
 pub use router::{CoderBackend, GatewayRouter};
 pub use universal_router::{ModelResolver, RoutedTarget};
 
-
 /// Construct a tuned multi-threaded Tokio runtime with CPU topology awareness and core pinning.
 pub fn build_tuned_runtime(
     topology: Option<RuntimeTopology>,
@@ -91,7 +90,10 @@ pub async fn run_gateway(state: Arc<AppState>, host: &str, port: u16) -> std::io
             .route("/api/agent/execute", web::post().to(routes::agent_execute))
             .route("/api/gateway/keys", web::get().to(routes::list_api_keys))
             .route("/api/gateway/keys", web::post().to(routes::create_api_key))
-            .route("/api/gateway/clients", web::get().to(routes::list_connected_clients))
+            .route(
+                "/api/gateway/clients",
+                web::get().to(routes::list_connected_clients),
+            )
             // Protected OpenAI-compatible /v1 scope
             .service(
                 web::scope("/v1")

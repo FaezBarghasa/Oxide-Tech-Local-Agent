@@ -1,4 +1,4 @@
-use std::sync::mpsc::{channel, Sender as SyncSender};
+use std::sync::mpsc::{Sender as SyncSender, channel};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -81,7 +81,12 @@ impl DecisionEngine {
         thread::Builder::new()
             .name("decision-worker".into())
             .spawn(move || {
-                run_worker_loop(rx, device, max_batch_size, Duration::from_millis(timeout_ms));
+                run_worker_loop(
+                    rx,
+                    device,
+                    max_batch_size,
+                    Duration::from_millis(timeout_ms),
+                );
             })
             .expect("Failed to spawn inference worker thread");
 
@@ -201,7 +206,12 @@ impl CandidateVectorCache {
             return Vec::new();
         }
 
-        let state_norm: f32 = state_embedding.iter().map(|x| x * x).sum::<f32>().sqrt().max(1e-8);
+        let state_norm: f32 = state_embedding
+            .iter()
+            .map(|x| x * x)
+            .sum::<f32>()
+            .sqrt()
+            .max(1e-8);
         let mut scores: Vec<(String, f32)> = self
             .candidate_ids
             .iter()
@@ -218,7 +228,11 @@ impl CandidateVectorCache {
                 // Numerically stable sigmoid with clamped exponent
                 let clamped_dot = (dot * 4.0).clamp(-50.0, 50.0);
                 let calibrated_prob = 1.0 / (1.0 + (-clamped_dot).exp());
-                let safe_prob = if calibrated_prob.is_nan() { 0.5 } else { calibrated_prob };
+                let safe_prob = if calibrated_prob.is_nan() {
+                    0.5
+                } else {
+                    calibrated_prob
+                };
                 (id.clone(), safe_prob)
             })
             .collect();
@@ -390,8 +404,9 @@ mod tests {
         cache.insert("choice_b", vec![0.0, 1.0, 0.0]);
 
         let state_query = vec![0.9, 0.1, 0.0];
-        let (selected, conf) =
-            cache.score_state(&state_query).expect("Scoring should produce result");
+        let (selected, conf) = cache
+            .score_state(&state_query)
+            .expect("Scoring should produce result");
         assert_eq!(selected, "choice_a");
         assert!(conf > 0.5);
     }
@@ -456,7 +471,9 @@ mod tests {
         let iterations = 100;
         let start = Instant::now();
         for _ in 0..iterations {
-            let output = engine.decide(input.clone()).expect("Bench decision should succeed");
+            let output = engine
+                .decide(input.clone())
+                .expect("Bench decision should succeed");
             assert!(!output.selected.is_empty());
             assert!(output.confidence > 0.0);
         }
@@ -466,6 +483,9 @@ mod tests {
             "\n[SDM Benchmark] Total: {:?} for {} iterations | Avg Latency: {:?} (< 5ms target)",
             total_duration, iterations, avg_latency
         );
-        assert!(avg_latency < Duration::from_millis(5), "SDM decision latency must be < 5ms");
+        assert!(
+            avg_latency < Duration::from_millis(5),
+            "SDM decision latency must be < 5ms"
+        );
     }
 }

@@ -51,12 +51,7 @@ impl AdamWOptimizer {
     }
 
     /// Performs one in-place optimization step on parameters given gradients
-    pub fn step(
-        &self,
-        params: &mut [f32],
-        grads: &mut [f32],
-        state: &mut AdamWState,
-    ) {
+    pub fn step(&self, params: &mut [f32], grads: &mut [f32], state: &mut AdamWState) {
         assert_eq!(params.len(), grads.len());
         assert_eq!(params.len(), state.m.len());
         assert_eq!(params.len(), state.v.len());
@@ -145,12 +140,7 @@ impl AdamW8bitOptimizer {
         }
     }
 
-    pub fn step(
-        &self,
-        params: &mut [f32],
-        grads: &mut [f32],
-        state: &mut AdamW8bitState,
-    ) {
+    pub fn step(&self, params: &mut [f32], grads: &mut [f32], state: &mut AdamW8bitState) {
         state.step += 1;
         let t = state.step as f32;
         let beta1 = self.config.beta1;
@@ -191,7 +181,11 @@ impl AdamW8bitOptimizer {
             }
 
             // Quantize block moments back to 8-bit
-            let max_m = m_block.iter().map(|x| x.abs()).fold(0.0f32, f32::max).max(1e-8);
+            let max_m = m_block
+                .iter()
+                .map(|x| x.abs())
+                .fold(0.0f32, f32::max)
+                .max(1e-8);
             let max_v = v_block.iter().fold(0.0f32, |acc, &x| acc.max(x)).max(1e-8);
 
             state.m_scales[b] = max_m;

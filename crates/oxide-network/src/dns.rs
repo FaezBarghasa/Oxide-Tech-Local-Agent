@@ -146,14 +146,8 @@ mod tests {
 
         resolver.register("workstation-primary", ip, node_id);
 
-        assert_eq!(
-            resolver.resolve_name("workstation-primary"),
-            Some(ip)
-        );
-        assert_eq!(
-            resolver.resolve_name("workstation-primary.oxide"),
-            Some(ip)
-        );
+        assert_eq!(resolver.resolve_name("workstation-primary"), Some(ip));
+        assert_eq!(resolver.resolve_name("workstation-primary.oxide"), Some(ip));
         assert_eq!(
             resolver.reverse_resolve(ip),
             Some("workstation-primary.oxide".to_string())

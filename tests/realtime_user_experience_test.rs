@@ -10,16 +10,15 @@
 use common::contracts::{ContextSnapshot, InferenceRequest, TaskType};
 use mcp_probe_rs::{AtomicFlashManager, DeploymentState, PartitionSlot, RollbackReason};
 use oxide_engines::mobile::{
-    oxide_decision_engine_create, oxide_decision_engine_decide_json,
-    oxide_decision_engine_free, oxide_decision_engine_free_string,
-    oxide_decision_engine_last_error,
+    oxide_decision_engine_create, oxide_decision_engine_decide_json, oxide_decision_engine_free,
+    oxide_decision_engine_free_string, oxide_decision_engine_last_error,
 };
 use oxide_security::StderrSanitizer;
 use router::moe_router::MoeGatingRouter;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 #[test]
@@ -38,11 +37,26 @@ fn test_realtime_concurrent_moe_routing_sla() {
 
         handles.push(std::thread::spawn(move || {
             let prompts = [
-                ("Write an Embassy async task for STM32F401 reading SMT160 duty cycle", TaskType::Architecture),
-                ("objdump decompile elf stripped binary with gdb hex analysis", TaskType::BinaryAnalysis),
-                ("Explain why this borrowck lifetime error fails on struct Foo<'a>", TaskType::Syntax),
-                ("Fast triage diff checklist status overview", TaskType::Architecture),
-                ("Synthesize SIMD algorithm in safe Rust with mtp turbo kernel", TaskType::CodeCompletion),
+                (
+                    "Write an Embassy async task for STM32F401 reading SMT160 duty cycle",
+                    TaskType::Architecture,
+                ),
+                (
+                    "objdump decompile elf stripped binary with gdb hex analysis",
+                    TaskType::BinaryAnalysis,
+                ),
+                (
+                    "Explain why this borrowck lifetime error fails on struct Foo<'a>",
+                    TaskType::Syntax,
+                ),
+                (
+                    "Fast triage diff checklist status overview",
+                    TaskType::Architecture,
+                ),
+                (
+                    "Synthesize SIMD algorithm in safe Rust with mtp turbo kernel",
+                    TaskType::CodeCompletion,
+                ),
             ];
 
             for i in 0..requests_per_user {
@@ -120,15 +134,23 @@ fn test_realtime_bursty_stderr_scrubbing_and_concurrency() {
     }
 
     let tail = sanitizer.get_sanitized_tail();
-    assert!(!tail.contains("sk-99887766554433221100aa"), "Secret leaked in sanitized stderr!");
-    assert!(tail.contains("[REDACTED_SECRET]"), "Secret scrubbing token missing!");
+    assert!(
+        !tail.contains("sk-99887766554433221100aa"),
+        "Secret leaked in sanitized stderr!"
+    );
+    assert!(
+        tail.contains("[REDACTED_SECRET]"),
+        "Secret scrubbing token missing!"
+    );
     assert!(
         tail.len() <= 16 * 1024 + 1024,
         "Stderr tail size exceeded bounded ring buffer: {} bytes",
         tail.len()
     );
 
-    sanitizer.flush_to_diagnostic_file().expect("Failed to flush diagnostics");
+    sanitizer
+        .flush_to_diagnostic_file()
+        .expect("Failed to flush diagnostics");
     assert!(diag_path.exists());
 }
 

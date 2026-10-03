@@ -1,6 +1,6 @@
 //! FP8 LoRA Layer for pure-Rust memory-efficient adapter fine-tuning.
 
-use crate::fp8_quant::{dequantize_fp8_block, quantize_fp8_block, QuantizedFP8Block};
+use crate::fp8_quant::{QuantizedFP8Block, dequantize_fp8_block, quantize_fp8_block};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,7 +12,11 @@ pub struct FP8Matrix {
 
 impl FP8Matrix {
     pub fn from_f32_slice(slice: &[f32], rows: usize, cols: usize, block_size: usize) -> Self {
-        assert_eq!(slice.len(), rows * cols, "Slice length must equal rows * cols");
+        assert_eq!(
+            slice.len(),
+            rows * cols,
+            "Slice length must equal rows * cols"
+        );
         let quant = quantize_fp8_block(slice, block_size);
         Self { rows, cols, quant }
     }

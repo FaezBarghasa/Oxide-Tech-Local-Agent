@@ -1,12 +1,14 @@
-use media_forge::{DiffusionEngine, DiffusionRequest, DiffusionResponse, SchedulerType, VideoEngine, VideoGenerationRequest, VideoGenerationResponse};
+use media_forge::{
+    DiffusionEngine, DiffusionRequest, DiffusionResponse, SchedulerType, VideoEngine,
+    VideoGenerationRequest, VideoGenerationResponse,
+};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::info;
 
-static MEDIA_STATE: std::sync::LazyLock<Arc<Mutex<MediaState>>> = std::sync::LazyLock::new(|| {
-    Arc::new(Mutex::new(MediaState::new()))
-});
+static MEDIA_STATE: std::sync::LazyLock<Arc<Mutex<MediaState>>> =
+    std::sync::LazyLock::new(|| Arc::new(Mutex::new(MediaState::new())));
 
 struct MediaState {
     diffusion: DiffusionEngine,
@@ -67,12 +69,18 @@ pub async fn media_generate_image(req: GenerateImageDto) -> Result<DiffusionResp
     };
 
     info!("Media IPC: Generating image with prompt '{}'", req.prompt);
-    let res = state.diffusion.generate(diff_req).await.map_err(|e| e.to_string())?;
+    let res = state
+        .diffusion
+        .generate(diff_req)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(res)
 }
 
 #[tauri::command]
-pub async fn media_generate_video(req: GenerateVideoDto) -> Result<VideoGenerationResponse, String> {
+pub async fn media_generate_video(
+    req: GenerateVideoDto,
+) -> Result<VideoGenerationResponse, String> {
     let state = MEDIA_STATE.lock().await;
     let vid_req = VideoGenerationRequest {
         prompt: req.prompt.clone(),
@@ -87,6 +95,10 @@ pub async fn media_generate_video(req: GenerateVideoDto) -> Result<VideoGenerati
     };
 
     info!("Media IPC: Generating video with prompt '{}'", req.prompt);
-    let res = state.video.generate_video(vid_req).await.map_err(|e| e.to_string())?;
+    let res = state
+        .video
+        .generate_video(vid_req)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(res)
 }

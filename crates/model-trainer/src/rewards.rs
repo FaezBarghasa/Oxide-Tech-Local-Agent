@@ -24,7 +24,8 @@ impl RustCompilerReward {
         }
 
         let tmp_file = std::env::temp_dir().join(format!("eval_grpo_{}.rs", uuid::Uuid::now_v7()));
-        let out_meta = std::env::temp_dir().join(format!("eval_grpo_{}.rmeta", uuid::Uuid::now_v7()));
+        let out_meta =
+            std::env::temp_dir().join(format!("eval_grpo_{}.rmeta", uuid::Uuid::now_v7()));
 
         let mut wrapped = clean.clone();
         if strict_no_std && !clean.contains("#![no_std]") && !clean.contains("fn main") {
@@ -52,11 +53,7 @@ impl RustCompilerReward {
             Ok(res) => {
                 if res.status.success() {
                     let stderr = String::from_utf8_lossy(&res.stderr);
-                    if stderr.contains("warning") {
-                        0.7
-                    } else {
-                        1.0
-                    }
+                    if stderr.contains("warning") { 0.7 } else { 1.0 }
                 } else {
                     let stderr = String::from_utf8_lossy(&res.stderr);
                     if stderr.contains("error[E0425]") || stderr.contains("error[E0412]") {
@@ -89,11 +86,7 @@ impl MemorySafetyReward {
         }
 
         let has_safety_doc = clean.to_lowercase().contains("// safety:");
-        if has_safety_doc {
-            0.6
-        } else {
-            0.2
-        }
+        if has_safety_doc { 0.6 } else { 0.2 }
     }
 }
 
@@ -102,7 +95,11 @@ pub struct SpiceSimulationReward;
 impl SpiceSimulationReward {
     pub fn evaluate(spice_deck: &str) -> f32 {
         let clean = extract_code_block(spice_deck, "spice");
-        let deck = if clean.trim().is_empty() { spice_deck } else { &clean };
+        let deck = if clean.trim().is_empty() {
+            spice_deck
+        } else {
+            &clean
+        };
 
         let lines: Vec<&str> = deck
             .lines()
@@ -148,10 +145,18 @@ impl SpiceSimulationReward {
         }
 
         let mut score = 0.0f32;
-        if has_ground { score += 0.3; }
-        if has_components { score += 0.3; }
-        if has_sources { score += 0.2; }
-        if has_sim_cmd { score += 0.2; }
+        if has_ground {
+            score += 0.3;
+        }
+        if has_components {
+            score += 0.3;
+        }
+        if has_sources {
+            score += 0.2;
+        }
+        if has_sim_cmd {
+            score += 0.2;
+        }
 
         score.min(1.0)
     }
@@ -297,7 +302,8 @@ mod tests {
         let unsafe_undocumented = "pub fn read(ptr: *const u8) -> u8 { unsafe { *ptr } }";
         assert_eq!(MemorySafetyReward::evaluate(unsafe_undocumented), 0.2);
 
-        let unsafe_documented = "// SAFETY: Pointer verified\npub fn read(ptr: *const u8) -> u8 { unsafe { *ptr } }";
+        let unsafe_documented =
+            "// SAFETY: Pointer verified\npub fn read(ptr: *const u8) -> u8 { unsafe { *ptr } }";
         assert_eq!(MemorySafetyReward::evaluate(unsafe_documented), 0.6);
     }
 

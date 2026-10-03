@@ -5,6 +5,7 @@
 //! `oxide-tech-local-agent` desktop binary.
 
 use rmcp::{
+    ErrorData as McpError, RoleServer, ServerHandler,
     handler::server::tool::{ToolCallContext, ToolRouter},
     handler::server::wrapper::Parameters,
     model::{
@@ -12,7 +13,7 @@ use rmcp::{
         PaginatedRequestParams, ServerInfo,
     },
     service::RequestContext,
-    tool, tool_router, ErrorData as McpError, RoleServer, ServerHandler,
+    tool, tool_router,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -118,7 +119,8 @@ impl DesktopTesterServer {
 
         // Find executable (check ~/.local/bin/oxide-tech-local-agent, /usr/bin/oxide-tech-local-agent, or path)
         let exe_path = if let Ok(home) = std::env::var("HOME") {
-            let local_bin = std::path::PathBuf::from(home).join(".local/bin/oxide-tech-local-agent");
+            let local_bin =
+                std::path::PathBuf::from(home).join(".local/bin/oxide-tech-local-agent");
             if local_bin.exists() {
                 local_bin.display().to_string()
             } else {
@@ -166,12 +168,16 @@ impl DesktopTesterServer {
     }
 
     /// Probe embedded gateway HTTP endpoints and health
-    #[tool(description = "Verify embedded Actix-Web gateway health, SurrealDB status, and model discovery")]
+    #[tool(
+        description = "Verify embedded Actix-Web gateway health, SurrealDB status, and model discovery"
+    )]
     async fn check_gateway_health(
         &self,
         Parameters(input): Parameters<GatewayHealthInput>,
     ) -> Result<CallToolResult, McpError> {
-        let base = input.base_url.unwrap_or_else(|| "http://127.0.0.1:8080".to_string());
+        let base = input
+            .base_url
+            .unwrap_or_else(|| "http://127.0.0.1:8080".to_string());
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(3))
             .build()
@@ -205,7 +211,9 @@ impl DesktopTesterServer {
             }
         }
 
-        Ok(CallToolResult::success(vec![ContentBlock::text(report.join("\n"))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            report.join("\n"),
+        )]))
     }
 
     /// Trigger end-to-end chat completion through the running gateway
@@ -258,16 +266,23 @@ impl DesktopTesterServer {
     }
 
     /// Autonomous loop: inspects, launches, probes, and tests until verified stable
-    #[tool(description = "Run automated multi-cycle stability loop verifying desktop app and local inference")]
+    #[tool(
+        description = "Run automated multi-cycle stability loop verifying desktop app and local inference"
+    )]
     async fn run_stability_loop(
         &self,
         Parameters(input): Parameters<StabilityLoopInput>,
     ) -> Result<CallToolResult, McpError> {
         let cycles = input.cycles.unwrap_or(3);
-        let model = input.target_model.unwrap_or_else(|| "DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf".to_string());
+        let model = input
+            .target_model
+            .unwrap_or_else(|| "DeepSeek-R1-0528-Qwen3-8B-Q4_K_M.gguf".to_string());
 
         let mut log = Vec::new();
-        log.push(format!("Starting automated stability verification ({} cycles) for model '{}'...", cycles, model));
+        log.push(format!(
+            "Starting automated stability verification ({} cycles) for model '{}'...",
+            cycles, model
+        ));
 
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
@@ -283,8 +298,15 @@ impl DesktopTesterServer {
                     log.push(format!("Cycle {}: Gateway healthy.", i));
                 }
                 _ => {
-                    log.push(format!("Cycle {}: Gateway unreachable, restarting desktop app...", i));
-                    let _ = Command::new("pkill").arg("-f").arg("oxide-tech-local-agent").output().await;
+                    log.push(format!(
+                        "Cycle {}: Gateway unreachable, restarting desktop app...",
+                        i
+                    ));
+                    let _ = Command::new("pkill")
+                        .arg("-f")
+                        .arg("oxide-tech-local-agent")
+                        .output()
+                        .await;
                     tokio::time::sleep(Duration::from_secs(1)).await;
 
                     let _ = Command::new("oxide-tech-local-agent").spawn();
@@ -296,19 +318,30 @@ impl DesktopTesterServer {
             if let Ok(resp) = client.get("http://127.0.0.1:8080/v1/models").send().await
                 && let Ok(json) = resp.json::<serde_json::Value>().await
             {
-                let count = json.get("data").and_then(|d| d.as_array()).map(|a| a.len()).unwrap_or(0);
-                log.push(format!("Cycle {}: Model catalog responsive ({} registered models).", i, count));
+                let count = json
+                    .get("data")
+                    .and_then(|d| d.as_array())
+                    .map(|a| a.len())
+                    .unwrap_or(0);
+                log.push(format!(
+                    "Cycle {}: Model catalog responsive ({} registered models).",
+                    i, count
+                ));
             }
 
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
 
         log.push("\n[✓] Stability loop complete: Subsystem state verified.".to_string());
-        Ok(CallToolResult::success(vec![ContentBlock::text(log.join("\n"))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            log.join("\n"),
+        )]))
     }
 
     /// Audit full Desktop GUI by running automated Playwright headless suite across all tabs & modals
-    #[tool(description = "Execute comprehensive Playwright GUI test suite across all 18+ tabs, modals, and subsystem actions")]
+    #[tool(
+        description = "Execute comprehensive Playwright GUI test suite across all 18+ tabs, modals, and subsystem actions"
+    )]
     async fn audit_desktop_gui(
         &self,
         Parameters(_): Parameters<serde_json::Value>,
@@ -317,12 +350,15 @@ impl DesktopTesterServer {
             .arg("scripts/gui_desktop_suite.cjs")
             .output()
             .await
-            .map_err(|e| McpError::internal_error(format!("Failed to spawn GUI test suite: {}", e), None))?;
+            .map_err(|e| {
+                McpError::internal_error(format!("Failed to spawn GUI test suite: {}", e), None)
+            })?;
 
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        let report_path = std::path::Path::new("docs/assets/screenshots/gui_audit/audit_report.json");
+        let report_path =
+            std::path::Path::new("docs/assets/screenshots/gui_audit/audit_report.json");
         let json_report = if report_path.exists() {
             tokio::fs::read_to_string(report_path)
                 .await
@@ -344,7 +380,9 @@ impl DesktopTesterServer {
     }
 
     /// Comprehensive project readiness audit (processes, gateway health, doctor scan, verifier, GUI suite)
-    #[tool(description = "Run end-to-end multi-layer readiness audit (doctor diagnostics, formal verifier, gateway HTTP probe, and GUI suite)")]
+    #[tool(
+        description = "Run end-to-end multi-layer readiness audit (doctor diagnostics, formal verifier, gateway HTTP probe, and GUI suite)"
+    )]
     async fn audit_project_readiness(
         &self,
         Parameters(_): Parameters<serde_json::Value>,
@@ -352,7 +390,8 @@ impl DesktopTesterServer {
         let mut report = Vec::new();
         report.push("================================================================".to_string());
         report.push("       Oxide-Tech Local Agent — Project Readiness Audit         ".to_string());
-        report.push("================================================================\n".to_string());
+        report
+            .push("================================================================\n".to_string());
 
         // 1. Process Check
         let mut sys = System::new();
@@ -364,15 +403,26 @@ impl DesktopTesterServer {
                 pids.push(pid.as_u32());
             }
         }
-        report.push(format!("[1/5] Process Table: {} active PID(s): {:?}", pids.len(), pids));
+        report.push(format!(
+            "[1/5] Process Table: {} active PID(s): {:?}",
+            pids.len(),
+            pids
+        ));
 
         // 2. Gateway Health Probe
-        let client = reqwest::Client::builder().timeout(Duration::from_secs(3)).build().unwrap_or_default();
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(3))
+            .build()
+            .unwrap_or_default();
         match client.get("http://127.0.0.1:8080/health").send().await {
             Ok(resp) => {
                 let status = resp.status();
                 let body = resp.text().await.unwrap_or_default();
-                report.push(format!("[2/5] Gateway Health: HTTP {} -> {}", status, body.trim()));
+                report.push(format!(
+                    "[2/5] Gateway Health: HTTP {} -> {}",
+                    status,
+                    body.trim()
+                ));
             }
             Err(e) => {
                 report.push(format!("[2/5] Gateway Health: UNREACHABLE ({})", e));
@@ -390,7 +440,10 @@ impl DesktopTesterServer {
                 let passed = json.get("passed").and_then(|v| v.as_u64()).unwrap_or(0);
                 let failed = json.get("failed").and_then(|v| v.as_u64()).unwrap_or(0);
                 let warnings = json.get("warnings").and_then(|v| v.as_u64()).unwrap_or(0);
-                report.push(format!("[3/5] System Doctor Diagnostics: {} passed, {} failed, {} warnings", passed, failed, warnings));
+                report.push(format!(
+                    "[3/5] System Doctor Diagnostics: {} passed, {} failed, {} warnings",
+                    passed, failed, warnings
+                ));
             }
         } else {
             report.push("[3/5] System Doctor: Skipped / binary not built".to_string());
@@ -404,8 +457,18 @@ impl DesktopTesterServer {
             .await;
         if let Ok(out) = verif_out {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
-                let verified = json.get("verified_success").and_then(|v| v.as_bool()).unwrap_or(false);
-                report.push(format!("[4/5] Deterministic Verifier: {}", if verified { "VERIFIED SUCCESS [✓]" } else { "FAILED [✗]" }));
+                let verified = json
+                    .get("verified_success")
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
+                report.push(format!(
+                    "[4/5] Deterministic Verifier: {}",
+                    if verified {
+                        "VERIFIED SUCCESS [✓]"
+                    } else {
+                        "FAILED [✗]"
+                    }
+                ));
             }
         } else {
             report.push("[4/5] Deterministic Verifier: Skipped".to_string());
@@ -417,32 +480,49 @@ impl DesktopTesterServer {
             .output()
             .await;
         if let Ok(out) = gui_out {
-            let report_path = std::path::Path::new("docs/assets/screenshots/gui_audit/audit_report.json");
+            let report_path =
+                std::path::Path::new("docs/assets/screenshots/gui_audit/audit_report.json");
             if report_path.exists() {
                 if let Ok(content) = tokio::fs::read_to_string(report_path).await
                     && let Ok(json) = serde_json::from_str::<serde_json::Value>(&content)
                 {
                     let tabs_passed = json.get("tabsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
                     let tabs_total = json.get("tabsTested").and_then(|v| v.as_u64()).unwrap_or(0);
-                    let modals_passed = json.get("modalsPassed").and_then(|v| v.as_u64()).unwrap_or(0);
-                    let ready = json.get("readyForProduction").and_then(|v| v.as_bool()).unwrap_or(false);
+                    let modals_passed = json
+                        .get("modalsPassed")
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(0);
+                    let ready = json
+                        .get("readyForProduction")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false);
                     report.push(format!(
                         "[5/5] Desktop GUI Suite: {}/{} tabs passed, {} modals passed, Ready: {}",
-                        tabs_passed, tabs_total, modals_passed, if ready { "YES [✓]" } else { "NO [✗]" }
+                        tabs_passed,
+                        tabs_total,
+                        modals_passed,
+                        if ready { "YES [✓]" } else { "NO [✗]" }
                     ));
                 }
             } else {
-                report.push(format!("[5/5] Desktop GUI Suite: Exited with code {}", out.status.code().unwrap_or(-1)));
+                report.push(format!(
+                    "[5/5] Desktop GUI Suite: Exited with code {}",
+                    out.status.code().unwrap_or(-1)
+                ));
             }
         } else {
             report.push("[5/5] Desktop GUI Suite: Node runner failed".to_string());
         }
 
-        report.push("\n================================================================".to_string());
+        report
+            .push("\n================================================================".to_string());
         report.push("Scorecard: ALL CRITICAL SUBSYSTEMS VERIFIED AND OPERATIONAL.".to_string());
-        report.push("================================================================\n".to_string());
+        report
+            .push("================================================================\n".to_string());
 
-        Ok(CallToolResult::success(vec![ContentBlock::text(report.join("\n"))]))
+        Ok(CallToolResult::success(vec![ContentBlock::text(
+            report.join("\n"),
+        )]))
     }
 }
 

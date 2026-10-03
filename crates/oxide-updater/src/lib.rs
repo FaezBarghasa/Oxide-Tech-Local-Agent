@@ -3,8 +3,8 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::io::AsyncWriteExt;
 
 const EMBEDDED_RELEASE_PUBKEY: &[u8; 32] = include_bytes!("../keys/release_pubkey.bin");
@@ -217,7 +217,11 @@ impl OxideUpdater {
         Ok(current_exe)
     }
 
-    pub fn atomic_swap(&self, current_exe: &Path, staged_binary: &Path) -> Result<(), std::io::Error> {
+    pub fn atomic_swap(
+        &self,
+        current_exe: &Path,
+        staged_binary: &Path,
+    ) -> Result<(), std::io::Error> {
         #[cfg(unix)]
         {
             // POSIX rename is atomic within the same filesystem
@@ -246,9 +250,7 @@ impl OxideUpdater {
         #[cfg(unix)]
         {
             use std::os::unix::process::CommandExt;
-            let err = std::process::Command::new(&current_exe)
-                .args(&args)
-                .exec();
+            let err = std::process::Command::new(&current_exe).args(&args).exec();
             Err(Box::new(err))
         }
 

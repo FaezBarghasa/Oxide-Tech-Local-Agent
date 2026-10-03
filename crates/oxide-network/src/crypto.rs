@@ -5,7 +5,7 @@
 
 use oxide_core::OxideError;
 use ring::rand::{SecureRandom, SystemRandom};
-use ring::signature::{Ed25519KeyPair, KeyPair, UnparsedPublicKey, ED25519};
+use ring::signature::{ED25519, Ed25519KeyPair, KeyPair, UnparsedPublicKey};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
@@ -22,10 +22,12 @@ impl DeviceIdentityKey {
     /// Generates a new random Ed25519 device key pair
     pub fn generate() -> Result<Self, OxideError> {
         let rng = SystemRandom::new();
-        let doc = Ed25519KeyPair::generate_pkcs8(&rng)
-            .map_err(|e| OxideError::SecurityViolation(format!("Failed to generate PKCS8 key: {e}")))?;
-        let key_pair = Ed25519KeyPair::from_pkcs8(doc.as_ref())
-            .map_err(|e| OxideError::SecurityViolation(format!("Failed to parse PKCS8 key: {e}")))?;
+        let doc = Ed25519KeyPair::generate_pkcs8(&rng).map_err(|e| {
+            OxideError::SecurityViolation(format!("Failed to generate PKCS8 key: {e}"))
+        })?;
+        let key_pair = Ed25519KeyPair::from_pkcs8(doc.as_ref()).map_err(|e| {
+            OxideError::SecurityViolation(format!("Failed to parse PKCS8 key: {e}"))
+        })?;
 
         let mut raw_pk = [0u8; 32];
         raw_pk.copy_from_slice(key_pair.public_key().as_ref());
@@ -290,9 +292,9 @@ impl EphemeralHandshake {
         local_priv: &DeviceIdentityKey,
         peer_pub: &DeviceIdentityPublicKey,
     ) -> Result<(SessionKey, SessionKey), OxideError> {
-        let peer_nonce = self
-            .peer_nonce
-            .ok_or_else(|| OxideError::SecurityViolation("Peer nonce not yet established".into()))?;
+        let peer_nonce = self.peer_nonce.ok_or_else(|| {
+            OxideError::SecurityViolation("Peer nonce not yet established".into())
+        })?;
 
         let mut hasher = blake3::Hasher::new_derive_key("oxide-mesh-handshake-v1");
         hasher.update(&local_priv.public_key().raw);
@@ -301,8 +303,13 @@ impl EphemeralHandshake {
         hasher.update(&peer_nonce);
         let root_secret = hasher.finalize();
 
-        let tx_key = SessionKey::from_handshake(root_secret.as_bytes(), &self.local_nonce, "oxide-tx-session");
-        let rx_key = SessionKey::from_handshake(root_secret.as_bytes(), &peer_nonce, "oxide-rx-session");
+        let tx_key = SessionKey::from_handshake(
+            root_secret.as_bytes(),
+            &self.local_nonce,
+            "oxide-tx-session",
+        );
+        let rx_key =
+            SessionKey::from_handshake(root_secret.as_bytes(), &peer_nonce, "oxide-rx-session");
 
         Ok((tx_key, rx_key))
     }

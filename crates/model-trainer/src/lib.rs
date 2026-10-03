@@ -524,12 +524,15 @@ pub use distributed::{
     DistributedEngine, MmapGgufWeightLoader, PartitionedTensor, ProcessGroup, ZeroStage,
 };
 pub use gguf_exporter::GgufExporter;
-pub use grpo::{CargoCompileReward, GrpoRollout, GrpoStepResult, PureRustGrpoTrainer, RewardFn, UnitTestPassReward};
+pub use grpo::{
+    CargoCompileReward, GrpoRollout, GrpoStepResult, PureRustGrpoTrainer, RewardFn,
+    UnitTestPassReward,
+};
 pub use hf_hub::{AutoModelForCausalLM, HfHubError, ModelConfig, SafeTensorsIndex};
-pub use pure_rust_trainer::{PureRustTrainer, PureRustTrainerConfig, TrainingStepMetrics};
 pub use ipython_bridge::{IPythonNotebookConfig, IPythonTrainerBridge};
 pub use lora_engine::LoRATrainingEngine;
 pub use optimizer::{AdamW8bitOptimizer, AdamW8bitState, AdamWConfig, AdamWOptimizer, AdamWState};
+pub use pure_rust_trainer::{PureRustTrainer, PureRustTrainerConfig, TrainingStepMetrics};
 pub use rewards::{
     EdaDrcReward, EmbeddedTimingReward, MathReasoningReward, MemorySafetyReward,
     RustCompilerReward, SpiceSimulationReward,

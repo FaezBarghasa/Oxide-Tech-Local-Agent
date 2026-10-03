@@ -114,15 +114,19 @@ mod tests {
         assert_eq!(bridge.mcu_to_voltage(false), 0.0);
 
         // Assert hysteresis
-        assert_eq!(bridge.voltage_to_mcu(3.0), Some(true));  // > 2.31V
+        assert_eq!(bridge.voltage_to_mcu(3.0), Some(true)); // > 2.31V
         assert_eq!(bridge.voltage_to_mcu(0.5), Some(false)); // < 0.99V
-        assert_eq!(bridge.voltage_to_mcu(1.65), None);        // Metastable
+        assert_eq!(bridge.voltage_to_mcu(1.65), None); // Metastable
     }
 
     #[test]
     fn test_mcu_spice_orchestrator_step() {
         let mut orch = McuSpiceBridge::default();
-        orch.register_pin(DigitalPinBridge::new("PB6", "NET_I2C_SCL", PinDirection::Bidirectional));
+        orch.register_pin(DigitalPinBridge::new(
+            "PB6",
+            "NET_I2C_SCL",
+            PinDirection::Bidirectional,
+        ));
 
         // Step 1 ms at 168 MHz (STM32F4)
         orch.step_simulation(1e-3, 168_000_000.0);

@@ -17,10 +17,7 @@ fn test_fused_chunked_cross_entropy_online_reduction() {
     let num_tokens = 4;
 
     let hidden_states = vec![
-        1.0, 0.5, -0.2, 0.8,
-        -0.5, 1.2, 0.3, -0.1,
-        0.2, -0.8, 1.5, 0.4,
-        0.9, 0.1, -0.4, 0.6,
+        1.0, 0.5, -0.2, 0.8, -0.5, 1.2, 0.3, -0.1, 0.2, -0.8, 1.5, 0.4, 0.9, 0.1, -0.4, 0.6,
     ];
 
     let weights_lm_head = vec![
@@ -32,7 +29,13 @@ fn test_fused_chunked_cross_entropy_online_reduction() {
     let targets = vec![0i64, 1i64, 2i64, 0i64];
 
     let (loss, grad_hidden) = kernel
-        .compute_loss(&hidden_states, &weights_lm_head, &targets, hidden_dim, vocab_size)
+        .compute_loss(
+            &hidden_states,
+            &weights_lm_head,
+            &targets,
+            hidden_dim,
+            vocab_size,
+        )
         .expect("Chunked cross entropy compute failed");
 
     assert!(loss > 0.0, "Loss must be positive");

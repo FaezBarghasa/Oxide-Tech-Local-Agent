@@ -120,9 +120,15 @@ pub async fn arena_run_comparison(req: ArenaRunRequest) -> Result<ModelArenaResp
     } else if err_b.is_none() && err_a.is_some() {
         Some("Model B".to_string())
     } else if tok_s_a > tok_s_b * 1.25 {
-        Some(format!("Model A ({}% faster throughput)", ((tok_s_a / tok_s_b.max(1.0) - 1.0) * 100.0) as i32))
+        Some(format!(
+            "Model A ({}% faster throughput)",
+            ((tok_s_a / tok_s_b.max(1.0) - 1.0) * 100.0) as i32
+        ))
     } else if tok_s_b > tok_s_a * 1.25 {
-        Some(format!("Model B ({}% faster throughput)", ((tok_s_b / tok_s_a.max(1.0) - 1.0) * 100.0) as i32))
+        Some(format!(
+            "Model B ({}% faster throughput)",
+            ((tok_s_b / tok_s_a.max(1.0) - 1.0) * 100.0) as i32
+        ))
     } else {
         Some("Tie / Comparable Quality".to_string())
     };

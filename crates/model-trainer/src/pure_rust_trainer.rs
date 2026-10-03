@@ -57,8 +57,18 @@ pub struct PureRustTrainer {
 
 impl PureRustTrainer {
     pub fn new(config: PureRustTrainerConfig, hidden_size: usize) -> Self {
-        let adapter_q = FP8LoraLayer::new(hidden_size, hidden_size, config.lora_rank, config.lora_alpha);
-        let adapter_v = FP8LoraLayer::new(hidden_size, hidden_size, config.lora_rank, config.lora_alpha);
+        let adapter_q = FP8LoraLayer::new(
+            hidden_size,
+            hidden_size,
+            config.lora_rank,
+            config.lora_alpha,
+        );
+        let adapter_v = FP8LoraLayer::new(
+            hidden_size,
+            hidden_size,
+            config.lora_rank,
+            config.lora_alpha,
+        );
 
         Self {
             config,
@@ -82,7 +92,12 @@ impl PureRustTrainer {
     }
 
     /// Run a single training step given a batch of synthetic token embeddings and targets.
-    pub fn train_step(&mut self, batch_embeddings: &[f32], hidden_dim: usize, epoch: usize) -> TrainingStepMetrics {
+    pub fn train_step(
+        &mut self,
+        batch_embeddings: &[f32],
+        hidden_dim: usize,
+        epoch: usize,
+    ) -> TrainingStepMetrics {
         let start = Instant::now();
         self.step += 1;
 

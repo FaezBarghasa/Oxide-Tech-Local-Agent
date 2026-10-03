@@ -147,13 +147,19 @@ pub async fn skill_list() -> Result<Vec<SkillDto>, String> {
                 if p.is_dir() {
                     let skill_file = p.join("SKILL.md");
                     if skill_file.exists() {
-                        let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                        let name = p
+                            .file_name()
+                            .map(|n| n.to_string_lossy().to_string())
+                            .unwrap_or_default();
                         if !skills.iter().any(|s| s.name == name) {
                             let content = std::fs::read_to_string(&skill_file).unwrap_or_default();
                             skills.push(SkillDto {
                                 name: name.clone(),
                                 title: name.replace('-', " ").to_uppercase(),
-                                description: format!("Custom user skill from {}", skill_file.display()),
+                                description: format!(
+                                    "Custom user skill from {}",
+                                    skill_file.display()
+                                ),
                                 version: "1.0.0".to_string(),
                                 runner_type: "wasm".to_string(),
                                 parameters: vec![],
@@ -186,7 +192,13 @@ pub async fn skill_save(skill: SkillDto) -> Result<bool, String> {
 
     let skill_md = format!(
         "---\nname: {}\ndescription: {}\nversion: {}\nrunner: {}\n---\n\n# {}\n\n{}\n\n```json\n{}\n```\n",
-        skill.name, skill.description, skill.version, skill.runner_type, skill.title, skill.description, skill.code_or_schema
+        skill.name,
+        skill.description,
+        skill.version,
+        skill.runner_type,
+        skill.title,
+        skill.description,
+        skill.code_or_schema
     );
 
     tokio::fs::write(base_dir.join("SKILL.md"), skill_md.as_bytes())
@@ -204,7 +216,8 @@ pub async fn skill_test(name: String, input_json: String) -> Result<SkillTestRes
 
     // Validate input JSON
     let is_valid_json = serde_json::from_str::<serde_json::Value>(&input_json).is_ok();
-    let parsed_val: serde_json::Value = serde_json::from_str(&input_json).unwrap_or(serde_json::json!({}));
+    let parsed_val: serde_json::Value =
+        serde_json::from_str(&input_json).unwrap_or(serde_json::json!({}));
 
     tokio::time::sleep(std::time::Duration::from_millis(45)).await;
 

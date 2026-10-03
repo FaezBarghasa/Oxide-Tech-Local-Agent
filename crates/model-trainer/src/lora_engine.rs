@@ -5,8 +5,8 @@
 //! 2. Analytical gradient backward pass computing $\frac{\partial L}{\partial A}$ and $\frac{\partial L}{\partial B}$
 //! 3. In-place AdamW parameter update with weight decay
 
-use oxide_kernels::{ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, LoRALinearKernel};
 use crate::optimizer::{AdamWConfig, AdamWOptimizer, AdamWState};
+use oxide_kernels::{ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, LoRALinearKernel};
 
 pub struct LoRATrainingEngine {
     pub in_features: usize,
@@ -31,7 +31,7 @@ impl LoRATrainingEngine {
         opt_cfg: AdamWConfig,
     ) -> Self {
         let kernel = LoRALinearKernel::new(in_features, out_features, rank, alpha);
-        
+
         // LoRA A: standard small initialization (e.g. 0.01)
         let lora_a = vec![0.01f32; rank * in_features];
         // LoRA B: zero initialization (ensures delta is initially 0)
@@ -64,7 +64,7 @@ impl LoRATrainingEngine {
         num_tokens: usize,
     ) -> Result<f32, String> {
         let mut logits = vec![0.0f32; num_tokens * self.out_features];
-        
+
         // 1. Forward pass
         self.kernel.forward(
             x,
@@ -102,7 +102,10 @@ impl LoRATrainingEngine {
             let logit_slice = &logits[i * self.out_features..(i + 1) * self.out_features];
             let target_token = targets[i];
 
-            let max_val = logit_slice.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+            let max_val = logit_slice
+                .iter()
+                .cloned()
+                .fold(f32::NEG_INFINITY, f32::max);
             let mut sum_exp = 0.0f32;
             for &val in logit_slice {
                 sum_exp += (val - max_val).exp();
@@ -134,8 +137,10 @@ impl LoRATrainingEngine {
         );
 
         // 5. AdamW optimizer update
-        self.optimizer_a.step(&mut self.lora_a, &mut d_lora_a, &mut self.state_a);
-        self.optimizer_b.step(&mut self.lora_b, &mut d_lora_b, &mut self.state_b);
+        self.optimizer_a
+            .step(&mut self.lora_a, &mut d_lora_a, &mut self.state_a);
+        self.optimizer_b
+            .step(&mut self.lora_b, &mut d_lora_b, &mut self.state_b);
 
         Ok(loss)
     }
@@ -169,13 +174,24 @@ mod tests {
         let base_w = vec![0.1f32; out_features * in_features];
         let targets = vec![1i64, 3i64];
 
-        let initial_loss = engine.train_step(&x, &base_w, &targets, num_tokens).unwrap();
+        let initial_loss = engine
+            .train_step(&x, &base_w, &targets, num_tokens)
+            .unwrap();
 
         for _ in 0..20 {
-            let _ = engine.train_step(&x, &base_w, &targets, num_tokens).unwrap();
+            let _ = engine
+                .train_step(&x, &base_w, &targets, num_tokens)
+                .unwrap();
         }
 
-        let final_loss = engine.train_step(&x, &base_w, &targets, num_tokens).unwrap();
-        assert!(final_loss < initial_loss, "Expected final loss {} < initial loss {}", final_loss, initial_loss);
+        let final_loss = engine
+            .train_step(&x, &base_w, &targets, num_tokens)
+            .unwrap();
+        assert!(
+            final_loss < initial_loss,
+            "Expected final loss {} < initial loss {}",
+            final_loss,
+            initial_loss
+        );
     }
 }

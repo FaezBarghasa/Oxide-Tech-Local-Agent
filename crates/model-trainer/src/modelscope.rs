@@ -54,7 +54,10 @@ impl HubDownloader {
     pub fn resolve_url(source: HubSource, model_id: &str, filename: &str) -> String {
         match source {
             HubSource::HuggingFace => {
-                format!("https://huggingface.co/{}/resolve/main/{}", model_id, filename)
+                format!(
+                    "https://huggingface.co/{}/resolve/main/{}",
+                    model_id, filename
+                )
             }
             HubSource::ModelScope => {
                 format!(

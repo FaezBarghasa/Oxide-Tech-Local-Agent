@@ -16,7 +16,10 @@ pub fn parse_file_with_language(
     parser.parse(content, file_path)
 }
 
-pub(crate) fn parse_rust_content(content: &str, file_path: &str) -> Result<Vec<ParsedSymbol>, String> {
+pub(crate) fn parse_rust_content(
+    content: &str,
+    file_path: &str,
+) -> Result<Vec<ParsedSymbol>, String> {
     let mut parser = Parser::new();
     parser.set_language(language()).map_err(|e| e.to_string())?;
     let tree = parser
@@ -27,7 +30,6 @@ pub(crate) fn parse_rust_content(content: &str, file_path: &str) -> Result<Vec<P
     traverse_nodes(root_node, content, file_path, &mut symbols);
     Ok(symbols)
 }
-
 
 fn get_previous_doc_comments(node: Node, content: &str) -> Option<String> {
     let mut current = node;

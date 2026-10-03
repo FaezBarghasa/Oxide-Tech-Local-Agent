@@ -73,7 +73,9 @@ impl PuctBranch {
     #[inline(always)]
     pub fn puct_score(&self, total_parent_visits: usize, c_puct: f64) -> f64 {
         let q = self.q_value();
-        let u = c_puct * self.prior_p * ((total_parent_visits as f64).sqrt() / (1.0 + self.visit_count as f64));
+        let u = c_puct
+            * self.prior_p
+            * ((total_parent_visits as f64).sqrt() / (1.0 + self.visit_count as f64));
         q + u
     }
 
@@ -229,7 +231,10 @@ impl<M: PolicyValueModel> DecisionGuidedMcts<M> {
         let mut branches: Vec<PuctBranch> = candidates
             .iter()
             .map(|a| {
-                let raw_p = priors.get(a).copied().unwrap_or(1.0 / candidates.len() as f64);
+                let raw_p = priors
+                    .get(a)
+                    .copied()
+                    .unwrap_or(1.0 / candidates.len() as f64);
                 let safe_p = if raw_p.is_nan() || raw_p.is_infinite() {
                     1.0 / candidates.len() as f64
                 } else {
@@ -250,27 +255,38 @@ impl<M: PolicyValueModel> DecisionGuidedMcts<M> {
                 .max_by(|(_, a), (_, b)| {
                     let score_a = a.puct_score(total_visits.max(1), self.c_puct);
                     let score_b = b.puct_score(total_visits.max(1), self.c_puct);
-                    let safe_a = if score_a.is_nan() { f64::NEG_INFINITY } else { score_a };
-                    let safe_b = if score_b.is_nan() { f64::NEG_INFINITY } else { score_b };
-                    safe_a.partial_cmp(&safe_b).unwrap_or(std::cmp::Ordering::Equal)
+                    let safe_a = if score_a.is_nan() {
+                        f64::NEG_INFINITY
+                    } else {
+                        score_a
+                    };
+                    let safe_b = if score_b.is_nan() {
+                        f64::NEG_INFINITY
+                    } else {
+                        score_b
+                    };
+                    safe_a
+                        .partial_cmp(&safe_b)
+                        .unwrap_or(std::cmp::Ordering::Equal)
                 })
                 .map(|(idx, _)| idx)
                 .unwrap_or(0);
 
             let action_to_eval = branches[best_idx].action.clone();
             let raw_reward = rollout_fn(base_state, &action_to_eval);
-            let safe_reward = if raw_reward.is_nan() { 0.0 } else { raw_reward.clamp(-1.0, 1.0) };
+            let safe_reward = if raw_reward.is_nan() {
+                0.0
+            } else {
+                raw_reward.clamp(-1.0, 1.0)
+            };
             branches[best_idx].update(safe_reward);
         }
 
         // 5. Select best action by highest visit count (most robust decision)
-        branches
-            .into_iter()
-            .max_by_key(|b| b.visit_count)
-            .map(|b| {
-                let q = b.q_value();
-                (b.action, q)
-            })
+        branches.into_iter().max_by_key(|b| b.visit_count).map(|b| {
+            let q = b.q_value();
+            (b.action, q)
+        })
     }
 }
 

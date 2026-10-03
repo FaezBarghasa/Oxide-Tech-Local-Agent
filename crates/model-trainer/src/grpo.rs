@@ -90,10 +90,7 @@ pub struct PureRustGrpoTrainer {
 impl PureRustGrpoTrainer {
     pub fn new(group_size: usize, kl_coeff: f32) -> Self {
         Self {
-            reward_functions: vec![
-                Arc::new(CargoCompileReward),
-                Arc::new(UnitTestPassReward),
-            ],
+            reward_functions: vec![Arc::new(CargoCompileReward), Arc::new(UnitTestPassReward)],
             group_size,
             kl_coeff,
             step: 0,
@@ -136,7 +133,11 @@ impl PureRustGrpoTrainer {
         };
 
         let var: f32 = if rewards.len() > 1 {
-            rewards.iter().map(|r| (r - mean_reward).powi(2)).sum::<f32>() / (rewards.len() as f32)
+            rewards
+                .iter()
+                .map(|r| (r - mean_reward).powi(2))
+                .sum::<f32>()
+                / (rewards.len() as f32)
         } else {
             1.0
         };
@@ -160,8 +161,8 @@ impl PureRustGrpoTrainer {
             });
         }
 
-        let mean_kl: f32 = rollouts.iter().map(|r| r.kl_divergence).sum::<f32>()
-            / (rollouts.len().max(1) as f32);
+        let mean_kl: f32 =
+            rollouts.iter().map(|r| r.kl_divergence).sum::<f32>() / (rollouts.len().max(1) as f32);
         let policy_loss = -mean_reward + self.kl_coeff * mean_kl;
 
         GrpoStepResult {

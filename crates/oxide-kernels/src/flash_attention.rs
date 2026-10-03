@@ -52,7 +52,8 @@ impl FlashAttentionKernel {
             let h_offset = h * self.head_dim;
 
             for i in 0..seq_len {
-                let q_slice = &q[i * hidden_dim + h_offset..i * hidden_dim + h_offset + self.head_dim];
+                let q_slice =
+                    &q[i * hidden_dim + h_offset..i * hidden_dim + h_offset + self.head_dim];
 
                 let mut max_score = f32::NEG_INFINITY;
                 let mut sum_exp = 0.0f32;
@@ -62,8 +63,10 @@ impl FlashAttentionKernel {
 
                 // 1. Pass: Compute online softmax and accumulate V
                 for j in 0..max_j {
-                    let k_slice = &k[j * hidden_dim + h_offset..j * hidden_dim + h_offset + self.head_dim];
-                    let v_slice = &v[j * hidden_dim + h_offset..j * hidden_dim + h_offset + self.head_dim];
+                    let k_slice =
+                        &k[j * hidden_dim + h_offset..j * hidden_dim + h_offset + self.head_dim];
+                    let v_slice =
+                        &v[j * hidden_dim + h_offset..j * hidden_dim + h_offset + self.head_dim];
 
                     // Score = (Q_i . K_j) * scale
                     let mut score = 0.0f32;
@@ -93,7 +96,8 @@ impl FlashAttentionKernel {
                 }
 
                 // 2. Normalize by sum_exp
-                let out_slice = &mut out[i * hidden_dim + h_offset..i * hidden_dim + h_offset + self.head_dim];
+                let out_slice =
+                    &mut out[i * hidden_dim + h_offset..i * hidden_dim + h_offset + self.head_dim];
                 if sum_exp > 0.0 {
                     let inv_sum = 1.0 / sum_exp;
                     for d in 0..self.head_dim {

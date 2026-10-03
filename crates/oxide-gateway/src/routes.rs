@@ -89,7 +89,12 @@ pub async fn chat_completions(
         .get(&model_name)
         .map(|p| p.value().clone())
         .or_else(|| state.models.get(&upstream_model).map(|p| p.value().clone()))
-        .or_else(|| state.models.get(&target_provider).map(|p| p.value().clone()))
+        .or_else(|| {
+            state
+                .models
+                .get(&target_provider)
+                .map(|p| p.value().clone())
+        })
         .or_else(|| state.models.iter().next().map(|p| p.value().clone()));
 
     let is_streaming = req.stream.unwrap_or(true);
@@ -131,30 +136,32 @@ pub async fn chat_completions(
             });
 
             if let Ok(resp) = client.post(llama_url).json(&body).send().await
-                && resp.status().is_success() {
-                    let mut stream = resp.bytes_stream();
-                    while let Some(item) = stream.next().await {
-                        if let Ok(bytes) = item {
-                            let text = String::from_utf8_lossy(&bytes);
-                            for line in text.lines() {
-                                let line = line.trim();
-                                if line.starts_with("data: ") {
-                                    let data = line.trim_start_matches("data: ").trim();
-                                    if data == "[DONE]" || data.is_empty() {
-                                        break;
-                                    }
-                                    if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
-                                        && let Some(content) = v["choices"][0]["delta"]["content"].as_str()
-                                        && tx.send(content.to_string()).await.is_err()
-                                    {
-                                        return;
-                                    }
+                && resp.status().is_success()
+            {
+                let mut stream = resp.bytes_stream();
+                while let Some(item) = stream.next().await {
+                    if let Ok(bytes) = item {
+                        let text = String::from_utf8_lossy(&bytes);
+                        for line in text.lines() {
+                            let line = line.trim();
+                            if line.starts_with("data: ") {
+                                let data = line.trim_start_matches("data: ").trim();
+                                if data == "[DONE]" || data.is_empty() {
+                                    break;
+                                }
+                                if let Ok(v) = serde_json::from_str::<serde_json::Value>(data)
+                                    && let Some(content) =
+                                        v["choices"][0]["delta"]["content"].as_str()
+                                    && tx.send(content.to_string()).await.is_err()
+                                {
+                                    return;
                                 }
                             }
                         }
                     }
-                    return;
                 }
+                return;
+            }
 
             let _ = tx.send(format!(
                 "Error: No inference provider loaded for model '{}' and no active llama-server at http://127.0.0.1:8081.",
@@ -261,7 +268,10 @@ pub async fn anthropic_messages(
         .unwrap_or("Received message")
         .to_string();
 
-    let response_text = format!("Response from Oxide Gateway for model '{}': {}", model_tag, prompt_text);
+    let response_text = format!(
+        "Response from Oxide Gateway for model '{}': {}",
+        model_tag, prompt_text
+    );
 
     if is_streaming {
         let (tx, rx) = mpsc::channel::<String>(16);
@@ -269,10 +279,13 @@ pub async fn anthropic_messages(
         tokio::spawn(async move {
             let _ = tx.send("event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_1\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-7-sonnet\"}}\n\n".into()).await;
             let _ = tx.send(format!("event: content_block_delta\ndata: {{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{{\"type\":\"text_delta\",\"text\":{}}}}}\n\n", serde_json::json!(resp_clone))).await;
-            let _ = tx.send("event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n".into()).await;
+            let _ = tx
+                .send("event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n".into())
+                .await;
         });
 
-        let stream = ReceiverStream::new(rx).map(|s| Ok::<_, actix_web::Error>(actix_web::web::Bytes::from(s)));
+        let stream = ReceiverStream::new(rx)
+            .map(|s| Ok::<_, actix_web::Error>(actix_web::web::Bytes::from(s)));
         HttpResponse::Ok()
             .insert_header((actix_web::http::header::CONTENT_TYPE, "text/event-stream"))
             .insert_header((actix_web::http::header::CACHE_CONTROL, "no-cache"))
@@ -324,9 +337,18 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
 
     // 1. Physically scan disk for genuine local .gguf models
     let search_dirs = [
-        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join("models")),
-        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".cache").join("huggingface").join("hub")),
-        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join(".ollama").join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| std::path::PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| {
+            std::path::PathBuf::from(h)
+                .join(".cache")
+                .join("huggingface")
+                .join("hub")
+        }),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| std::path::PathBuf::from(h).join(".ollama").join("models")),
         Some(std::path::PathBuf::from("/opt/models")),
         Some(std::path::PathBuf::from("/var/lib/oxide-tech/models")),
     ];
@@ -336,7 +358,11 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
             for entry in entries.flatten() {
                 let path = entry.path();
                 if path.is_file() && path.extension().and_then(|e| e.to_str()) == Some("gguf") {
-                    let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    let name = path
+                        .file_name()
+                        .unwrap_or_default()
+                        .to_string_lossy()
+                        .to_string();
                     let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
                     catalog.push(serde_json::json!({
                         "id": name,
@@ -358,18 +384,22 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
 
     if let Ok(resp) = client.get("http://127.0.0.1:11434/api/tags").send().await
         && let Ok(json) = resp.json::<serde_json::Value>().await
-            && let Some(arr) = json.get("models").and_then(|m| m.as_array()) {
-                for item in arr {
-                    if let Some(name) = item.get("name").and_then(|n| n.as_str())
-                        && !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(name)) {
-                            catalog.push(serde_json::json!({
-                                "id": name,
-                                "owned_by": "ollama",
-                                "type": "ollama_model"
-                            }));
-                        }
-                }
+        && let Some(arr) = json.get("models").and_then(|m| m.as_array())
+    {
+        for item in arr {
+            if let Some(name) = item.get("name").and_then(|n| n.as_str())
+                && !catalog
+                    .iter()
+                    .any(|m| m.get("id").and_then(|v| v.as_str()) == Some(name))
+            {
+                catalog.push(serde_json::json!({
+                    "id": name,
+                    "owned_by": "ollama",
+                    "type": "ollama_model"
+                }));
             }
+        }
+    }
 
     // 3. Query active llama-server if running
     if let Ok(resp) = client.get("http://127.0.0.1:8081/v1/models").send().await
@@ -378,7 +408,9 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
     {
         for item in arr {
             if let Some(id) = item.get("id").and_then(|n| n.as_str())
-                && !catalog.iter().any(|m| m.get("id").and_then(|v| v.as_str()) == Some(id))
+                && !catalog
+                    .iter()
+                    .any(|m| m.get("id").and_then(|v| v.as_str()) == Some(id))
             {
                 catalog.push(serde_json::json!({
                     "id": id,
@@ -392,7 +424,10 @@ pub async fn list_models(state: web::Data<Arc<AppState>>) -> impl Responder {
     // 4. Merge loaded models in AppState
     for entry in state.models.iter() {
         let key = entry.key();
-        if !catalog.iter().any(|m| m.get("id").and_then(|id| id.as_str()) == Some(key)) {
+        if !catalog
+            .iter()
+            .any(|m| m.get("id").and_then(|id| id.as_str()) == Some(key))
+        {
             catalog.push(serde_json::json!({
                 "id": key,
                 "owned_by": "local-runtime",
@@ -474,7 +509,10 @@ pub async fn agent_think(
     if let Some(sys) = &req.system_prompt {
         messages.push(ChatMessage::new_text(oxide_core::Role::System, sys));
     }
-    messages.push(ChatMessage::new_text(oxide_core::Role::User, prompt.clone()));
+    messages.push(ChatMessage::new_text(
+        oxide_core::Role::User,
+        prompt.clone(),
+    ));
 
     if let Some(provider) = state.models.get(&model_name) {
         let (tx, mut rx) = mpsc::channel::<String>(256);
@@ -581,9 +619,7 @@ pub struct SystemOneResponse {
     pub calibrated_brier: f32,
 }
 
-pub async fn system_one_decision(
-    req: web::Json<SystemOneRequest>,
-) -> impl Responder {
+pub async fn system_one_decision(req: web::Json<SystemOneRequest>) -> impl Responder {
     let start = std::time::Instant::now();
     let candidates = &req.candidates;
 
@@ -660,14 +696,9 @@ pub struct ConnectedClientResponse {
     pub status: String,
 }
 
-pub async fn list_api_keys(
-    state: web::Data<Arc<AppState>>,
-) -> impl Responder {
+pub async fn list_api_keys(state: web::Data<Arc<AppState>>) -> impl Responder {
     let db = state.security.db();
-    let records: Vec<oxide_security::ApiKeyRecord> = db
-        .select("api_key")
-        .await
-        .unwrap_or_default();
+    let records: Vec<oxide_security::ApiKeyRecord> = db.select("api_key").await.unwrap_or_default();
 
     let keys: Vec<ApiKeyItemResponse> = records
         .into_iter()
@@ -698,9 +729,7 @@ pub async fn list_api_keys(
     }))
 }
 
-pub async fn create_api_key(
-    state: web::Data<Arc<AppState>>,
-) -> impl Responder {
+pub async fn create_api_key(state: web::Data<Arc<AppState>>) -> impl Responder {
     let raw_hex = uuid::Uuid::new_v4().simple().to_string();
     let full_secret = format!("oxk_{}", raw_hex);
     let key_hash = match oxide_security::SecurityManager::hash_key(&full_secret) {
@@ -739,18 +768,14 @@ pub async fn create_api_key(
     })
 }
 
-pub async fn list_connected_clients(
-    _state: web::Data<Arc<AppState>>,
-) -> impl Responder {
-    let clients = vec![
-        ConnectedClientResponse {
-            ip: "127.0.0.1".to_string(),
-            user_agent: "Oxide-Desktop-Studio/1.0".to_string(),
-            tokens_consumed: 0,
-            active_since: "Now".to_string(),
-            status: "active".to_string(),
-        },
-    ];
+pub async fn list_connected_clients(_state: web::Data<Arc<AppState>>) -> impl Responder {
+    let clients = vec![ConnectedClientResponse {
+        ip: "127.0.0.1".to_string(),
+        user_agent: "Oxide-Desktop-Studio/1.0".to_string(),
+        tokens_consumed: 0,
+        active_since: "Now".to_string(),
+        status: "active".to_string(),
+    }];
 
     HttpResponse::Ok().json(serde_json::json!({
         "clients": clients

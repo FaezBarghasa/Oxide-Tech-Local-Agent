@@ -64,8 +64,10 @@ path = "../tests/realtime_user_experience_test.rs"
 [dev-dependencies]
 edge-swarm = { path = "../crates/edge-swarm" }
 mcp-probe-rs = { path = "../crates/mcp-probe-rs" }
+oxide-core = { path = "../crates/oxide-core" }
 oxide-engines = { path = "../crates/oxide-engines" }
 oxide-security = { path = "../crates/oxide-security" }
+oxide-tooling = { path = "../crates/oxide-tooling" }
 qdrant-service = { path = "../crates/qdrant-service" }
 router = { path = "../crates/router" }
 surrealdb-service = { path = "../crates/surrealdb-service" }

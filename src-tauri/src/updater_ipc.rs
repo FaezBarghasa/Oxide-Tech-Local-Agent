@@ -29,9 +29,8 @@ pub struct UpdateDownloadResponseDto {
 
 #[tauri::command]
 pub async fn updater_check(manifest_url: Option<String>) -> Result<UpdateCheckResponseDto, String> {
-    let url = manifest_url.unwrap_or_else(|| {
-        "https://releases.oxide.tech/oxide-update-manifest.json".to_string()
-    });
+    let url = manifest_url
+        .unwrap_or_else(|| "https://releases.oxide.tech/oxide-update-manifest.json".to_string());
     let updater = OxideUpdater::new(&url);
     let current_version = env!("CARGO_PKG_VERSION");
 

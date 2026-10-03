@@ -71,9 +71,9 @@ impl UniversalModelContainer {
         let file = File::open(p)
             .map_err(|e| OxideError::Engine(format!("Failed to open model file {:?}: {}", p, e)))?;
 
-        let meta = file
-            .metadata()
-            .map_err(|e| OxideError::Engine(format!("Failed to read metadata for {:?}: {}", p, e)))?;
+        let meta = file.metadata().map_err(|e| {
+            OxideError::Engine(format!("Failed to read metadata for {:?}: {}", p, e))
+        })?;
         let file_size = meta.len() as usize;
 
         if file_size < 8 {
@@ -118,7 +118,11 @@ impl UniversalModelContainer {
     }
 
     /// Attach a .safetensors LoRA adapter directly to this base model container
-    pub fn attach_lora_adapter<P: AsRef<Path>>(&mut self, adapter_name: &str, adapter_path: P) -> Result<(), OxideError> {
+    pub fn attach_lora_adapter<P: AsRef<Path>>(
+        &mut self,
+        adapter_name: &str,
+        adapter_path: P,
+    ) -> Result<(), OxideError> {
         let file = File::open(adapter_path.as_ref())
             .map_err(|e| OxideError::Engine(format!("Failed to open LoRA adapter: {}", e)))?;
         let mmap = unsafe {
@@ -126,7 +130,8 @@ impl UniversalModelContainer {
                 .map(&file)
                 .map_err(|e| OxideError::Engine(format!("Failed to mmap LoRA adapter: {}", e)))?
         };
-        self.lora_adapters.insert(adapter_name.to_string(), Arc::new(mmap));
+        self.lora_adapters
+            .insert(adapter_name.to_string(), Arc::new(mmap));
         Ok(())
     }
 
@@ -142,7 +147,10 @@ impl UniversalModelContainer {
         }
     }
 
-    fn parse_gguf_index(mmap: &[u8], _version: u32) -> Result<(HashMap<String, TensorDescriptor>, HashMap<String, String>), OxideError> {
+    fn parse_gguf_index(
+        mmap: &[u8],
+        _version: u32,
+    ) -> Result<(HashMap<String, TensorDescriptor>, HashMap<String, String>), OxideError> {
         let mut tensors = HashMap::new();
         let mut metadata = HashMap::new();
 
@@ -175,7 +183,10 @@ impl UniversalModelContainer {
         Ok((tensors, metadata))
     }
 
-    fn parse_safetensors_index(mmap: &[u8], json_len: usize) -> Result<(HashMap<String, TensorDescriptor>, HashMap<String, String>), OxideError> {
+    fn parse_safetensors_index(
+        mmap: &[u8],
+        json_len: usize,
+    ) -> Result<(HashMap<String, TensorDescriptor>, HashMap<String, String>), OxideError> {
         let json_bytes = &mmap[8..8 + json_len];
         let mut tensors = HashMap::new();
         let mut metadata = HashMap::new();
@@ -205,14 +216,24 @@ impl UniversalModelContainer {
                         _ => QuantType::FP16,
                     };
 
-                    let shape = v.get("shape")
+                    let shape = v
+                        .get("shape")
                         .and_then(|s| s.as_array())
-                        .map(|arr| arr.iter().filter_map(|x| x.as_u64().map(|n| n as usize)).collect())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|x| x.as_u64().map(|n| n as usize))
+                                .collect()
+                        })
                         .unwrap_or_else(Vec::new);
 
-                    let offsets = v.get("data_offsets")
+                    let offsets = v
+                        .get("data_offsets")
                         .and_then(|o| o.as_array())
-                        .map(|arr| arr.iter().filter_map(|x| x.as_u64().map(|n| n as usize)).collect::<Vec<_>>())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|x| x.as_u64().map(|n| n as usize))
+                                .collect::<Vec<_>>()
+                        })
                         .unwrap_or_default();
 
                     let start_rel = offsets.first().copied().unwrap_or(0);

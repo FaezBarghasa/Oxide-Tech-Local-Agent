@@ -14,7 +14,10 @@ fn main() {
     let target_out_file = out_dir.join("pcb_layout_generated.rs");
 
     if !schema_path.exists() {
-        println!("cargo:warning=Schema pcb_layout.fbs not found at {:?}", schema_path);
+        println!(
+            "cargo:warning=Schema pcb_layout.fbs not found at {:?}",
+            schema_path
+        );
         return;
     }
 
@@ -28,7 +31,10 @@ fn main() {
     let current_hash = blake3::hash(&schema_bytes).to_hex().to_string();
 
     let stored_hash = if checksum_path.exists() {
-        fs::read_to_string(&checksum_path).unwrap_or_default().trim().to_string()
+        fs::read_to_string(&checksum_path)
+            .unwrap_or_default()
+            .trim()
+            .to_string()
     } else {
         String::new()
     };

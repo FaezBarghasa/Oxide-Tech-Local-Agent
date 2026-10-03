@@ -234,7 +234,11 @@ pub fn run_erc(graph: &CircuitGraph) -> ErcReport {
                     let target_net = edge.target();
                     if let Some(net_name) = graph[target_net].net_name() {
                         let net_upper = net_name.to_uppercase();
-                        if net_upper.contains("TX") || net_upper.contains("MOSI") || net_upper.contains("SPI") || net_upper.contains("UART") {
+                        if net_upper.contains("TX")
+                            || net_upper.contains("MOSI")
+                            || net_upper.contains("SPI")
+                            || net_upper.contains("UART")
+                        {
                             bus_net_drivers
                                 .entry(net_name.to_string())
                                 .or_default()

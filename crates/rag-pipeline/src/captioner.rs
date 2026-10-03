@@ -29,10 +29,22 @@ impl DiagramCaptioner {
     }
 
     /// Generates structured semantic caption for visual images and diagrams.
-    pub async fn caption_image(&self, _image_rgb: &[u8], width: u32, height: u32) -> Result<VisualCaptionResult> {
+    pub async fn caption_image(
+        &self,
+        _image_rgb: &[u8],
+        width: u32,
+        height: u32,
+    ) -> Result<VisualCaptionResult> {
         Ok(VisualCaptionResult {
-            summary: format!("Engineering diagram captured at {}x{} resolution.", width, height),
-            detected_components: vec!["MCU_STM32".to_string(), "Decoupling_Capacitor".to_string(), "SPI_Bus".to_string()],
+            summary: format!(
+                "Engineering diagram captured at {}x{} resolution.",
+                width, height
+            ),
+            detected_components: vec![
+                "MCU_STM32".to_string(),
+                "Decoupling_Capacitor".to_string(),
+                "SPI_Bus".to_string(),
+            ],
             confidence: 0.94,
         })
     }

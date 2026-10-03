@@ -104,7 +104,10 @@ impl TemporalGitMemory {
     /// Rollback timeline to a specific checkpoint and purge downstream commits
     pub fn rollback_to_checkpoint(&mut self, target_checkpoint: &str) -> Vec<String> {
         let mut purged_hashes = Vec::new();
-        let target_idx = self.commits.iter().position(|c| c.hash == target_checkpoint);
+        let target_idx = self
+            .commits
+            .iter()
+            .position(|c| c.hash == target_checkpoint);
 
         if let Some(idx) = target_idx {
             let removed = self.commits.split_off(idx + 1);

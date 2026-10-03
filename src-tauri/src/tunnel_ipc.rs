@@ -77,14 +77,17 @@ pub async fn get_tunnel_status() -> Result<TunnelStatusDto, String> {
 }
 
 #[tauri::command]
-pub async fn start_lan_broadcast(port: u16, server_name: Option<String>) -> Result<LanBroadcastStatusDto, String> {
+pub async fn start_lan_broadcast(
+    port: u16,
+    server_name: Option<String>,
+) -> Result<LanBroadcastStatusDto, String> {
     let s_name = server_name.unwrap_or_else(|| "Oxide-Tech-Local-Agent".to_string());
-    info!("Starting LAN mDNS service advertisement for '{}' on port {}", s_name, port);
+    info!(
+        "Starting LAN mDNS service advertisement for '{}' on port {}",
+        s_name, port
+    );
 
-    let ips = vec![
-        "127.0.0.1".to_string(),
-        "192.168.1.104".to_string(),
-    ];
+    let ips = vec!["127.0.0.1".to_string(), "192.168.1.104".to_string()];
 
     let status = LanBroadcastStatusDto {
         is_broadcasting: true,

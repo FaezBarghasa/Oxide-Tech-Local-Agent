@@ -22,12 +22,21 @@ pub fn get_oxide_home() -> PathBuf {
 }
 
 pub fn run_self_install(force: bool) -> Result<()> {
-    println!("\x1b[1;36m====================================================================\x1b[0m");
-    println!("\x1b[1;36m   Oxide-Tech Local Agent — Native Standalone Self-Installer       \x1b[0m");
-    println!("\x1b[1;36m====================================================================\x1b[0m\n");
+    println!(
+        "\x1b[1;36m====================================================================\x1b[0m"
+    );
+    println!(
+        "\x1b[1;36m   Oxide-Tech Local Agent — Native Standalone Self-Installer       \x1b[0m"
+    );
+    println!(
+        "\x1b[1;36m====================================================================\x1b[0m\n"
+    );
 
     let oxide_home = get_oxide_home();
-    println!("[1/4] Bootstrapping workspace runtime: {}", oxide_home.display());
+    println!(
+        "[1/4] Bootstrapping workspace runtime: {}",
+        oxide_home.display()
+    );
     fs::create_dir_all(&oxide_home)?;
     fs::create_dir_all(oxide_home.join("cache"))?;
     fs::create_dir_all(oxide_home.join("models"))?;
@@ -38,10 +47,16 @@ pub fn run_self_install(force: bool) -> Result<()> {
     if !config_path.exists() || force {
         if let Some(embedded_cfg) = crate::assets::SetupAssets::get("config.toml") {
             fs::write(&config_path, &embedded_cfg.data)?;
-            println!("      \x1b[1;32m[✓]\x1b[0m Embedded config.toml initialized -> {}", config_path.display());
+            println!(
+                "      \x1b[1;32m[✓]\x1b[0m Embedded config.toml initialized -> {}",
+                config_path.display()
+            );
         }
     } else {
-        println!("      \x1b[1;33m[i]\x1b[0m Config already exists -> {}", config_path.display());
+        println!(
+            "      \x1b[1;33m[i]\x1b[0m Config already exists -> {}",
+            config_path.display()
+        );
     }
 
     // Binary relocation & Desktop Entry on Linux
@@ -55,15 +70,22 @@ pub fn run_self_install(force: bool) -> Result<()> {
                 let target_bin = bin_dir.join("oxide-tech-local-agent");
 
                 if current_exe != target_bin {
-                    fs::copy(&current_exe, &target_bin).context("Failed to copy executable to ~/.local/bin")?;
+                    fs::copy(&current_exe, &target_bin)
+                        .context("Failed to copy executable to ~/.local/bin")?;
                     #[cfg(unix)]
                     {
                         use std::os::unix::fs::PermissionsExt;
                         let _ = fs::set_permissions(&target_bin, fs::Permissions::from_mode(0o755));
                     }
-                    println!("      \x1b[1;32m[✓]\x1b[0m Installed binary -> {}", target_bin.display());
+                    println!(
+                        "      \x1b[1;32m[✓]\x1b[0m Installed binary -> {}",
+                        target_bin.display()
+                    );
                 } else {
-                    println!("      \x1b[1;32m[✓]\x1b[0m Binary already located at {}", target_bin.display());
+                    println!(
+                        "      \x1b[1;32m[✓]\x1b[0m Binary already located at {}",
+                        target_bin.display()
+                    );
                 }
 
                 // Desktop entry
@@ -87,7 +109,10 @@ pub fn run_self_install(force: bool) -> Result<()> {
                 );
 
                 fs::write(&desktop_file, desktop_content)?;
-                println!("      \x1b[1;32m[✓]\x1b[0m Registered -> {}", desktop_file.display());
+                println!(
+                    "      \x1b[1;32m[✓]\x1b[0m Registered -> {}",
+                    desktop_file.display()
+                );
             }
         }
 
@@ -95,7 +120,9 @@ pub fn run_self_install(force: bool) -> Result<()> {
         println!("[4/4] Checking embedded hardware udev rules...");
         let udev_target = Path::new("/etc/udev/rules.d/99-probe-rs.rules");
         if !udev_target.exists() {
-            println!("      \x1b[1;33m[i]\x1b[0m Run 'oxide-tech-local-agent doctor' with sudo to deploy hardware probe-rs rules if flashing STM32/RISC-V targets.");
+            println!(
+                "      \x1b[1;33m[i]\x1b[0m Run 'oxide-tech-local-agent doctor' with sudo to deploy hardware probe-rs rules if flashing STM32/RISC-V targets."
+            );
         } else {
             println!("      \x1b[1;32m[✓]\x1b[0m Hardware probe rules active.");
         }
@@ -111,7 +138,10 @@ pub fn run_self_install(force: bool) -> Result<()> {
                 let target_exe = target_dir.join("oxide-studio.exe");
                 if current_exe != target_exe {
                     let _ = fs::copy(&current_exe, &target_exe);
-                    println!("      \x1b[1;32m[✓]\x1b[0m Installed executable -> {}", target_exe.display());
+                    println!(
+                        "      \x1b[1;32m[✓]\x1b[0m Installed executable -> {}",
+                        target_exe.display()
+                    );
                 }
             }
         }
@@ -122,6 +152,8 @@ pub fn run_self_install(force: bool) -> Result<()> {
         println!("[2/4] Registering macOS Application runtime...");
     }
 
-    println!("\n\x1b[1;32m[✓] Installation complete! Launch Oxide Studio with 'oxide-tech-local-agent'.\x1b[0m\n");
+    println!(
+        "\n\x1b[1;32m[✓] Installation complete! Launch Oxide Studio with 'oxide-tech-local-agent'.\x1b[0m\n"
+    );
     Ok(())
 }

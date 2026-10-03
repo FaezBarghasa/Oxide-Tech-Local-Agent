@@ -69,7 +69,9 @@ pub fn spawn_background(config_path: Option<String>) {
                 .build();
             match rt {
                 Ok(rt) => {
-                    if let Err(e) = rt.block_on(async { oxide_gateway::run_gateway_server(cfg).await }) {
+                    if let Err(e) =
+                        rt.block_on(async { oxide_gateway::run_gateway_server(cfg).await })
+                    {
                         tracing::warn!("embedded gateway status: {e:?}");
                     }
                 }

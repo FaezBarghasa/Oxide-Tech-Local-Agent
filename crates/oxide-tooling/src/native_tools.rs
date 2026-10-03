@@ -1,5 +1,5 @@
 use crate::ornith_formatter::ExtractedToolCall;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
@@ -51,10 +51,7 @@ impl NativeTool for StairSearchTool {
                 .and_then(|v| v.as_str())
                 .ok_or_else(|| "Missing required 'query' argument".to_string())?;
 
-            let limit = arguments
-                .get("limit")
-                .and_then(|v| v.as_u64())
-                .unwrap_or(5) as usize;
+            let limit = arguments.get("limit").and_then(|v| v.as_u64()).unwrap_or(5) as usize;
 
             // In-process STAIR invocation: execute oxide-embed stair search if available
             let output = tokio::process::Command::new("oxide-embed")
@@ -347,7 +344,12 @@ mod tests {
         let tools = registry.list_tools();
         assert_eq!(
             tools,
-            vec!["hardware_probe", "memory_recall", "ptx_decompile", "stair_search"]
+            vec![
+                "hardware_probe",
+                "memory_recall",
+                "ptx_decompile",
+                "stair_search"
+            ]
         );
 
         let schemas = registry.export_schemas();

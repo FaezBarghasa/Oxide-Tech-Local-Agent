@@ -58,11 +58,7 @@ pub async fn document_list(directory: Option<String>) -> Result<Vec<DocumentInfo
         let _ = tokio::fs::create_dir_all(&search_dir).await;
     }
 
-    let search_paths = vec![
-        search_dir,
-        PathBuf::from("docs"),
-        PathBuf::from("."),
-    ];
+    let search_paths = vec![search_dir, PathBuf::from("docs"), PathBuf::from(".")];
 
     for base in search_paths {
         if !base.exists() {
@@ -72,9 +68,21 @@ pub async fn document_list(directory: Option<String>) -> Result<Vec<DocumentInfo
             for entry in entries.flatten() {
                 let p = entry.path();
                 if p.is_file() {
-                    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-                    if ["pdf", "md", "txt", "docx", "rs", "json", "csv", "c", "cpp", "py"].contains(&ext.as_str()) {
-                        let name = p.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    let ext = p
+                        .extension()
+                        .and_then(|e| e.to_str())
+                        .unwrap_or("")
+                        .to_lowercase();
+                    if [
+                        "pdf", "md", "txt", "docx", "rs", "json", "csv", "c", "cpp", "py",
+                    ]
+                    .contains(&ext.as_str())
+                    {
+                        let name = p
+                            .file_name()
+                            .unwrap_or_default()
+                            .to_string_lossy()
+                            .to_string();
                         let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
                         let mod_time = entry
                             .metadata()
@@ -89,7 +97,10 @@ pub async fn document_list(directory: Option<String>) -> Result<Vec<DocumentInfo
                             path: p.display().to_string(),
                             extension: ext.clone(),
                             size_formatted: format_bytes(size),
-                            modified: format!("{}s ago", mod_time.saturating_sub(1700000000) % 3600),
+                            modified: format!(
+                                "{}s ago",
+                                mod_time.saturating_sub(1700000000) % 3600
+                            ),
                             is_pdf: ext == "pdf",
                         });
                     }
@@ -108,7 +119,11 @@ pub async fn document_read_text(path: String) -> Result<String, String> {
         return Err(format!("File not found: {}", path));
     }
 
-    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
 
     if ext == "pdf" {
         // Extract plain text from PDF
@@ -141,7 +156,9 @@ fn extract_text_from_pdf_bytes(bytes: &[u8]) -> String {
         } else if b == b')' {
             in_parentheses = false;
             if let Ok(s) = std::str::from_utf8(&current_word) {
-                if s.chars().all(|c| c.is_ascii_graphic() || c.is_ascii_whitespace()) {
+                if s.chars()
+                    .all(|c| c.is_ascii_graphic() || c.is_ascii_whitespace())
+                {
                     text.push_str(s);
                     text.push(' ');
                 }
@@ -152,7 +169,10 @@ fn extract_text_from_pdf_bytes(bytes: &[u8]) -> String {
     }
 
     if text.trim().is_empty() {
-        format!("[PDF Document: {} bytes. Contains vector/scanned graphics]", bytes.len())
+        format!(
+            "[PDF Document: {} bytes. Contains vector/scanned graphics]",
+            bytes.len()
+        )
     } else {
         text
     }
@@ -200,8 +220,16 @@ pub async fn read_attachment(path: String) -> Result<AttachmentPayload, String> 
         });
     }
 
-    let file_name = p.file_name().unwrap_or_default().to_string_lossy().to_string();
-    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let file_name = p
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
 
     info!("Reading attachment: {} ({})", file_name, ext);
 

@@ -19,6 +19,7 @@ mod arena_ipc;
 mod assets;
 mod audio_ipc;
 mod config_ipc;
+pub mod controllers;
 mod doctor;
 mod document_ipc;
 mod gateway_rt;
@@ -36,7 +37,6 @@ mod skills_ipc;
 mod tunnel_ipc;
 mod updater_ipc;
 mod verifier_ipc;
-pub mod controllers;
 
 use anyhow::Result;
 use std::path::PathBuf;
@@ -219,7 +219,13 @@ fn run_doctor_cli(json_output: bool) {
     }
 }
 
-fn run_reforge_cli(file_path: PathBuf, arch: String, summary: bool, decompile: bool, json: bool) -> Result<()> {
+fn run_reforge_cli(
+    file_path: PathBuf,
+    arch: String,
+    summary: bool,
+    decompile: bool,
+    json: bool,
+) -> Result<()> {
     let req = reforge_ipc::ReforgeRequest {
         file_path: file_path.display().to_string(),
         arch: Some(arch),
@@ -382,7 +388,9 @@ fn main() {
         return;
     }
     let (cmd, rest) = match raw.split_first() {
-        Some((head, _)) if head == "--install" || head == "-i" || head == "install" => ("install", &raw[1..]),
+        Some((head, _)) if head == "--install" || head == "-i" || head == "install" => {
+            ("install", &raw[1..])
+        }
         Some((head, _)) if !head.starts_with('-') => (head.as_str(), &raw[1..]),
         _ => ("desktop", raw.as_slice()),
     };

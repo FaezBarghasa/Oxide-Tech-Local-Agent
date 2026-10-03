@@ -1,7 +1,7 @@
 use crate::db::{AccountRecord, ComboRecord, GatewayDb};
-use anyhow::{anyhow, Result};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use anyhow::{Result, anyhow};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RoutedTarget {
@@ -26,7 +26,10 @@ impl ModelResolver {
         let trimmed = requested_model.trim();
 
         // 1. Direct combo or openrouter/auto check
-        if trimmed.starts_with("auto") || trimmed.starts_with("openrouter/auto") || trimmed.starts_with("openrouter/flavor-of-the-week") {
+        if trimmed.starts_with("auto")
+            || trimmed.starts_with("openrouter/auto")
+            || trimmed.starts_with("openrouter/flavor-of-the-week")
+        {
             let combo_name = match trimmed {
                 "openrouter/auto" | "openrouter/flavor-of-the-week" => "auto",
                 other => other,
@@ -60,7 +63,8 @@ impl ModelResolver {
         }
 
         // 3. Normalized Core IDs (e.g., "claude-3-7-sonnet", "gpt-4o", "deepseek-reasoner", "gemini-2.5-pro")
-        let (provider, upstream_model, supports_thinking, ctx) = Self::map_core_id_to_provider(trimmed);
+        let (provider, upstream_model, supports_thinking, ctx) =
+            Self::map_core_id_to_provider(trimmed);
         let is_browser = Self::check_if_browser_required(&provider, &upstream_model);
         let account = if provider == "local" || provider == "local_gguf" {
             None
@@ -84,9 +88,24 @@ impl ModelResolver {
             // Anthropic Frontier
             "claude-opus-5" => ("anthropic".into(), "claude-opus-5".into(), true, 500_000),
             "claude-opus-4-8" => ("anthropic".into(), "claude-opus-4-8".into(), true, 200_000),
-            "claude-3-7-sonnet" | "claude-3.7-sonnet" => ("anthropic".into(), "claude-3-7-sonnet-20250219".into(), true, 200_000),
-            "claude-3-5-sonnet" | "claude-3.5-sonnet" => ("anthropic".into(), "claude-3-5-sonnet-20241022".into(), false, 200_000),
-            "claude-3-5-haiku" | "claude-3.5-haiku" => ("anthropic".into(), "claude-3-5-haiku-20241022".into(), false, 200_000),
+            "claude-3-7-sonnet" | "claude-3.7-sonnet" => (
+                "anthropic".into(),
+                "claude-3-7-sonnet-20250219".into(),
+                true,
+                200_000,
+            ),
+            "claude-3-5-sonnet" | "claude-3.5-sonnet" => (
+                "anthropic".into(),
+                "claude-3-5-sonnet-20241022".into(),
+                false,
+                200_000,
+            ),
+            "claude-3-5-haiku" | "claude-3.5-haiku" => (
+                "anthropic".into(),
+                "claude-3-5-haiku-20241022".into(),
+                false,
+                200_000,
+            ),
 
             // OpenAI Frontier & Reasoning
             "gpt-5.6-sol" => ("openai".into(), "gpt-5.6-sol".into(), true, 1_000_000),
@@ -97,36 +116,94 @@ impl ModelResolver {
             "o1-mini" => ("openai".into(), "o1-mini".into(), true, 128_000),
 
             // DeepSeek
-            "deepseek-chat" | "deepseek-v3" => ("deepseek".into(), "deepseek-chat".into(), false, 128_000),
-            "deepseek-reasoner" | "deepseek-r1" => ("deepseek".into(), "deepseek-reasoner".into(), true, 128_000),
+            "deepseek-chat" | "deepseek-v3" => {
+                ("deepseek".into(), "deepseek-chat".into(), false, 128_000)
+            }
+            "deepseek-reasoner" | "deepseek-r1" => {
+                ("deepseek".into(), "deepseek-reasoner".into(), true, 128_000)
+            }
             "deepseek-coder" => ("deepseek".into(), "deepseek-coder".into(), false, 128_000),
 
             // Google DeepMind
-            "gemini-2.5-pro" | "gemini-2.5-pro-exp" => ("google".into(), "gemini-2.5-pro".into(), true, 2_000_000),
-            "gemini-2.0-flash" | "gemini-2.0-flash-001" => ("google".into(), "gemini-2.0-flash".into(), false, 1_000_000),
-            "gemini-2.0-flash-lite" => ("google".into(), "gemini-2.0-flash-lite-001".into(), false, 1_000_000),
+            "gemini-2.5-pro" | "gemini-2.5-pro-exp" => {
+                ("google".into(), "gemini-2.5-pro".into(), true, 2_000_000)
+            }
+            "gemini-2.0-flash" | "gemini-2.0-flash-001" => {
+                ("google".into(), "gemini-2.0-flash".into(), false, 1_000_000)
+            }
+            "gemini-2.0-flash-lite" => (
+                "google".into(),
+                "gemini-2.0-flash-lite-001".into(),
+                false,
+                1_000_000,
+            ),
             "gemini-1.5-pro" => ("google".into(), "gemini-1.5-pro".into(), false, 2_000_000),
             "gemini-1.5-flash" => ("google".into(), "gemini-1.5-flash".into(), false, 1_000_000),
 
             // Meta Open Foundation
-            "llama-3.3-70b" => ("meta-llama".into(), "llama-3.3-70b-instruct".into(), false, 128_000),
-            "llama-3.1-405b" => ("meta-llama".into(), "llama-3.1-405b-instruct".into(), false, 128_000),
-            "llama-3.1-70b" => ("meta-llama".into(), "llama-3.1-70b-instruct".into(), false, 128_000),
-            "llama-3.1-8b" => ("meta-llama".into(), "llama-3.1-8b-instruct".into(), false, 128_000),
+            "llama-3.3-70b" => (
+                "meta-llama".into(),
+                "llama-3.3-70b-instruct".into(),
+                false,
+                128_000,
+            ),
+            "llama-3.1-405b" => (
+                "meta-llama".into(),
+                "llama-3.1-405b-instruct".into(),
+                false,
+                128_000,
+            ),
+            "llama-3.1-70b" => (
+                "meta-llama".into(),
+                "llama-3.1-70b-instruct".into(),
+                false,
+                128_000,
+            ),
+            "llama-3.1-8b" => (
+                "meta-llama".into(),
+                "llama-3.1-8b-instruct".into(),
+                false,
+                128_000,
+            ),
 
             // Alibaba Qwen
-            "qwen-2.5-coder-32b" | "qwen-2.5-coder" => ("qwen".into(), "qwen-2.5-coder-32b-instruct".into(), false, 128_000),
-            "qwen-2.5-72b" => ("qwen".into(), "qwen-2.5-72b-instruct".into(), false, 128_000),
+            "qwen-2.5-coder-32b" | "qwen-2.5-coder" => (
+                "qwen".into(),
+                "qwen-2.5-coder-32b-instruct".into(),
+                false,
+                128_000,
+            ),
+            "qwen-2.5-72b" => (
+                "qwen".into(),
+                "qwen-2.5-72b-instruct".into(),
+                false,
+                128_000,
+            ),
             "qwen-turbo" => ("qwen".into(), "qwen-turbo".into(), false, 128_000),
             "qwen-plus" => ("qwen".into(), "qwen-plus".into(), false, 128_000),
             "qwen-max" => ("qwen".into(), "qwen-max".into(), true, 128_000),
             "qwq-32b" => ("qwen".into(), "qwq-32b-preview".into(), true, 128_000),
 
             // Mistral AI
-            "mistral-large" => ("mistralai".into(), "mistral-large-2411".into(), false, 128_000),
-            "mistral-small" => ("mistralai".into(), "mistral-small-24b-instruct-2501".into(), false, 32_000),
+            "mistral-large" => (
+                "mistralai".into(),
+                "mistral-large-2411".into(),
+                false,
+                128_000,
+            ),
+            "mistral-small" => (
+                "mistralai".into(),
+                "mistral-small-24b-instruct-2501".into(),
+                false,
+                32_000,
+            ),
             "codestral" => ("mistralai".into(), "codestral-2501".into(), false, 256_000),
-            "pixtral" => ("mistralai".into(), "pixtral-large-2411".into(), false, 128_000),
+            "pixtral" => (
+                "mistralai".into(),
+                "pixtral-large-2411".into(),
+                false,
+                128_000,
+            ),
 
             // Zhipu AI
             "glm-4.7" => ("zhipu".into(), "glm-4.7".into(), false, 128_000),
@@ -135,7 +212,9 @@ impl ModelResolver {
             // Moonshot & MiniMax
             "kimi-k3" => ("moonshot".into(), "kimi-k3".into(), false, 2_000_000),
             "kimi-k2" => ("moonshot".into(), "kimi-k2".into(), false, 200_000),
-            "minimax-m3" | "minimax-01" => ("minimax".into(), "minimax-m3".into(), false, 1_000_000),
+            "minimax-m3" | "minimax-01" => {
+                ("minimax".into(), "minimax-m3".into(), false, 1_000_000)
+            }
 
             // Local fallback
             unknown => ("local".into(), unknown.to_string(), false, 32_000),
@@ -144,7 +223,12 @@ impl ModelResolver {
 
     fn infer_capabilities(model: &str) -> (bool, u32) {
         let m = model.to_lowercase();
-        let supports_thinking = m.contains("reason") || m.contains("r1") || m.contains("o1") || m.contains("o3") || m.contains("thinking") || m.contains("qwq");
+        let supports_thinking = m.contains("reason")
+            || m.contains("r1")
+            || m.contains("o1")
+            || m.contains("o3")
+            || m.contains("thinking")
+            || m.contains("qwq");
         let ctx = if m.contains("2.5-pro") || m.contains("1.5-pro") || m.contains("kimi") {
             2_000_000
         } else if m.contains("sol") || m.contains("flash") || m.contains("minimax") {
@@ -254,12 +338,24 @@ impl ModelResolver {
                 if len >= 2 {
                     let r1 = round_robin.fetch_add(1, Ordering::Relaxed) % len;
                     let r2 = (r1 + 1 + (round_robin.load(Ordering::Relaxed) % (len - 1))) % len;
-                    let acc1 = db.get_healthy_account(&targets[r1].provider).await.ok().flatten();
-                    let acc2 = db.get_healthy_account(&targets[r2].provider).await.ok().flatten();
+                    let acc1 = db
+                        .get_healthy_account(&targets[r1].provider)
+                        .await
+                        .ok()
+                        .flatten();
+                    let acc2 = db
+                        .get_healthy_account(&targets[r2].provider)
+                        .await
+                        .ok()
+                        .flatten();
 
                     let chosen_idx = match (&acc1, &acc2) {
                         (Some(a1), Some(a2)) => {
-                            if a1.tokens_used_today <= a2.tokens_used_today { r1 } else { r2 }
+                            if a1.tokens_used_today <= a2.tokens_used_today {
+                                r1
+                            } else {
+                                r2
+                            }
                         }
                         (Some(_), None) => r1,
                         (None, Some(_)) => r2,
@@ -303,7 +399,11 @@ impl ModelResolver {
                     is_browser_session: false,
                     supports_thinking,
                     context_window: ctx,
-                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    account: db
+                        .get_healthy_account(&best_target.provider)
+                        .await
+                        .ok()
+                        .flatten(),
                     routing_strategy_applied: "least-used".into(),
                 })
             }
@@ -329,7 +429,11 @@ impl ModelResolver {
                 // Prioritize local, then free-forever providers, then cheapest
                 for step in targets {
                     let p = step.provider.to_lowercase();
-                    if p.contains("local") || p.contains("free") || p.contains("ollama") || p.contains("pollinations") {
+                    if p.contains("local")
+                        || p.contains("free")
+                        || p.contains("ollama")
+                        || p.contains("pollinations")
+                    {
                         let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
                         return Ok(RoutedTarget {
                             provider: step.provider.clone(),
@@ -352,7 +456,8 @@ impl ModelResolver {
 
                 for step in targets {
                     if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
-                        let headroom = (account.rpd_limit as u64).saturating_sub(account.tokens_used_today);
+                        let headroom =
+                            (account.rpd_limit as u64).saturating_sub(account.tokens_used_today);
                         if headroom > max_headroom {
                             max_headroom = headroom;
                             best_target = step;
@@ -367,7 +472,11 @@ impl ModelResolver {
                     is_browser_session: false,
                     supports_thinking,
                     context_window: ctx,
-                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    account: db
+                        .get_healthy_account(&best_target.provider)
+                        .await
+                        .ok()
+                        .flatten(),
                     routing_strategy_applied: "headroom".into(),
                 })
             }
@@ -391,7 +500,8 @@ impl ModelResolver {
             "context-relay" => {
                 for step in targets {
                     if let Ok(Some(account)) = db.get_healthy_account(&step.provider).await {
-                        let ratio = (account.tokens_used_today as f64) / ((account.rpd_limit as f64).max(1.0));
+                        let ratio = (account.tokens_used_today as f64)
+                            / ((account.rpd_limit as f64).max(1.0));
                         if ratio < 0.85 {
                             let (supports_thinking, ctx) = Self::infer_capabilities(&step.model);
                             return Ok(RoutedTarget {
@@ -429,7 +539,11 @@ impl ModelResolver {
                     is_browser_session: false,
                     supports_thinking,
                     context_window: ctx,
-                    account: db.get_healthy_account(&best_target.provider).await.ok().flatten(),
+                    account: db
+                        .get_healthy_account(&best_target.provider)
+                        .await
+                        .ok()
+                        .flatten(),
                     routing_strategy_applied: strategy,
                 })
             }
@@ -459,7 +573,11 @@ impl ModelResolver {
                     is_browser_session: false,
                     supports_thinking,
                     context_window: ctx,
-                    account: db.get_healthy_account(&best_step.provider).await.ok().flatten(),
+                    account: db
+                        .get_healthy_account(&best_step.provider)
+                        .await
+                        .ok()
+                        .flatten(),
                     routing_strategy_applied: "16-factor-auto".into(),
                 })
             }
@@ -511,7 +629,8 @@ impl ModelResolver {
             if let Ok(Some(acc)) = db.get_healthy_account(&step.provider).await {
                 if acc.is_active {
                     score += 10.0;
-                    let remaining_ratio = 1.0 - (acc.tokens_used_today as f64 / (acc.rpd_limit as f64).max(1.0));
+                    let remaining_ratio =
+                        1.0 - (acc.tokens_used_today as f64 / (acc.rpd_limit as f64).max(1.0));
                     score += remaining_ratio * 15.0;
                 } else {
                     score -= 40.0;

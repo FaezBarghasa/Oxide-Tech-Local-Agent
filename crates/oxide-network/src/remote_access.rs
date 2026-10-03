@@ -10,9 +10,9 @@ use crate::routing::{L1DirectMappedCache, RcuRouter, RouteEntry, RouteTarget};
 use crate::transport::{
     CircuitBreakerConfig, DplpmtudConfig, PortHopperConfig, QuicMeshTransport, TransportStats,
 };
-use crate::tun::{clamp_tcp_mss, TunConfig, TunDevice};
+use crate::tun::{TunConfig, TunDevice, clamp_tcp_mss};
 use crate::types::{MeshName, NodeId, OverlayIp, OverlayPrefix, PacketType};
-use crate::wire::{pre_parse_packet, PreParseVerdict, ReplayWindow128, WirePacket};
+use crate::wire::{PreParseVerdict, ReplayWindow128, WirePacket, pre_parse_packet};
 use oxide_core::OxideError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -63,10 +63,7 @@ pub struct RemoteAccessMeshEngine {
 
 impl RemoteAccessMeshEngine {
     /// Initialize a new Remote Access Mesh node
-    pub fn new(
-        mesh_name: &str,
-        overlay_ip: OverlayIp,
-    ) -> Result<Self, OxideError> {
+    pub fn new(mesh_name: &str, overlay_ip: OverlayIp) -> Result<Self, OxideError> {
         let node_id = NodeId::new();
         let mesh_name_parsed = MeshName::new(mesh_name)
             .map_err(|e| OxideError::Config(format!("Invalid mesh name: {e}")))?;
@@ -188,7 +185,9 @@ impl RemoteAccessMeshEngine {
 
         tracing::info!(
             "Remote access mesh established with peer {} ({}) at {}",
-            peer_id, peer_overlay_ip, endpoint
+            peer_id,
+            peer_overlay_ip,
+            endpoint
         );
 
         Ok(())
@@ -213,7 +212,9 @@ impl RemoteAccessMeshEngine {
             if action == AclAction::Deny {
                 tracing::warn!(
                     "Egress packet dropped by ACL: {} -> {} ({:?})",
-                    meta.src_ip, meta.dst_ip, meta.protocol
+                    meta.src_ip,
+                    meta.dst_ip,
+                    meta.protocol
                 );
                 return Ok(None);
             }
@@ -261,7 +262,7 @@ impl RemoteAccessMeshEngine {
         let verdict = pre_parse_packet(packet_bytes);
         match verdict {
             PreParseVerdict::JunkIgnored => {
-                Ok(Vec::new())// Camouflage packet safely discarded
+                Ok(Vec::new()) // Camouflage packet safely discarded
             }
             PreParseVerdict::Malformed => {
                 Err(OxideError::Network("Malformed datagram header".into()))

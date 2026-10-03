@@ -4,10 +4,10 @@
 //! (with automatic fallback to `surrealdb::engine::local::Mem` for memory or test environments).
 //! Embeds all migration `.surql` scripts directly into the binary `.rodata` and runs them on init.
 
+use std::path::Path;
 use surrealdb::engine::any::connect;
 use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
-use std::path::Path;
 use tracing::info;
 
 pub const MIGRATION_001: &str = include_str!("migrations/001_init_schema.surql");
@@ -31,9 +31,7 @@ impl EmbeddedSurrealDb {
     /// Retrieve or initialize a process-wide thread-safe singleton instance
     pub async fn shared_in_memory() -> Result<Arc<Self>, surrealdb::Error> {
         GLOBAL_SURREAL_INSTANCE
-            .get_or_try_init(|| async {
-                Self::in_memory().await.map(Arc::new)
-            })
+            .get_or_try_init(|| async { Self::in_memory().await.map(Arc::new) })
             .await
             .cloned()
     }
@@ -93,7 +91,10 @@ mod tests {
     #[tokio::test]
     async fn test_embedded_surreal_lifecycle() {
         let db = EmbeddedSurrealDb::in_memory().await.unwrap();
-        let res = db.db.query("CREATE user:test SET name = 'Faez', role = 'Architect'").await;
+        let res = db
+            .db
+            .query("CREATE user:test SET name = 'Faez', role = 'Architect'")
+            .await;
         assert!(res.is_ok());
     }
 }

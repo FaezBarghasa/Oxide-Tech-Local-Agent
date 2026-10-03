@@ -164,7 +164,9 @@ mod tests {
             .generate_qr_payload("192.168.1.50", 8080, "abcdef0123456789")
             .await;
 
-        assert!(qr_payload.starts_with("https://192.168.1.50:8080/mobile/#pk=abcdef0123456789&nonce="));
+        assert!(
+            qr_payload.starts_with("https://192.168.1.50:8080/mobile/#pk=abcdef0123456789&nonce=")
+        );
     }
 
     #[tokio::test]

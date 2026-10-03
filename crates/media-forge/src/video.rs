@@ -134,7 +134,10 @@ impl VideoEngine {
         &self.default_model
     }
 
-    pub async fn generate_video(&self, req: VideoGenerationRequest) -> Result<VideoGenerationResponse> {
+    pub async fn generate_video(
+        &self,
+        req: VideoGenerationRequest,
+    ) -> Result<VideoGenerationResponse> {
         let start = std::time::Instant::now();
         let (w, h) = (req.width.min(768), req.height.min(512));
         let num_frames = req.num_frames.min(24);
@@ -149,7 +152,8 @@ impl VideoEngine {
             }
 
             let mut frame = vec![0u8; (w * h * 3) as usize];
-            self.vae.decode_tile(&latents, &mut frame, w as usize, h as usize);
+            self.vae
+                .decode_tile(&latents, &mut frame, w as usize, h as usize);
 
             // Modulate with frame animation
             for y in 0..h {

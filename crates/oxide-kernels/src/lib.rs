@@ -16,8 +16,10 @@ pub mod ternary;
 pub use autotune::{GpuAutotuner, KernelConfig, NvidiaArch};
 pub use avx512_compress::{Avx512Compressor, CompressedBlockInt8};
 pub use flash_attention::FlashAttentionKernel;
-pub use fp8_quant::{dequantize_fp8_block, quantize_fp8_block, QuantizedFP8Block, FP8_E4M3_MAX};
-pub use fused_cross_entropy::{ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, FusedCrossEntropyOp};
+pub use fp8_quant::{FP8_E4M3_MAX, QuantizedFP8Block, dequantize_fp8_block, quantize_fp8_block};
+pub use fused_cross_entropy::{
+    ChunkedCrossEntropyConfig, ChunkedCrossEntropyKernel, FusedCrossEntropyOp,
+};
 pub use fused_lora::{FusedLoRAForwardBackwardOp, LoRALinearKernel, QLoraNf4Dequant};
 pub use fused_swiglu::{FusedSwiGLUKernel, SwiGLUBackwardOp};
 pub use lora_fp8::{FP8LoraLayer, FP8Matrix};

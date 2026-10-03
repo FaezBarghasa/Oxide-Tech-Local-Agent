@@ -45,7 +45,10 @@ impl GbnfCompiler {
         if let Some(obj_type) = schema.get("type").and_then(|t| t.as_str()) {
             match obj_type {
                 "object" => {
-                    compiler.add_rule("root".to_string(), GrammarRule::Literal("{...}".to_string()));
+                    compiler.add_rule(
+                        "root".to_string(),
+                        GrammarRule::Literal("{...}".to_string()),
+                    );
                     if let Some(props) = schema.get("properties").and_then(|p| p.as_object()) {
                         for (k, _) in props {
                             compiler.add_rule(
@@ -56,10 +59,16 @@ impl GbnfCompiler {
                     }
                 }
                 "array" => {
-                    compiler.add_rule("root".to_string(), GrammarRule::Literal("[...]".to_string()));
+                    compiler.add_rule(
+                        "root".to_string(),
+                        GrammarRule::Literal("[...]".to_string()),
+                    );
                 }
                 "string" => {
-                    compiler.add_rule("root".to_string(), GrammarRule::Literal("\"...\"".to_string()));
+                    compiler.add_rule(
+                        "root".to_string(),
+                        GrammarRule::Literal("\"...\"".to_string()),
+                    );
                 }
                 "number" | "integer" => {
                     compiler.add_rule("root".to_string(), GrammarRule::Range('0', '9'));
@@ -80,11 +89,7 @@ impl GbnfCompiler {
     }
 
     /// Filter valid next token candidates given the current prefix state
-    pub fn filter_valid_tokens(
-        &self,
-        current_text: &str,
-        vocabulary: &[String],
-    ) -> HashSet<usize> {
+    pub fn filter_valid_tokens(&self, current_text: &str, vocabulary: &[String]) -> HashSet<usize> {
         let mut valid_indices = HashSet::new();
 
         for (idx, token) in vocabulary.iter().enumerate() {
@@ -122,7 +127,9 @@ impl GbnfCompiler {
                     }
                 }
                 GrammarRule::Alternative(alts) => {
-                    return alts.iter().any(|alt| alt.starts_with(trimmed) || trimmed.starts_with(alt));
+                    return alts
+                        .iter()
+                        .any(|alt| alt.starts_with(trimmed) || trimmed.starts_with(alt));
                 }
                 _ => return true,
             }

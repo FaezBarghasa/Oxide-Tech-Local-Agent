@@ -143,7 +143,9 @@ impl Default for SystemMembrane {
 impl SystemMembrane {
     /// Negotiate execution containment tier based on environmental capabilities
     pub fn negotiate() -> Self {
-        let has_explicit_cap = std::env::var("OXIDE_CAP_BPF").map(|v| v == "1").unwrap_or(false);
+        let has_explicit_cap = std::env::var("OXIDE_CAP_BPF")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         let is_root = unsafe {
             #[cfg(target_os = "linux")]
             {

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::path::Path;
-use tokio::sync::mpsc;
 use thiserror::Error;
+use tokio::sync::mpsc;
 
 #[derive(Debug, Error)]
 pub enum EngineError {
@@ -20,10 +20,7 @@ pub enum EngineError {
         misalignment: usize,
     },
     #[error("Out of bounds: requested {requested}, available {available}")]
-    OutOfBounds {
-        requested: usize,
-        available: usize,
-    },
+    OutOfBounds { requested: usize, available: usize },
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

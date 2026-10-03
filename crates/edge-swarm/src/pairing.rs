@@ -27,7 +27,10 @@ pub struct SwarmPairingManager {
 
 impl SwarmPairingManager {
     pub fn new(local_id: String, local_role: SwarmRole) -> Self {
-        Self { local_id, local_role }
+        Self {
+            local_id,
+            local_role,
+        }
     }
 
     /// Negotiates mutual pairing between Laptop Edge Controller and Desktop Compute Core.
@@ -42,14 +45,25 @@ impl SwarmPairingManager {
     }
 
     /// Determines whether to offload heavy inference or training to the paired compute core.
-    pub fn evaluate_offload(&self, prompt_tokens: usize, requires_heavy_model: bool, available_peers: &[DiscoveredNode]) -> TaskOffloadDecision {
-        if self.local_role == SwarmRole::EdgeController && (prompt_tokens > 150 || requires_heavy_model)
-            && let Some(core) = available_peers.iter().find(|p| p.role == SwarmRole::ComputeCore)
+    pub fn evaluate_offload(
+        &self,
+        prompt_tokens: usize,
+        requires_heavy_model: bool,
+        available_peers: &[DiscoveredNode],
+    ) -> TaskOffloadDecision {
+        if self.local_role == SwarmRole::EdgeController
+            && (prompt_tokens > 150 || requires_heavy_model)
+            && let Some(core) = available_peers
+                .iter()
+                .find(|p| p.role == SwarmRole::ComputeCore)
         {
             return TaskOffloadDecision {
                 should_offload: true,
                 target_node: Some(core.clone()),
-                reason: format!("Prompt ({} tokens) routed to high-VRAM compute core '{}'", prompt_tokens, core.node_id),
+                reason: format!(
+                    "Prompt ({} tokens) routed to high-VRAM compute core '{}'",
+                    prompt_tokens, core.node_id
+                ),
             };
         }
 

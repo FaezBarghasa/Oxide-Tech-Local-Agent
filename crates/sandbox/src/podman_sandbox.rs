@@ -58,7 +58,9 @@ impl PodmanSandbox {
                 .arg(&self.image)
                 .args(cmd);
 
-            podman_cmd.output().context("Failed to execute rootless Podman sandbox")
+            podman_cmd
+                .output()
+                .context("Failed to execute rootless Podman sandbox")
         } else {
             tracing::warn!(
                 "Podman binary not found on host; falling back to direct host command execution"

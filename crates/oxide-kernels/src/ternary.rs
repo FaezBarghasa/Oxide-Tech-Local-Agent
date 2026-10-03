@@ -228,19 +228,27 @@ impl TernaryBitplaneMatrix {
 
             #[cfg(target_arch = "x86_64")]
             {
-                if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("avx512vpopcntdq") {
+                if is_x86_feature_detected!("avx512f")
+                    && is_x86_feature_detected!("avx512vpopcntdq")
+                {
                     unsafe {
                         use std::arch::x86_64::*;
                         let mut w = 0;
                         while w + 8 <= self.words_per_row {
                             // Unaligned safe vector load from memory mapped or packed slice
                             let a_vec = _mm512_loadu_si512(act_bits.as_ptr().add(w) as *const _);
-                            let wp_vec = _mm512_loadu_si512(self.w_pos.as_ptr().add(row_offset + w) as *const _);
-                            let wn_vec = _mm512_loadu_si512(self.w_neg.as_ptr().add(row_offset + w) as *const _);
+                            let wp_vec = _mm512_loadu_si512(
+                                self.w_pos.as_ptr().add(row_offset + w) as *const _,
+                            );
+                            let wn_vec = _mm512_loadu_si512(
+                                self.w_neg.as_ptr().add(row_offset + w) as *const _,
+                            );
 
                             // XNOR: !(a ^ w) & w
-                            let xnor_pos = _mm512_and_si512(_mm512_xor_si512(a_vec, wp_vec), wp_vec);
-                            let xnor_neg = _mm512_and_si512(_mm512_xor_si512(a_vec, wn_vec), wn_vec);
+                            let xnor_pos =
+                                _mm512_and_si512(_mm512_xor_si512(a_vec, wp_vec), wp_vec);
+                            let xnor_neg =
+                                _mm512_and_si512(_mm512_xor_si512(a_vec, wn_vec), wn_vec);
 
                             let pop_pos = _mm512_popcnt_epi64(xnor_pos);
                             let pop_neg = _mm512_popcnt_epi64(xnor_neg);

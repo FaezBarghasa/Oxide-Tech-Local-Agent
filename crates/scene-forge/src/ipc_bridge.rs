@@ -51,7 +51,9 @@ pub enum BlenderCommand {
         scale: [f32; 3],
     },
     GetMeshData(Uuid),
-    Heartbeat { timestamp_epoch_ms: u64 },
+    Heartbeat {
+        timestamp_epoch_ms: u64,
+    },
 }
 
 /// Responses returned from the 3D host across the binary IPC stream.
@@ -324,7 +326,9 @@ mod tests {
 
     #[test]
     fn test_heartbeat_encode_decode() {
-        let cmd = BlenderCommand::Heartbeat { timestamp_epoch_ms: 1000 };
+        let cmd = BlenderCommand::Heartbeat {
+            timestamp_epoch_ms: 1000,
+        };
         let bytes = BlenderBridge::<tokio::io::DuplexStream>::encode_command(&cmd).unwrap();
         let decoded = BlenderBridge::<tokio::io::DuplexStream>::decode_command(&bytes).unwrap();
         assert_eq!(cmd, decoded);
@@ -341,7 +345,9 @@ mod tests {
 
     #[test]
     fn test_shm_threshold() {
-        assert!(ShmGeometryBuffer::exceeds_zero_copy_threshold(3 * 1024 * 1024));
+        assert!(ShmGeometryBuffer::exceeds_zero_copy_threshold(
+            3 * 1024 * 1024
+        ));
         assert!(!ShmGeometryBuffer::exceeds_zero_copy_threshold(1024));
     }
 }

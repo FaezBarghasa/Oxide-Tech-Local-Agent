@@ -32,16 +32,16 @@ pub use transport::{
     CircuitBreakerConfig, DplpmtudConfig, DplpmtudEngine, PortHopper, PortHopperConfig,
     QuicMeshTransport, TransportCircuitBreaker, TransportEvent, TransportStats,
 };
-pub use tun::{clamp_tcp_mss, TunConfig, TunDevice};
+pub use tun::{TunConfig, TunDevice, clamp_tcp_mss};
 pub use types::{
     Endpoint, MeshName, NodeCapabilities, NodeId, OverlayIp, OverlayPrefix, PacketType,
     ProtocolVersion, TransportProtocol,
 };
 pub use wire::{
-    pre_parse_packet, AclRuleWire, AclUpdatePayload, BatchPacket, KeepalivePayload,
-    PacketHeader, PathDiscoveryPayload, PreParseVerdict, RekeyNoticePayload, ReplayWindow128,
-    WirePacket, DISCRIMINATOR_OXIDE_CTRL, DISCRIMINATOR_OXIDE_DATA, JUNK_PREAMBLE_MAGIC_1,
-    JUNK_PREAMBLE_MAGIC_2, MAX_PACKET_SIZE, MIN_PACKET_SIZE, PROTOCOL_MAGIC,
+    AclRuleWire, AclUpdatePayload, BatchPacket, DISCRIMINATOR_OXIDE_CTRL, DISCRIMINATOR_OXIDE_DATA,
+    JUNK_PREAMBLE_MAGIC_1, JUNK_PREAMBLE_MAGIC_2, KeepalivePayload, MAX_PACKET_SIZE,
+    MIN_PACKET_SIZE, PROTOCOL_MAGIC, PacketHeader, PathDiscoveryPayload, PreParseVerdict,
+    RekeyNoticePayload, ReplayWindow128, WirePacket, pre_parse_packet,
 };
 
 use mdns_sd::{ServiceDaemon, ServiceInfo};

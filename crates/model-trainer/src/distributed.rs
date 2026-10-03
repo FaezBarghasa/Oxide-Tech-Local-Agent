@@ -71,8 +71,14 @@ impl MmapGgufWeightLoader {
     }
 
     /// Register tensor byte offset within memory-mapped buffer
-    pub fn register_tensor_offset(&mut self, tensor_name: impl Into<String>, offset: usize, count: usize) {
-        self.tensor_offsets.insert(tensor_name.into(), (offset, count));
+    pub fn register_tensor_offset(
+        &mut self,
+        tensor_name: impl Into<String>,
+        offset: usize,
+        count: usize,
+    ) {
+        self.tensor_offsets
+            .insert(tensor_name.into(), (offset, count));
     }
 
     /// Extract zero-copy f32 slice directly from mapped memory
@@ -88,9 +94,8 @@ impl MmapGgufWeightLoader {
             return None;
         }
 
-        let slice = unsafe {
-            std::slice::from_raw_parts(slice_bytes.as_ptr() as *const f32, count)
-        };
+        let slice =
+            unsafe { std::slice::from_raw_parts(slice_bytes.as_ptr() as *const f32, count) };
         Some(slice)
     }
 }
@@ -146,9 +151,9 @@ impl DistributedEngine {
         mmap_loader: &MmapGgufWeightLoader,
         tensor_name: &str,
     ) -> Result<(), String> {
-        let slice = mmap_loader
-            .read_f32_slice(tensor_name)
-            .ok_or_else(|| format!("Tensor '{tensor_name}' not found or misaligned in mapped file"))?;
+        let slice = mmap_loader.read_f32_slice(tensor_name).ok_or_else(|| {
+            format!("Tensor '{tensor_name}' not found or misaligned in mapped file")
+        })?;
         self.register_parameter(name, slice).await;
         Ok(())
     }
@@ -197,8 +202,8 @@ impl DistributedEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[tokio::test]
     async fn test_zero3_parameter_partitioning_and_gather() {
@@ -237,9 +242,13 @@ mod tests {
         let pg = ProcessGroup::new(0, 2, 0, vec!["node1".into(), "node2".into()]);
         let dist = DistributedEngine::new(pg, ZeroStage::ZeRO3_Parameters);
 
-        dist.register_mmap_parameter("model.layer.0.q_proj.weight", &loader, "model.layer.0.q_proj.weight")
-            .await
-            .expect("Mmap parameter registration should succeed");
+        dist.register_mmap_parameter(
+            "model.layer.0.q_proj.weight",
+            &loader,
+            "model.layer.0.q_proj.weight",
+        )
+        .await
+        .expect("Mmap parameter registration should succeed");
 
         let guard = dist.local_parameters.read().await;
         let part = guard.get("model.layer.0.q_proj.weight").unwrap();

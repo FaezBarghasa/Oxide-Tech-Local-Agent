@@ -1,4 +1,7 @@
-use audio_forge::{AudioCaptureRingBuffer, AudioDeviceManager, DeviceInfo, SpeechSynthesisEngine, SpeechToTextEngine, SynthesisRequest, TranscriptionResult};
+use audio_forge::{
+    AudioCaptureRingBuffer, AudioDeviceManager, DeviceInfo, SpeechSynthesisEngine,
+    SpeechToTextEngine, SynthesisRequest, TranscriptionResult,
+};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -28,9 +31,8 @@ pub struct TtsResponseDto {
     pub duration_ms: u64,
 }
 
-static AUDIO_STATE: std::sync::LazyLock<Arc<Mutex<AudioState>>> = std::sync::LazyLock::new(|| {
-    Arc::new(Mutex::new(AudioState::new()))
-});
+static AUDIO_STATE: std::sync::LazyLock<Arc<Mutex<AudioState>>> =
+    std::sync::LazyLock::new(|| Arc::new(Mutex::new(AudioState::new())));
 
 struct AudioState {
     device_mgr: Option<AudioDeviceManager>,
@@ -60,8 +62,14 @@ pub async fn audio_list_devices() -> Result<AudioDevicesResponse, String> {
     if let Some(ref mgr) = state.device_mgr {
         let input_devices = mgr.list_input_devices().map_err(|e| e.to_string())?;
         let output_devices = mgr.list_output_devices().map_err(|e| e.to_string())?;
-        let default_input = input_devices.iter().find(|d| d.is_default).map(|d| d.name.clone());
-        let default_output = output_devices.iter().find(|d| d.is_default).map(|d| d.name.clone());
+        let default_input = input_devices
+            .iter()
+            .find(|d| d.is_default)
+            .map(|d| d.name.clone());
+        let default_output = output_devices
+            .iter()
+            .find(|d| d.is_default)
+            .map(|d| d.name.clone());
         Ok(AudioDevicesResponse {
             default_input,
             default_output,
@@ -93,7 +101,11 @@ pub async fn audio_stop_and_transcribe() -> Result<TranscriptionResult, String> 
     state.ring_buf.set_recording(false);
     let samples = state.ring_buf.get_recent_samples(16000 * 30);
     info!("Transcribing captured audio ({} samples)", samples.len());
-    let res = state.stt.transcribe(&samples).await.map_err(|e| e.to_string())?;
+    let res = state
+        .stt
+        .transcribe(&samples)
+        .await
+        .map_err(|e| e.to_string())?;
     Ok(res)
 }
 
@@ -106,9 +118,13 @@ pub async fn audio_synthesize_speech(req: TtsRequestDto) -> Result<TtsResponseDt
         speed: req.speed.unwrap_or(1.0),
         pitch: req.pitch.unwrap_or(1.0),
     };
-    let resp = state.tts.synthesize(tts_req).await.map_err(|e| e.to_string())?;
+    let resp = state
+        .tts
+        .synthesize(tts_req)
+        .await
+        .map_err(|e| e.to_string())?;
     let duration_ms = (resp.pcm_data.len() as u64 * 1000) / resp.sample_rate as u64;
-    
+
     // Encode PCM f32 to raw bytes
     let mut byte_data = Vec::with_capacity(resp.pcm_data.len() * 2);
     for s in &resp.pcm_data {

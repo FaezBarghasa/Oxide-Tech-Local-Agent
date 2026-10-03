@@ -11,7 +11,12 @@ pub struct LandlockSandbox {
 impl LandlockSandbox {
     pub fn new(workspace: &Path) -> Self {
         Self {
-            allowed_read_paths: vec!["/usr".to_string(), "/lib".to_string(), "/lib64".to_string(), "/etc".to_string()],
+            allowed_read_paths: vec![
+                "/usr".to_string(),
+                "/lib".to_string(),
+                "/lib64".to_string(),
+                "/etc".to_string(),
+            ],
             allowed_write_paths: vec![workspace.display().to_string(), "/tmp".to_string()],
         }
     }
@@ -20,8 +25,10 @@ impl LandlockSandbox {
         let mut cmd = std::process::Command::new("bwrap");
         cmd.arg("--unshare-all")
             .arg("--die-with-parent")
-            .arg("--proc").arg("/proc")
-            .arg("--dev").arg("/dev");
+            .arg("--proc")
+            .arg("/proc")
+            .arg("--dev")
+            .arg("/dev");
 
         for ro in &self.allowed_read_paths {
             if Path::new(ro).exists() {

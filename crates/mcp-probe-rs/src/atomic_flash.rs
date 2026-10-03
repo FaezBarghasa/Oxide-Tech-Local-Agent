@@ -196,7 +196,8 @@ impl AtomicFlashManager {
             ));
         }
 
-        if token.starts_with("ed25519-sig-") || token.starts_with("hitl-auth-") || token.len() >= 32 {
+        if token.starts_with("ed25519-sig-") || token.starts_with("hitl-auth-") || token.len() >= 32
+        {
             tracing::info!(
                 target: "atomic_flash",
                 "Cryptographic HITL authorization token verified for target chip '{}'",
@@ -256,7 +257,11 @@ pub struct VerifiedFirmwarePayload {
 }
 
 impl VerifiedFirmwarePayload {
-    pub fn new(bytes: Vec<u8>, target_chip: impl Into<String>, auth_token: impl Into<String>) -> Result<Self, AtomicFlashError> {
+    pub fn new(
+        bytes: Vec<u8>,
+        target_chip: impl Into<String>,
+        auth_token: impl Into<String>,
+    ) -> Result<Self, AtomicFlashError> {
         let chip = target_chip.into();
         let tok = auth_token.into();
         let digest = AtomicFlashManager::verify_in_memory_payload(&bytes, "", &tok, &chip)?;
@@ -318,7 +323,13 @@ mod tests {
 
     #[test]
     fn test_validate_ed25519_flash_token() {
-        assert!(AtomicFlashManager::validate_ed25519_flash_token("ed25519-sig-auth-stm32f407-valid-tok", "STM32F407VG").is_ok());
+        assert!(
+            AtomicFlashManager::validate_ed25519_flash_token(
+                "ed25519-sig-auth-stm32f407-valid-tok",
+                "STM32F407VG"
+            )
+            .is_ok()
+        );
         assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
         assert!(AtomicFlashManager::validate_ed25519_flash_token("short", "STM32F407VG").is_err());
     }
@@ -329,7 +340,8 @@ mod tests {
         let auth_token = "ed25519-sig-auth-stm32f407-valid-tok";
         let target_chip = "STM32F407VG";
 
-        let verified = VerifiedFirmwarePayload::new(raw_firmware.clone(), target_chip, auth_token).unwrap();
+        let verified =
+            VerifiedFirmwarePayload::new(raw_firmware.clone(), target_chip, auth_token).unwrap();
         assert_eq!(verified.binary_bytes, raw_firmware);
         assert_eq!(verified.target_chip, target_chip);
         assert_eq!(verified.auth_token, auth_token);

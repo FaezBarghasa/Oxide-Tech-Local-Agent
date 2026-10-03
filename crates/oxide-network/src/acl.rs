@@ -74,7 +74,8 @@ impl PacketMeta {
                 ));
 
                 let protocol = Protocol::from_ip_proto(proto);
-                let (src_port, dst_port) = if (proto == 6 || proto == 17) && buffer.len() >= ihl + 4 {
+                let (src_port, dst_port) = if (proto == 6 || proto == 17) && buffer.len() >= ihl + 4
+                {
                     let sp = u16::from_be_bytes([buffer[ihl], buffer[ihl + 1]]);
                     let dp = u16::from_be_bytes([buffer[ihl + 2], buffer[ihl + 3]]);
                     (Some(sp), Some(dp))
@@ -153,15 +154,17 @@ impl AclRule {
 
         // 3. Source prefix check
         if let Some(ref pfx) = self.src_prefix
-            && !pfx.contains(meta.src_ip) {
-                return false;
-            }
+            && !pfx.contains(meta.src_ip)
+        {
+            return false;
+        }
 
         // 4. Destination prefix check
         if let Some(ref pfx) = self.dst_prefix
-            && !pfx.contains(meta.dst_ip) {
-                return false;
-            }
+            && !pfx.contains(meta.dst_ip)
+        {
+            return false;
+        }
 
         // 5. Port range check
         if let Some((min_port, max_port)) = self.port_range {

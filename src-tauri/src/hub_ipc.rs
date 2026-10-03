@@ -36,7 +36,13 @@ pub async fn hub_download_model(req: HubDownloadDto) -> Result<HubDownloadRespon
 
     tokio::fs::create_dir_all(&target_directory)
         .await
-        .map_err(|e| format!("Failed to create directory {}: {}", target_directory.display(), e))?;
+        .map_err(|e| {
+            format!(
+                "Failed to create directory {}: {}",
+                target_directory.display(),
+                e
+            )
+        })?;
 
     let dest_file = target_directory.join(&req.filename);
     let download_req = ModelDownloadRequest {

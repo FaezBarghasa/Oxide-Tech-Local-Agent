@@ -1,7 +1,7 @@
-use std::sync::Arc;
 use rcgen::{CertificateParams, DistinguishedName, KeyPair, PKCS_ECDSA_P256_SHA256};
 use ring::rand::SystemRandom;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -35,8 +35,18 @@ impl EphemeralTlsContext {
         dn.push(rcgen::DnType::CommonName, "oxide-internal-mesh.local");
         params.distinguished_name = dn;
         params.subject_alt_names = vec![
-            rcgen::SanType::DnsName("oxide-internal-mesh.local".to_string().try_into().map_err(|e: rcgen::Error| SecurityError::CryptoError(e.to_string()))?),
-            rcgen::SanType::DnsName("localhost".to_string().try_into().map_err(|e: rcgen::Error| SecurityError::CryptoError(e.to_string()))?),
+            rcgen::SanType::DnsName(
+                "oxide-internal-mesh.local"
+                    .to_string()
+                    .try_into()
+                    .map_err(|e: rcgen::Error| SecurityError::CryptoError(e.to_string()))?,
+            ),
+            rcgen::SanType::DnsName(
+                "localhost"
+                    .to_string()
+                    .try_into()
+                    .map_err(|e: rcgen::Error| SecurityError::CryptoError(e.to_string()))?,
+            ),
             rcgen::SanType::IpAddress(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)),
         ];
 
@@ -61,11 +71,17 @@ impl EphemeralTlsContext {
         let mut root_store = rustls::RootCertStore::empty();
         root_store
             .add(CertificateDer::from(cert_der.clone()))
-            .map_err(|e| SecurityError::TlsConfig(rustls::Error::General(format!("Failed to add cert to root store: {:?}", e))))?;
+            .map_err(|e| {
+                SecurityError::TlsConfig(rustls::Error::General(format!(
+                    "Failed to add cert to root store: {:?}",
+                    e
+                )))
+            })?;
 
-        let client_verifier = rustls::server::WebPkiClientVerifier::builder(Arc::new(root_store.clone()))
-            .build()
-            .map_err(|e| SecurityError::TlsConfig(rustls::Error::General(e.to_string())))?;
+        let client_verifier =
+            rustls::server::WebPkiClientVerifier::builder(Arc::new(root_store.clone()))
+                .build()
+                .map_err(|e| SecurityError::TlsConfig(rustls::Error::General(e.to_string())))?;
 
         let server_config = rustls::ServerConfig::builder()
             .with_client_cert_verifier(client_verifier)
@@ -92,7 +108,8 @@ mod tests {
 
     #[test]
     fn test_ephemeral_tls_bootstrap() {
-        let ctx = EphemeralTlsContext::bootstrap().expect("Failed to bootstrap EphemeralTlsContext");
+        let ctx =
+            EphemeralTlsContext::bootstrap().expect("Failed to bootstrap EphemeralTlsContext");
         assert_ne!(ctx.node_fingerprint, [0u8; 32]);
         assert_eq!(ctx.node_fingerprint.len(), 32);
     }

@@ -185,8 +185,8 @@ mod tests {
             0x45, 0x00, 0x00, 0x3C, // IPv4, IHL=5, Total Len=60
             0x12, 0x34, 0x40, 0x00, // ID, Flags (DF)
             0x40, 0x06, 0x00, 0x00, // TTL=64, Protocol=6 (TCP), IP Checksum
-            100, 64, 0, 1,          // Src IP
-            100, 64, 0, 2,          // Dst IP
+            100, 64, 0, 1, // Src IP
+            100, 64, 0, 2, // Dst IP
             // TCP Header (24 bytes, data offset = 6)
             0x04, 0xD2, 0x00, 0x50, // Src Port 1234, Dst Port 80
             0x00, 0x00, 0x00, 0x01, // Seq num

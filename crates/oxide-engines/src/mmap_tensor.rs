@@ -5,8 +5,6 @@ use std::path::Path;
 use std::ptr::NonNull;
 use std::sync::Arc;
 
-
-
 /// GGUF tensor quantization formats including mixed-precision Importance Matrix (IMatrix) types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -207,7 +205,11 @@ pub struct AlignedTensorMap {
 
 impl AlignedTensorMap {
     /// Load f32 tensor slice from disk with advisory reader lock and SIMD alignment verification.
-    pub fn load_f32<P: AsRef<Path>>(path: P, offset: usize, count: usize) -> Result<Self, OxideError> {
+    pub fn load_f32<P: AsRef<Path>>(
+        path: P,
+        offset: usize,
+        count: usize,
+    ) -> Result<Self, OxideError> {
         let file = File::open(path.as_ref())
             .map_err(|e| OxideError::Engine(format!("Failed to open file: {}", e)))?;
 
@@ -238,7 +240,10 @@ impl AlignedTensorMap {
         if offset + required_bytes > mmap.len() {
             return Err(OxideError::Engine(format!(
                 "Out of bounds: requested {} bytes (offset {} + {}), available {}",
-                offset + required_bytes, offset, required_bytes, mmap.len()
+                offset + required_bytes,
+                offset,
+                required_bytes,
+                mmap.len()
             )));
         }
 
@@ -279,7 +284,11 @@ pub struct HardenedTensorMap {
 
 impl HardenedTensorMap {
     /// Load generic typed tensor slice enforcing >= 64-byte SIMD alignment and shared advisory read lock.
-    pub fn load_aligned<T: Copy>(path: &Path, offset: usize, count: usize) -> Result<Self, OxideError> {
+    pub fn load_aligned<T: Copy>(
+        path: &Path,
+        offset: usize,
+        count: usize,
+    ) -> Result<Self, OxideError> {
         let file = File::open(path)
             .map_err(|e| OxideError::Engine(format!("Failed to open tensor file: {}", e)))?;
 
@@ -303,11 +312,14 @@ impl HardenedTensorMap {
             )));
         }
 
-        let required_bytes = count
-            .checked_mul(std::mem::size_of::<T>())
-            .ok_or_else(|| OxideError::Engine("Arithmetic overflow computing byte bounds".to_string()))?;
+        let required_bytes = count.checked_mul(std::mem::size_of::<T>()).ok_or_else(|| {
+            OxideError::Engine("Arithmetic overflow computing byte bounds".to_string())
+        })?;
 
-        if offset.checked_add(required_bytes).is_none_or(|end| end > mmap.len()) {
+        if offset
+            .checked_add(required_bytes)
+            .is_none_or(|end| end > mmap.len())
+        {
             return Err(OxideError::Engine(
                 "Requested slice bounds exceed memory map capacity".into(),
             ));
@@ -337,7 +349,6 @@ impl HardenedTensorMap {
         self.element_count == 0
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -374,7 +385,10 @@ mod tests {
         let mut temp = NamedTempFile::new().unwrap();
         let floats: Vec<f32> = vec![1.0, 2.0, 3.5, 4.25, 5.125, 6.0625, 7.0, 8.0];
         let bytes: &[u8] = unsafe {
-            std::slice::from_raw_parts(floats.as_ptr() as *const u8, floats.len() * std::mem::size_of::<f32>())
+            std::slice::from_raw_parts(
+                floats.as_ptr() as *const u8,
+                floats.len() * std::mem::size_of::<f32>(),
+            )
         };
         temp.write_all(bytes).unwrap();
         temp.flush().unwrap();

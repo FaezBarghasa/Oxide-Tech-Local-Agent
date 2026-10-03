@@ -65,7 +65,9 @@ impl SealedSharedMemory {
 
         #[cfg(not(target_os = "linux"))]
         {
-            Err(OxideError::Kernel("SealedSharedMemory is supported on Linux".to_string()))
+            Err(OxideError::Kernel(
+                "SealedSharedMemory is supported on Linux".to_string(),
+            ))
         }
     }
 }
@@ -87,7 +89,8 @@ mod tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn test_sealed_shared_memory_allocation() {
-        let shm = SealedSharedMemory::allocate("test_oxide_shm", 1024 * 1024).expect("Failed to allocate sealed shm");
+        let shm = SealedSharedMemory::allocate("test_oxide_shm", 1024 * 1024)
+            .expect("Failed to allocate sealed shm");
         assert!(shm.fd >= 0);
         assert_eq!(shm.size_bytes, 1024 * 1024);
     }

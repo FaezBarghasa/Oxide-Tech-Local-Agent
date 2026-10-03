@@ -22,7 +22,11 @@ pub fn f32_to_fp8_e4m3(val: f32) -> u8 {
         return 0;
     }
 
-    let sign = if val.is_sign_negative() { 1u8 << 7 } else { 0u8 };
+    let sign = if val.is_sign_negative() {
+        1u8 << 7
+    } else {
+        0u8
+    };
     let abs_val = val.abs().min(FP8_E4M3_MAX);
 
     let bits = abs_val.to_bits();

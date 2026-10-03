@@ -3,7 +3,9 @@
 //! Provides binary envelope encoding, 128-bit anti-replay protection,
 //! GRO/GSO batching, and zero-allocation anti-DPI packet pre-parsing.
 
-use crate::types::{Endpoint, NodeCapabilities, NodeId, OverlayPrefix, PacketType, ProtocolVersion};
+use crate::types::{
+    Endpoint, NodeCapabilities, NodeId, OverlayPrefix, PacketType, ProtocolVersion,
+};
 use bytes::{BufMut, BytesMut};
 use oxide_core::OxideError;
 use serde::{Deserialize, Serialize};
@@ -52,7 +54,9 @@ impl PacketHeader {
 
     pub fn validate(&self) -> Result<(), OxideError> {
         if self.magic != PROTOCOL_MAGIC {
-            return Err(OxideError::Network("Invalid magic bytes in packet header".into()));
+            return Err(OxideError::Network(
+                "Invalid magic bytes in packet header".into(),
+            ));
         }
         if self.version < ProtocolVersion::MIN_COMPATIBLE.0
             || self.version > ProtocolVersion::CURRENT.0
@@ -63,7 +67,9 @@ impl PacketHeader {
             )));
         }
         if (self.payload_len as usize) > MAX_PACKET_SIZE - Self::SIZE {
-            return Err(OxideError::Network("Payload length exceeds maximum packet size".into()));
+            return Err(OxideError::Network(
+                "Payload length exceeds maximum packet size".into(),
+            ));
         }
         Ok(())
     }
@@ -82,9 +88,15 @@ pub struct WirePacket {
 }
 
 impl WirePacket {
-    pub fn new(packet_type: PacketType, packet_id: u32, payload: Vec<u8>) -> Result<Self, OxideError> {
+    pub fn new(
+        packet_type: PacketType,
+        packet_id: u32,
+        payload: Vec<u8>,
+    ) -> Result<Self, OxideError> {
         if payload.len() > MAX_PACKET_SIZE - PacketHeader::SIZE {
-            return Err(OxideError::Network("Payload length too large for wire packet".into()));
+            return Err(OxideError::Network(
+                "Payload length too large for wire packet".into(),
+            ));
         }
         Ok(Self {
             header: PacketHeader::new(packet_type, packet_id, payload.len() as u16),
@@ -356,7 +368,7 @@ mod tests {
         assert!(window.check_and_update(2));
         assert!(!window.check_and_update(1)); // duplicate
         assert!(window.check_and_update(10));
-        assert!(window.check_and_update(5));  // valid out of order
+        assert!(window.check_and_update(5)); // valid out of order
         assert!(!window.check_and_update(5)); // duplicate
         assert!(!window.check_and_update(0)); // invalid 0
     }

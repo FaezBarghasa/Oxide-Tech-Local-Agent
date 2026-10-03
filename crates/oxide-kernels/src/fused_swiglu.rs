@@ -31,13 +31,7 @@ impl FusedSwiGLUKernel {
     }
 
     /// Backward pass: computes gradients d_gate and d_up from upstream gradient d_out
-    pub fn backward(
-        gate: &[f32],
-        up: &[f32],
-        d_out: &[f32],
-        d_gate: &mut [f32],
-        d_up: &mut [f32],
-    ) {
+    pub fn backward(gate: &[f32], up: &[f32], d_out: &[f32], d_gate: &mut [f32], d_up: &mut [f32]) {
         let n = gate.len();
         assert_eq!(n, up.len());
         assert_eq!(n, d_out.len());

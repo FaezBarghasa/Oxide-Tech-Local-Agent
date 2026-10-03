@@ -68,7 +68,11 @@ pub async fn scan_unsloth_data() -> Result<UnslothScanResultDto, String> {
         if let Ok(entries) = std::fs::read_dir(&dir) {
             for entry in entries.flatten() {
                 let p = entry.path();
-                let name = p.file_name().unwrap_or_default().to_string_lossy().to_string();
+                let name = p
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string();
                 let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
 
                 if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("gguf") {

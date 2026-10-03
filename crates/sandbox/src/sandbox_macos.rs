@@ -22,7 +22,12 @@ impl MacosSandboxManager {
     }
 
     /// Execute command within macOS Seatbelt profile sandbox.
-    pub fn execute_isolated(&self, program: &Path, args: &[String], workspace: &Path) -> Result<i32> {
+    pub fn execute_isolated(
+        &self,
+        program: &Path,
+        args: &[String],
+        workspace: &Path,
+    ) -> Result<i32> {
         #[cfg(target_os = "macos")]
         {
             let profile = format!(

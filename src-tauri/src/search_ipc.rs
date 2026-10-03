@@ -21,7 +21,10 @@ pub struct DeepResearchResultDto {
 }
 
 #[tauri::command]
-pub async fn web_search(query: String, max_results: Option<usize>) -> Result<Vec<SearchResultDto>, String> {
+pub async fn web_search(
+    query: String,
+    max_results: Option<usize>,
+) -> Result<Vec<SearchResultDto>, String> {
     let limit = max_results.unwrap_or(5);
     info!("Web search executing query: '{}' (limit: {})", query, limit);
 
@@ -71,7 +74,11 @@ pub async fn web_search(query: String, max_results: Option<usize>) -> Result<Vec
                 if !title.is_empty() {
                     results.push(SearchResultDto {
                         title,
-                        url: if url.starts_with("http") { url } else { format!("https://{}", url) },
+                        url: if url.starts_with("http") {
+                            url
+                        } else {
+                            format!("https://{}", url)
+                        },
                         snippet,
                         source: "DuckDuckGo HTML / Scrapling".to_string(),
                     });
@@ -85,7 +92,10 @@ pub async fn web_search(query: String, max_results: Option<usize>) -> Result<Vec
         results.push(SearchResultDto {
             title: format!("Rust & Embedded Reference: {}", query),
             url: "https://docs.rs/".to_string(),
-            snippet: format!("Comprehensive crate documentation, traits, and examples matching: {}.", query),
+            snippet: format!(
+                "Comprehensive crate documentation, traits, and examples matching: {}.",
+                query
+            ),
             source: "Local Scrapling Index".to_string(),
         });
         results.push(SearchResultDto {
@@ -102,7 +112,10 @@ pub async fn web_search(query: String, max_results: Option<usize>) -> Result<Vec
 #[tauri::command]
 pub async fn deep_research_execute(query: String) -> Result<DeepResearchResultDto, String> {
     let start = std::time::Instant::now();
-    info!("Starting Deep Research multi-step synthesis for: '{}'", query);
+    info!(
+        "Starting Deep Research multi-step synthesis for: '{}'",
+        query
+    );
 
     let search_res = web_search(query.clone(), Some(5)).await?;
 
@@ -112,11 +125,19 @@ pub async fn deep_research_execute(query: String) -> Result<DeepResearchResultDt
     report.push_str("## Key Findings & Architectural Insights\n");
 
     for (i, r) in search_res.iter().enumerate() {
-        report.push_str(&format!("{}. **{}** ([Source]({}))\n   _{}_\n\n", i + 1, r.title, r.url, r.snippet));
+        report.push_str(&format!(
+            "{}. **{}** ([Source]({}))\n   _{}_\n\n",
+            i + 1,
+            r.title,
+            r.url,
+            r.snippet
+        ));
     }
 
     report.push_str("## Verified Implementation Path\n");
-    report.push_str("- Enforce `#![no_std]` isolation and zero dynamic allocation where applicable.\n");
+    report.push_str(
+        "- Enforce `#![no_std]` isolation and zero dynamic allocation where applicable.\n",
+    );
     report.push_str("- Leverage hardware timers and DMA channels for deterministic latency.\n");
     report.push_str("- Formally verify bounds and invariants via `kani` and `clippy`.\n");
 

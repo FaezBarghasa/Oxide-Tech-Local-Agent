@@ -216,7 +216,9 @@ pub fn parse_gguf_metadata(path: &std::path::Path) -> Option<GgufMetadata> {
     }
 
     let file_name = path.file_name().and_then(|f| f.to_str()).unwrap_or("");
-    for tag in ["Q4_K_M", "Q4_K_S", "Q5_K_M", "Q8_0", "Q3_K_M", "PTQ1_0", "FP16", "Q6_K", "Q2_K"] {
+    for tag in [
+        "Q4_K_M", "Q4_K_S", "Q5_K_M", "Q8_0", "Q3_K_M", "PTQ1_0", "FP16", "Q6_K", "Q2_K",
+    ] {
         if file_name.contains(tag) {
             quant = tag.to_string();
             break;
@@ -250,7 +252,10 @@ pub fn get_system_vram_status() -> VramStatus {
     let avail_ram_mb = sys.available_memory() / (1024 * 1024);
 
     if let Ok(output) = std::process::Command::new("nvidia-smi")
-        .args(["--query-gpu=memory.total,memory.free,memory.used", "--format=csv,noheader,nounits"])
+        .args([
+            "--query-gpu=memory.total,memory.free,memory.used",
+            "--format=csv,noheader,nounits",
+        ])
         .output()
     {
         if output.status.success() {
@@ -311,7 +316,10 @@ pub fn evaluate_model_vram_admission(file_size_bytes: u64) -> Result<AdmissionDe
         return Ok(AdmissionDecision {
             admitted: true,
             recommended_gpu_layers: 0,
-            warning: Some("No discrete NVIDIA GPU detected. Running model purely on CPU system RAM.".to_string()),
+            warning: Some(
+                "No discrete NVIDIA GPU detected. Running model purely on CPU system RAM."
+                    .to_string(),
+            ),
             estimated_vram_needed_mb,
         });
     }
@@ -354,7 +362,12 @@ pub fn evaluate_model_vram_admission(file_size_bytes: u64) -> Result<AdmissionDe
 }
 
 /// Recursively scan directories for .gguf model files
-fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: usize, models: &mut Vec<ModelInfo>) {
+fn scan_dir_recursive(
+    dir: &std::path::Path,
+    max_depth: usize,
+    current_depth: usize,
+    models: &mut Vec<ModelInfo>,
+) {
     if current_depth > max_depth || !dir.exists() {
         return;
     }
@@ -374,7 +387,12 @@ fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: us
 
                 let meta = parse_gguf_metadata(&path);
                 let (context_len, arch, quant, tensor_cnt) = if let Some(m) = meta {
-                    (m.context_length, Some(m.architecture), Some(m.quantization), Some(m.tensor_count))
+                    (
+                        m.context_length,
+                        Some(m.architecture),
+                        Some(m.quantization),
+                        Some(m.tensor_count),
+                    )
                 } else {
                     (8192, None, None, None)
                 };
@@ -409,15 +427,35 @@ fn scan_dir_recursive(dir: &std::path::Path, max_depth: usize, current_depth: us
 fn scan_default_local_gguf_models() -> Vec<ModelInfo> {
     let mut models = Vec::new();
     let search_dirs = [
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("lm-studio").join("models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".lmstudio").join("models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("huggingface").join("hub")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".ollama").join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join("models")),
+        std::env::var("HOME").ok().map(|h| {
+            PathBuf::from(h)
+                .join(".cache")
+                .join("lm-studio")
+                .join("models")
+        }),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join(".lmstudio").join("models")),
+        std::env::var("HOME").ok().map(|h| {
+            PathBuf::from(h)
+                .join(".cache")
+                .join("huggingface")
+                .join("hub")
+        }),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join(".ollama").join("models")),
         Some(PathBuf::from("/var/lib/oxide-tech/models")),
         Some(PathBuf::from("/opt/models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join(".cache").join("models")),
-        std::env::var("HOME").ok().map(|h| PathBuf::from(h).join("Downloads").join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join(".cache").join("models")),
+        std::env::var("HOME")
+            .ok()
+            .map(|h| PathBuf::from(h).join("Downloads").join("models")),
         Some(PathBuf::from("/tmp/models")),
     ];
 
@@ -578,7 +616,12 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| format!("Failed to spawn llama-server: {}. Ensure llama.cpp is installed.", e))?;
+        .map_err(|e| {
+            format!(
+                "Failed to spawn llama-server: {}. Ensure llama.cpp is installed.",
+                e
+            )
+        })?;
 
     let child_pid = child.id();
     {
@@ -637,7 +680,10 @@ async fn ensure_llama_server_running(model_path: &str, port: u16) -> Result<(), 
         *current = Some(model_path.to_string());
     }
 
-    info!("Native llama-server successfully initialized on port {}", port);
+    info!(
+        "Native llama-server successfully initialized on port {}",
+        port
+    );
     Ok(())
 }
 
@@ -652,8 +698,11 @@ pub async fn model_list_available() -> Result<ModelListResponse, String> {
     let ollama_models_handle = query_ollama_models(&client);
     let sglang_models_handle = query_sglang_models(&client);
 
-    let (local_ggufs_res, mut ollama_models, mut sglang_models) =
-        tokio::join!(local_ggufs_handle, ollama_models_handle, sglang_models_handle);
+    let (local_ggufs_res, mut ollama_models, mut sglang_models) = tokio::join!(
+        local_ggufs_handle,
+        ollama_models_handle,
+        sglang_models_handle
+    );
 
     let mut local_ggufs = local_ggufs_res.map_err(|e| e.to_string())?;
 
@@ -748,7 +797,9 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
     let model_name = req.model.trim();
 
     // Check if this is a local GGUF model
-    let is_local_gguf = provider == "local_gguf" || model_name.starts_with("local:") || model_name.ends_with(".gguf");
+    let is_local_gguf = provider == "local_gguf"
+        || model_name.starts_with("local:")
+        || model_name.ends_with(".gguf");
 
     if is_local_gguf {
         let clean_model = model_name
@@ -764,7 +815,9 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
             m.name == clean_model
                 || m.id == req.model
                 || m.name.eq_ignore_ascii_case(clean_model)
-                || m.name.trim_end_matches(".gguf").eq_ignore_ascii_case(clean_model.trim_end_matches(".gguf"))
+                || m.name
+                    .trim_end_matches(".gguf")
+                    .eq_ignore_ascii_case(clean_model.trim_end_matches(".gguf"))
         });
 
         let model_path = match target_model.and_then(|m| m.path.as_deref()) {
@@ -774,10 +827,19 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                 if std::path::Path::new(clean_model).exists() {
                     clean_model.to_string()
                 } else if let Some(home) = std::env::var("HOME").ok()
-                    && std::path::PathBuf::from(&home).join("models").join(clean_model).exists()
+                    && std::path::PathBuf::from(&home)
+                        .join("models")
+                        .join(clean_model)
+                        .exists()
                 {
-                    std::path::PathBuf::from(&home).join("models").join(clean_model).display().to_string()
-                } else if let Some(first_available) = all_local.first().and_then(|m| m.path.as_deref()) {
+                    std::path::PathBuf::from(&home)
+                        .join("models")
+                        .join(clean_model)
+                        .display()
+                        .to_string()
+                } else if let Some(first_available) =
+                    all_local.first().and_then(|m| m.path.as_deref())
+                {
                     tracing::warn!(
                         "Requested model '{}' not found on disk; automatically falling back to installed model '{}' ({})",
                         clean_model,
@@ -873,7 +935,9 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                         provider: "local_gguf".to_string(),
                         tokens_used: None,
                         latency_ms: start.elapsed().as_millis() as u64,
-                        error: Some("Failed to parse native llama-server response JSON".to_string()),
+                        error: Some(
+                            "Failed to parse native llama-server response JSON".to_string(),
+                        ),
                     })
                 }
             }
@@ -883,7 +947,10 @@ pub async fn model_run_prompt(req: RunPromptRequest) -> Result<RunPromptResponse
                 provider: "local_gguf".to_string(),
                 tokens_used: None,
                 latency_ms: start.elapsed().as_millis() as u64,
-                error: Some(format!("Cannot connect to native engine at port 8081: {}", e)),
+                error: Some(format!(
+                    "Cannot connect to native engine at port 8081: {}",
+                    e
+                )),
             }),
         }
     } else if provider == "ollama" || model_name.starts_with("ollama:") {
@@ -1287,7 +1354,12 @@ pub async fn get_engine_matrix_status() -> std::result::Result<Vec<EngineStatusE
     entries.push(EngineStatusEntry {
         engine: "LLaMA.cpp Paged DDR5".to_string(),
         port: 8081,
-        status: if llama_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        status: if llama_status.is_some() {
+            "ONLINE"
+        } else {
+            "STOPPED"
+        }
+        .to_string(),
         latency_ms: llama_status,
         active_backend: llama_status.is_some(),
     });
@@ -1297,7 +1369,12 @@ pub async fn get_engine_matrix_status() -> std::result::Result<Vec<EngineStatusE
     entries.push(EngineStatusEntry {
         engine: "vLLM High-Throughput".to_string(),
         port: 8000,
-        status: if vllm_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        status: if vllm_status.is_some() {
+            "ONLINE"
+        } else {
+            "STOPPED"
+        }
+        .to_string(),
         latency_ms: vllm_status,
         active_backend: false,
     });
@@ -1307,7 +1384,12 @@ pub async fn get_engine_matrix_status() -> std::result::Result<Vec<EngineStatusE
     entries.push(EngineStatusEntry {
         engine: "SGLang RadixAttention".to_string(),
         port: 30000,
-        status: if sglang_status.is_some() { "ONLINE" } else { "STOPPED" }.to_string(),
+        status: if sglang_status.is_some() {
+            "ONLINE"
+        } else {
+            "STOPPED"
+        }
+        .to_string(),
         latency_ms: sglang_status,
         active_backend: false,
     });
@@ -1331,7 +1413,9 @@ async fn probe_tcp_port(port: u16) -> Option<u64> {
     if let Ok(Ok(_)) = tokio::time::timeout(
         std::time::Duration::from_millis(200),
         tokio::net::TcpStream::connect(&addr),
-    ).await {
+    )
+    .await
+    {
         Some(t0.elapsed().as_millis() as u64)
     } else {
         None
@@ -1403,7 +1487,9 @@ pub struct ActiveTrainerState {
 static ACTIVE_JOB: std::sync::RwLock<Option<ActiveTrainerState>> = std::sync::RwLock::new(None);
 
 #[tauri::command]
-pub async fn trainer_start_job(req: TrainerJobRequest) -> std::result::Result<TrainerJobStatus, String> {
+pub async fn trainer_start_job(
+    req: TrainerJobRequest,
+) -> std::result::Result<TrainerJobStatus, String> {
     let job_id = format!("job_{}", uuid::Uuid::now_v7());
     let total_steps = (req.epochs as usize) * 100;
     let hidden_dim = 128;
@@ -1420,7 +1506,8 @@ pub async fn trainer_start_job(req: TrainerJobRequest) -> std::result::Result<Tr
         checkpoint_dir: PathBuf::from("workspace/checkpoints"),
     };
 
-    let trainer = model_trainer::pure_rust_trainer::PureRustTrainer::new(trainer_config, hidden_dim);
+    let trainer =
+        model_trainer::pure_rust_trainer::PureRustTrainer::new(trainer_config, hidden_dim);
     let batch_embeddings = vec![0.05f32; hidden_dim * (req.batch_size as usize).max(1)];
 
     let initial_status = TrainerJobStatus {
@@ -1433,7 +1520,10 @@ pub async fn trainer_start_job(req: TrainerJobRequest) -> std::result::Result<Tr
         reward: 0.35,
         pass_rate: 65.0,
         lr: req.learning_rate,
-        message: format!("Started {:?} training with LoRA rank {} on model {}", req.kind, req.lora_rank, req.model),
+        message: format!(
+            "Started {:?} training with LoRA rank {} on model {}",
+            req.kind, req.lora_rank, req.model
+        ),
     };
 
     {
@@ -1454,9 +1544,13 @@ pub async fn trainer_start_job(req: TrainerJobRequest) -> std::result::Result<Tr
 pub async fn trainer_get_job_status() -> std::result::Result<Option<TrainerJobStatus>, String> {
     let mut job_guard = ACTIVE_JOB.write().map_err(|e| e.to_string())?;
     if let Some(ref mut state) = *job_guard {
-        if state.status.status == "RUNNING" && (state.status.step as usize) < (state.status.total_steps as usize) {
+        if state.status.status == "RUNNING"
+            && (state.status.step as usize) < (state.status.total_steps as usize)
+        {
             // Execute real forward passes through FP8LoraLayer
-            let metrics = state.trainer.train_step(&state.batch_embeddings, state.hidden_dim, 1);
+            let metrics = state
+                .trainer
+                .train_step(&state.batch_embeddings, state.hidden_dim, 1);
             state.status.step = metrics.step as u32;
             state.status.loss = metrics.loss;
             state.status.lr = metrics.learning_rate as f64;
@@ -1467,7 +1561,9 @@ pub async fn trainer_get_job_status() -> std::result::Result<Option<TrainerJobSt
 
             if (metrics.step as u32) >= state.status.total_steps {
                 state.status.status = "COMPLETED".to_string();
-                state.status.message = "Pure-Rust fused LoRA converged successfully. Weights ready for GGUF export.".to_string();
+                state.status.message =
+                    "Pure-Rust fused LoRA converged successfully. Weights ready for GGUF export."
+                        .to_string();
             }
         }
         Ok(Some(state.status.clone()))
@@ -1496,7 +1592,9 @@ pub async fn trainer_harvest_trajectories(
     let min_conf = min_confidence.unwrap_or(0.7);
     let fmt = format_type.unwrap_or_else(|| "sharegpt".to_string());
     let out_dir = std::env::temp_dir().join("oxide_harvested");
-    tokio::fs::create_dir_all(&out_dir).await.map_err(|e| e.to_string())?;
+    tokio::fs::create_dir_all(&out_dir)
+        .await
+        .map_err(|e| e.to_string())?;
 
     let out_file = out_dir.join(format!("trajectories_{}.json", fmt));
 
@@ -1532,11 +1630,17 @@ pub async fn trainer_harvest_trajectories(
     let pass_count = episodes.len();
     let total_harvested = episodes.len();
 
-    tokio::fs::write(&out_file, serde_json::to_string_pretty(&episodes).unwrap().as_bytes())
-        .await
-        .map_err(|e| e.to_string())?;
+    tokio::fs::write(
+        &out_file,
+        serde_json::to_string_pretty(&episodes).unwrap().as_bytes(),
+    )
+    .await
+    .map_err(|e| e.to_string())?;
 
-    info!("Harvested {} verified trajectories to {:?}", total_harvested, out_file);
+    info!(
+        "Harvested {} verified trajectories to {:?}",
+        total_harvested, out_file
+    );
 
     Ok(HarvestTrajectoriesResponse {
         total_harvested,
@@ -1553,7 +1657,9 @@ pub async fn trainer_export_gguf(
 ) -> std::result::Result<GgufExportResponse, String> {
     let q_type = quantization.unwrap_or_else(|| "Q4_K_M".to_string());
     let out_dir = std::env::temp_dir().join("oxide_export");
-    tokio::fs::create_dir_all(&out_dir).await.map_err(|e| e.to_string())?;
+    tokio::fs::create_dir_all(&out_dir)
+        .await
+        .map_err(|e| e.to_string())?;
 
     let quant_enum = match q_type.as_str() {
         "Q4_0" => model_trainer::GgufQuantType::Q4_0,
@@ -1592,7 +1698,10 @@ pub async fn trainer_export_gguf(
         4850.5
     };
 
-    info!("Exported GGUF to {:?} with Modelfile {:?}", gguf_path, modelfile_path);
+    info!(
+        "Exported GGUF to {:?} with Modelfile {:?}",
+        gguf_path, modelfile_path
+    );
 
     Ok(GgufExportResponse {
         gguf_path: gguf_path.display().to_string(),
@@ -1601,5 +1710,3 @@ pub async fn trainer_export_gguf(
         file_size_mb,
     })
 }
-
-

@@ -93,7 +93,8 @@ impl ChunkedCrossEntropyKernel {
                     valid_tokens += 1;
 
                     // 3. Fused backward gradient accumulation
-                    let grad_h_slice = &mut grad_hidden[token_idx * hidden_dim..(token_idx + 1) * hidden_dim];
+                    let grad_h_slice =
+                        &mut grad_hidden[token_idx * hidden_dim..(token_idx + 1) * hidden_dim];
                     for v in 0..vocab_size {
                         let prob = (logits[v] - lse).exp();
                         let target_indicator = if v == target_idx { 1.0f32 } else { 0.0f32 };

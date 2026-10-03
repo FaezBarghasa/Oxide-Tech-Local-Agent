@@ -7,7 +7,7 @@ use media_forge::{DiffusionEngine, DiffusionRequest, SchedulerType};
 use model_trainer::modelscope::{HubDownloader, HubSource};
 use model_trainer::optimizer::{AdamW8bitOptimizer, AdamW8bitState, AdamWConfig};
 use model_trainer::pure_rust_trainer::{PureRustTrainer, PureRustTrainerConfig};
-use oxide_engines::universal_loader::{ContainerFormat, UniversalModelContainer, GGUF_MAGIC};
+use oxide_engines::universal_loader::{ContainerFormat, GGUF_MAGIC, UniversalModelContainer};
 use oxide_kernels::ternary::TernaryBitplaneMatrix;
 use qdrant_service::embedded_vector::VectorStore;
 use std::collections::HashMap;
@@ -65,11 +65,25 @@ async fn test_media_forge_diffusion_pipeline() {
 
 #[test]
 fn test_modelscope_and_hf_hub_resolution() {
-    let hf_url = HubDownloader::resolve_url(HubSource::HuggingFace, "Qwen/Qwen2.5-Coder-7B", "model.safetensors");
-    assert_eq!(hf_url, "https://huggingface.co/Qwen/Qwen2.5-Coder-7B/resolve/main/model.safetensors");
+    let hf_url = HubDownloader::resolve_url(
+        HubSource::HuggingFace,
+        "Qwen/Qwen2.5-Coder-7B",
+        "model.safetensors",
+    );
+    assert_eq!(
+        hf_url,
+        "https://huggingface.co/Qwen/Qwen2.5-Coder-7B/resolve/main/model.safetensors"
+    );
 
-    let ms_url = HubDownloader::resolve_url(HubSource::ModelScope, "qwen/Qwen2.5-Coder-7B", "model.safetensors");
-    assert_eq!(ms_url, "https://modelscope.cn/api/v1/models/qwen/Qwen2.5-Coder-7B/repo?Revision=master&FilePath=model.safetensors");
+    let ms_url = HubDownloader::resolve_url(
+        HubSource::ModelScope,
+        "qwen/Qwen2.5-Coder-7B",
+        "model.safetensors",
+    );
+    assert_eq!(
+        ms_url,
+        "https://modelscope.cn/api/v1/models/qwen/Qwen2.5-Coder-7B/repo?Revision=master&FilePath=model.safetensors"
+    );
 }
 
 #[tokio::test]
@@ -125,7 +139,10 @@ fn test_ternary_bitplane_xnor_gemm_kernel() {
 #[tokio::test]
 async fn test_embedded_surrealdb_in_process() {
     let db = EmbeddedSurrealDb::in_memory().await.unwrap();
-    let res = db.db.query("CREATE user:test_architect SET name = 'Faez', role = 'Lead Architect'").await;
+    let res = db
+        .db
+        .query("CREATE user:test_architect SET name = 'Faez', role = 'Lead Architect'")
+        .await;
     assert!(res.is_ok());
 }
 
@@ -135,7 +152,9 @@ fn test_embedded_vector_store_retrieval() {
     let mut payload = HashMap::new();
     payload.insert("chip".to_string(), serde_json::json!("STM32F407VG"));
 
-    store.upsert("hal_specs", "doc_stm32", vec![1.0, 0.0, 0.0], payload).unwrap();
+    store
+        .upsert("hal_specs", "doc_stm32", vec![1.0, 0.0, 0.0], payload)
+        .unwrap();
     let results = store.search("hal_specs", &[0.95, 0.05, 0.0], 1);
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].id, "doc_stm32");
@@ -173,6 +192,52 @@ fn test_pure_rust_trainer_and_8bit_adamw() {
 
 #[test]
 fn test_atomic_flash_hitl_token_validation() {
-    assert!(AtomicFlashManager::validate_ed25519_flash_token("ed25519-sig-auth-stm32f407-valid-tok", "STM32F407VG").is_ok());
+    assert!(
+        AtomicFlashManager::validate_ed25519_flash_token(
+            "ed25519-sig-auth-stm32f407-valid-tok",
+            "STM32F407VG"
+        )
+        .is_ok()
+    );
     assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
+}
+
+#[tokio::test]
+async fn test_native_tool_registry_and_agentic_tool_dispatch() {
+    use oxide_tooling::{NativeToolRegistry, OrnithPromptFormatter};
+
+    let registry = NativeToolRegistry::with_defaults();
+    let schemas = registry.export_schemas();
+    assert_eq!(schemas.len(), 4);
+
+    let tools = registry.list_tools();
+    assert!(tools.contains(&"stair_search".to_string()));
+    assert!(tools.contains(&"hardware_probe".to_string()));
+    assert!(tools.contains(&"memory_recall".to_string()));
+    assert!(tools.contains(&"ptx_decompile".to_string()));
+
+    // Form Ornith prompt with registered tools
+    let messages = vec![oxide_core::ChatMessage {
+        role: oxide_core::Role::User,
+        content: "Check connected hardware probes".into(),
+        name: None,
+    }];
+    let formatted_prompt = OrnithPromptFormatter::format(&messages, Some(&schemas), None);
+    assert!(formatted_prompt.contains("<tools>"));
+    assert!(formatted_prompt.contains("hardware_probe"));
+
+    // Simulate model output with XML tool call
+    let simulated_model_completion = r#"I will query the attached hardware debug probes.
+<tool_call>
+{"name": "hardware_probe", "arguments": {"action": "list_probes"}}
+</tool_call>"#;
+
+    let calls = OrnithPromptFormatter::extract_tool_calls(simulated_model_completion);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].name, "hardware_probe");
+
+    // Execute in-process native tool dispatch
+    let result = registry.dispatch(&calls[0]).await.unwrap();
+    assert_eq!(result["action"], "list_probes");
+    assert_eq!(result["count"], 1);
 }
