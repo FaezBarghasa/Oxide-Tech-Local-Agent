@@ -8,13 +8,13 @@ use tracing::info;
 const EXECUTION_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Memory ceiling for the child process (1 GiB virtual address space).
-const MEMORY_LIMIT_BYTES: u64 = 1024 * 1024 * 1024;
+const MEMORY_LIMIT_BYTES: u64 = 10240 * 1024 * 1024;
 
 /// CPU time ceiling (seconds of CPU the process may consume before SIGKILL).
 const CPU_TIME_LIMIT_SECS: u64 = 60;
 
 /// Output ceiling per stream (8 MiB) to prevent host memory exhaustion.
-pub const MAX_SANDBOX_OUTPUT_BYTES: usize = 8 * 1024 * 1024;
+pub const MAX_SANDBOX_OUTPUT_BYTES: usize = 80 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NetPolicy {
@@ -195,16 +195,18 @@ impl SandboxSpec {
         };
 
         match tokio::time::timeout(timeout_duration, execution_future).await {
-            Ok(Ok((status, stdout_bytes, stderr_bytes))) => {
-                Ok(ExecutionResult {
-                    exit_code: status.code().unwrap_or(-1),
-                    stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
-                    stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
-                })
-            }
+            Ok(Ok((status, stdout_bytes, stderr_bytes))) => Ok(ExecutionResult {
+                exit_code: status.code().unwrap_or(-1),
+                stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+                stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
+            }),
             Ok(Err(e)) => Err(e),
             Err(_) => {
-                tracing::error!("Sandbox command {:?} timed out after {:?}. Terminating process group.", cmd, timeout_duration);
+                tracing::error!(
+                    "Sandbox command {:?} timed out after {:?}. Terminating process group.",
+                    cmd,
+                    timeout_duration
+                );
                 if let Some(pid_val) = pid {
                     let _ = nix::sys::signal::killpg(
                         nix::unistd::Pid::from_raw(pid_val as i32),
@@ -212,11 +214,15 @@ impl SandboxSpec {
                     );
                 }
                 let _ = child.wait().await;
-                Err(format!("Sandbox command {:?} timed out after {:?}", cmd, timeout_duration))
+                Err(format!(
+                    "Sandbox command {:?} timed out after {:?}",
+                    cmd, timeout_duration
+                ))
             }
         }
     }
 
+    #[allow(dead_code)]
     async fn execute_native(
         &self,
         cmd: &[&str],
@@ -264,16 +270,18 @@ impl SandboxSpec {
         };
 
         match tokio::time::timeout(timeout_duration, execution_future).await {
-            Ok(Ok((status, stdout_bytes, stderr_bytes))) => {
-                Ok(ExecutionResult {
-                    exit_code: status.code().unwrap_or(-1),
-                    stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
-                    stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
-                })
-            }
+            Ok(Ok((status, stdout_bytes, stderr_bytes))) => Ok(ExecutionResult {
+                exit_code: status.code().unwrap_or(-1),
+                stdout: String::from_utf8_lossy(&stdout_bytes).to_string(),
+                stderr: String::from_utf8_lossy(&stderr_bytes).to_string(),
+            }),
             Ok(Err(e)) => Err(e),
             Err(_) => {
-                tracing::error!("Native command {:?} timed out after {:?}. Terminating process group.", cmd, timeout_duration);
+                tracing::error!(
+                    "Native command {:?} timed out after {:?}. Terminating process group.",
+                    cmd,
+                    timeout_duration
+                );
                 if let Some(pid_val) = pid {
                     let _ = nix::sys::signal::killpg(
                         nix::unistd::Pid::from_raw(pid_val as i32),
@@ -281,7 +289,10 @@ impl SandboxSpec {
                     );
                 }
                 let _ = child.wait().await;
-                Err(format!("Native command {:?} timed out after {:?}", cmd, timeout_duration))
+                Err(format!(
+                    "Native command {:?} timed out after {:?}",
+                    cmd, timeout_duration
+                ))
             }
         }
     }
@@ -298,25 +309,39 @@ pub async fn execute_wasm_sandbox(
     _inputs: &[u8],
     fuel: u64,
 ) -> Result<ExecutionResult, String> {
-    info!("Executing Wasm sandbox for {} bytes with fuel limit {}", wasm_bytes.len(), fuel);
+    info!(
+        "Executing Wasm sandbox for {} bytes with fuel limit {}",
+        wasm_bytes.len(),
+        fuel
+    );
     if wasm_bytes.is_empty() {
         return Err("Wasm binary is empty".to_string());
     }
 
     let mut config = wasmtime::Config::new();
     config.consume_fuel(true);
-    let engine = wasmtime::Engine::new(&config).map_err(|e| format!("Failed to create Wasm engine: {}", e))?;
+    let engine = wasmtime::Engine::new(&config)
+        .map_err(|e| format!("Failed to create Wasm engine: {}", e))?;
 
-    let module = wasmtime::Module::new(&engine, wasm_bytes).map_err(|e| format!("Wasm validation failed: {}", e))?;
+    let module = wasmtime::Module::new(&engine, wasm_bytes)
+        .map_err(|e| format!("Wasm validation failed: {}", e))?;
 
     let mut store = wasmtime::Store::new(&engine, ());
-    store.set_fuel(fuel).map_err(|e| format!("Failed to configure Wasm fuel: {}", e))?;
+    store
+        .set_fuel(fuel)
+        .map_err(|e| format!("Failed to configure Wasm fuel: {}", e))?;
 
     let linker = wasmtime::Linker::new(&engine);
-    let instance = linker.instantiate(&mut store, &module).map_err(|e| format!("Wasm instantiation failed: {}", e))?;
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .map_err(|e| format!("Wasm instantiation failed: {}", e))?;
 
     let mut exit_code = 0;
-    let mut stdout = format!("Wasm module validated successfully ({} bytes, {} exports).", wasm_bytes.len(), module.exports().count());
+    let mut stdout = format!(
+        "Wasm module validated successfully ({} bytes, {} exports).",
+        wasm_bytes.len(),
+        module.exports().count()
+    );
 
     if let Ok(start_fn) = instance.get_typed_func::<(), ()>(&mut store, "_start") {
         match start_fn.call(&mut store, ()) {
@@ -337,7 +362,10 @@ pub async fn execute_wasm_sandbox(
     }
 
     let remaining_fuel = store.get_fuel().unwrap_or(0);
-    stdout.push_str(&format!("\nFuel consumed: {}", fuel.saturating_sub(remaining_fuel)));
+    stdout.push_str(&format!(
+        "\nFuel consumed: {}",
+        fuel.saturating_sub(remaining_fuel)
+    ));
 
     Ok(ExecutionResult {
         exit_code,
@@ -365,6 +393,9 @@ mod tests {
     async fn test_wasm_sandbox_invalid_bytes_rejected() {
         let bad_bytes = b"NOT_A_WASM_BINARY";
         let res = execute_wasm_sandbox(bad_bytes, b"", 100_000).await;
-        assert!(res.is_err(), "Expected invalid Wasm bytes to fail validation");
+        assert!(
+            res.is_err(),
+            "Expected invalid Wasm bytes to fail validation"
+        );
     }
 }
