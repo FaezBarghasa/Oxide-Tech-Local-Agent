@@ -124,6 +124,7 @@ rustls = { version = "0.23", features = ["ring"] }
 toml = "1.1.2"
 thiserror = "2.0"
 nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
+hex = "0.4"
 
 dashmap = "6.1"
 polars = { version = "0.55.2", default-features = false, features = [

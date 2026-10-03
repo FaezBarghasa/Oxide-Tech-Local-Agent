@@ -61,9 +61,28 @@ impl ProcessTreeGuard {
             } else {
                 let _ = kill(Pid::from_raw(self.pid as i32), Signal::SIGKILL);
             }
+
+            // 4. Reap processes to ensure zero zombies remain
+            use nix::sys::wait::{WaitPidFlag, waitpid};
+            let _ = waitpid(Pid::from_raw(self.pid as i32), Some(WaitPidFlag::WNOHANG));
+            Self::reap_zombies();
         }
 
         Ok(())
+    }
+
+    /// Non-blocking reap of any defunct child processes in the current process space
+    pub fn reap_zombies() {
+        #[cfg(unix)]
+        {
+            use nix::sys::wait::{WaitPidFlag, waitpid};
+            use nix::unistd::Pid;
+            while let Ok(res) = waitpid(Pid::from_raw(-1), Some(WaitPidFlag::WNOHANG)) {
+                if res == nix::sys::wait::WaitStatus::StillAlive {
+                    break;
+                }
+            }
+        }
     }
 }
 

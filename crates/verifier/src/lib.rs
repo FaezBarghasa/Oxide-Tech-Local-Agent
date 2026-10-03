@@ -1,6 +1,6 @@
 use common::error::{EiosError, Result};
 use std::path::Path;
-use tokio::io::{AsyncReadExt, BufReader};
+use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 use tokio::time::{Duration, timeout};
 use tracing::{error, info};
@@ -8,12 +8,30 @@ use tracing::{error, info};
 const EXECUTION_TIMEOUT: Duration = Duration::from_secs(30);
 const MEMORY_LIMIT_BYTES: u64 = 1024 * 1024 * 1024; // 1 GiB
 const CPU_TIME_LIMIT_SECS: u64 = 60;
+const MAX_VERIFIER_OUTPUT_BYTES: usize = 8 * 1024 * 1024; // 8 MiB limit
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct ExecutionResult {
     pub exit_code: i32,
     pub stdout: String,
     pub stderr: String,
+}
+
+async fn read_bounded<R: AsyncReadExt + Unpin>(
+    mut reader: R,
+    max_bytes: usize,
+) -> std::io::Result<Vec<u8>> {
+    let mut buf = Vec::new();
+    let mut chunk = [0u8; 8192];
+    while buf.len() < max_bytes {
+        let to_read = std::cmp::min(chunk.len(), max_bytes - buf.len());
+        let n = reader.read(&mut chunk[..to_read]).await?;
+        if n == 0 {
+            break;
+        }
+        buf.extend_from_slice(&chunk[..n]);
+    }
+    Ok(buf)
 }
 
 pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<ExecutionResult> {
@@ -69,25 +87,19 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
 
     let pid = child.id().unwrap_or(0);
 
-    let stdout_handle = child.stdout.take().expect("stdout pipe missing");
-    let stderr_handle = child.stderr.take().expect("stderr pipe missing");
+    let stdout_handle = child.stdout.take().ok_or_else(|| {
+        EiosError::Internal("stdout pipe missing from child process".to_string())
+    })?;
+    let stderr_handle = child.stderr.take().ok_or_else(|| {
+        EiosError::Internal("stderr pipe missing from child process".to_string())
+    })?;
 
     let read_result = timeout(EXECUTION_TIMEOUT, async {
-        let (stdout_bytes, stderr_bytes) = tokio::join!(
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stdout_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                buf
-            },
-            async {
-                let mut buf = Vec::new();
-                let mut reader = BufReader::new(stderr_handle);
-                let _ = reader.read_to_end(&mut buf).await;
-                buf
-            }
+        let (stdout_res, stderr_res) = tokio::join!(
+            read_bounded(stdout_handle, MAX_VERIFIER_OUTPUT_BYTES),
+            read_bounded(stderr_handle, MAX_VERIFIER_OUTPUT_BYTES)
         );
-        (stdout_bytes, stderr_bytes)
+        (stdout_res.unwrap_or_default(), stderr_res.unwrap_or_default())
     })
     .await;
 
@@ -111,6 +123,14 @@ pub async fn execute_in_sandbox(cmd: &[&str], work_dir: &str) -> Result<Executio
                 cmd, pid
             );
 
+            #[cfg(unix)]
+            if pid > 0 {
+                use nix::sys::signal::{killpg, Signal};
+                use nix::unistd::Pid;
+                let _ = killpg(Pid::from_raw(pid as i32), Signal::SIGKILL);
+            }
+
+            let _ = child.kill().await;
             let _ = child.wait().await;
 
             Err(EiosError::Internal(format!(
@@ -199,5 +219,14 @@ mod tests {
         assert!(temp_dir.join("hitl_decision.json").exists());
 
         let _ = std::fs::remove_dir_all(&temp_dir);
+    }
+
+    #[tokio::test]
+    async fn test_execute_in_sandbox_success() {
+        let res = execute_in_sandbox(&["echo", "hello-sandboxed"], "/tmp")
+            .await
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert!(res.stdout.contains("hello-sandboxed"));
     }
 }

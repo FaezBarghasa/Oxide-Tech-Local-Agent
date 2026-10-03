@@ -117,9 +117,30 @@ impl SandboxSpec {
     }
 
     async fn execute_bwrap(&self, cmd: &[&str], work_dir: &str) -> Result<ExecutionResult, String> {
+        let canonical_work_dir = Path::new(work_dir)
+            .canonicalize()
+            .map_err(|e| format!("Failed to canonicalize sandbox work_dir '{}': {}", work_dir, e))?;
+        let work_dir_str = canonical_work_dir.to_str().ok_or("Invalid UTF-8 in work_dir")?;
+
+        let resolved_binary = if cmd[0].contains('/') {
+            PathBuf::from(cmd[0])
+        } else {
+            let path_env = std::env::var("PATH").unwrap_or_else(|_| "/usr/local/bin:/usr/bin:/bin".to_string());
+            let mut found = None;
+            for dir in std::env::split_paths(&path_env) {
+                let candidate = dir.join(cmd[0]);
+                if candidate.is_file() {
+                    found = Some(candidate);
+                    break;
+                }
+            }
+            found.unwrap_or_else(|| PathBuf::from(cmd[0]))
+        };
+        let resolved_bin_str = resolved_binary.to_str().unwrap_or(cmd[0]);
+
         info!(
-            "Executing via Bubblewrap sandbox: {:?} in {}",
-            cmd, work_dir
+            "Executing via Bubblewrap sandbox: {:?} (resolved {}) in {}",
+            cmd, resolved_bin_str, work_dir_str
         );
         let mut bwrap = Command::new("bwrap");
         bwrap
@@ -129,26 +150,13 @@ impl SandboxSpec {
             .arg("/proc")
             .arg("--dev")
             .arg("/dev")
+            .arg("--ro-bind")
+            .arg("/")
+            .arg("/")
             .arg("--tmpfs")
-            .arg("/tmp")
-            .arg("--ro-bind")
-            .arg("/usr")
-            .arg("/usr")
-            .arg("--ro-bind")
-            .arg("/bin")
-            .arg("/bin");
+            .arg("/tmp");
 
-        if Path::new("/lib").exists() {
-            bwrap.arg("--ro-bind").arg("/lib").arg("/lib");
-        }
-        if Path::new("/lib64").exists() {
-            bwrap.arg("--ro-bind").arg("/lib64").arg("/lib64");
-        }
-        if Path::new("/etc").exists() {
-            bwrap.arg("--ro-bind").arg("/etc").arg("/etc");
-        }
-
-        bwrap.arg("--bind").arg(work_dir).arg(work_dir);
+        bwrap.arg("--bind").arg(&canonical_work_dir).arg(&canonical_work_dir);
 
         for (src, dst) in &self.rw_binds {
             if src.exists() {
@@ -166,8 +174,9 @@ impl SandboxSpec {
             bwrap.arg("--share-net");
         }
 
-        bwrap.arg("--chdir").arg(work_dir);
-        bwrap.args(cmd);
+        bwrap.arg("--chdir").arg(work_dir_str);
+        bwrap.arg(resolved_bin_str);
+        bwrap.args(&cmd[1..]);
 
         #[cfg(unix)]
         bwrap.process_group(0);

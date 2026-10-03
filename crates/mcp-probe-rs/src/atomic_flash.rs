@@ -190,26 +190,96 @@ impl AtomicFlashManager {
 
     /// Validates an Ed25519 signed human authorization consent token before permitting MCU flash
     pub fn validate_ed25519_flash_token(token: &str, chip: &str) -> Result<bool, AtomicFlashError> {
-        if token.trim().is_empty() {
+        let trimmed = token.trim();
+        if trimmed.is_empty() {
             return Err(AtomicFlashError::VerificationFailed(
                 "Missing required HITL human authorization token".to_string(),
             ));
         }
 
-        if token.starts_with("ed25519-sig-") || token.starts_with("hitl-auth-") || token.len() >= 32
-        {
-            tracing::info!(
-                target: "atomic_flash",
-                "Cryptographic HITL authorization token verified for target chip '{}'",
-                chip
-            );
-            Ok(true)
-        } else {
-            Err(AtomicFlashError::VerificationFailed(format!(
-                "Invalid flash authorization signature token for chip '{}'",
-                chip
-            )))
+        let token_body = trimmed.strip_prefix("ed25519:").unwrap_or(trimmed);
+        let parts: Vec<&str> = token_body.split(':').collect();
+        if parts.len() < 2 {
+            return Err(AtomicFlashError::VerificationFailed(
+                "Malformed Ed25519 token: expected '<pubkey_hex>:<signature_hex>[:<payload>]'".to_string(),
+            ));
         }
+
+        let pubkey_bytes = hex::decode(parts[0]).map_err(|e| {
+            AtomicFlashError::VerificationFailed(format!("Invalid public key hex in token: {e}"))
+        })?;
+
+        if pubkey_bytes.len() != 32 {
+            return Err(AtomicFlashError::VerificationFailed(
+                "Invalid public key length: expected 32 bytes".to_string(),
+            ));
+        }
+
+        let sig_bytes = hex::decode(parts[1]).map_err(|e| {
+            AtomicFlashError::VerificationFailed(format!("Invalid signature hex in token: {e}"))
+        })?;
+
+        if sig_bytes.len() != 64 {
+            return Err(AtomicFlashError::VerificationFailed(
+                "Invalid signature length: expected 64 bytes".to_string(),
+            ));
+        }
+
+        let mut pubkey_array = [0u8; 32];
+        pubkey_array.copy_from_slice(&pubkey_bytes);
+        let verifying_key = ed25519_dalek::VerifyingKey::from_bytes(&pubkey_array).map_err(|e| {
+            AtomicFlashError::VerificationFailed(format!("Invalid Ed25519 public key: {e}"))
+        })?;
+
+        let mut sig_array = [0u8; 64];
+        sig_array.copy_from_slice(&sig_bytes);
+        let signature = ed25519_dalek::Signature::from_bytes(&sig_array);
+
+        // If an explicit payload was signed, ensure it binds to the requested target chip
+        let msg_bytes = if parts.len() >= 3 {
+            let msg = parts[2..].join(":");
+            if !msg.contains(chip) {
+                return Err(AtomicFlashError::VerificationFailed(format!(
+                    "Token authorization message does not bind to target chip '{chip}'"
+                )));
+            }
+            msg.into_bytes()
+        } else {
+            chip.as_bytes().to_vec()
+        };
+
+        use ed25519_dalek::Verifier;
+        verifying_key
+            .verify(&msg_bytes, &signature)
+            .map_err(|e| {
+                AtomicFlashError::VerificationFailed(format!(
+                    "Cryptographic Ed25519 signature verification failed for target chip '{chip}': {e}"
+                ))
+            })?;
+
+        tracing::info!(
+            target: "atomic_flash",
+            "Cryptographic HITL authorization token verified for target chip '{}'",
+            chip
+        );
+        Ok(true)
+    }
+
+    /// Helper to generate a valid signed token for a chip authorization
+    pub fn sign_chip_authorization(
+        signing_key: &ed25519_dalek::SigningKey,
+        chip: &str,
+        extra_context: Option<&str>,
+    ) -> String {
+        use ed25519_dalek::Signer;
+        let pubkey_hex = hex::encode(signing_key.verifying_key().to_bytes());
+        let msg = match extra_context {
+            Some(ctx) => format!("{chip}:{ctx}"),
+            None => chip.to_string(),
+        };
+        let sig = signing_key.sign(msg.as_bytes());
+        let sig_hex = hex::encode(sig.to_bytes());
+        format!("{pubkey_hex}:{sig_hex}:{msg}")
     }
 
     /// Verifies in-memory firmware payload bytes and BLAKE3 hash directly, eliminating disk TOCTOU windows
@@ -323,25 +393,43 @@ mod tests {
 
     #[test]
     fn test_validate_ed25519_flash_token() {
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(&[42u8; 32]);
+        let valid_token =
+            AtomicFlashManager::sign_chip_authorization(&signing_key, "STM32F407VG", Some("flash_v1"));
+
+        // Valid signature on matching chip
+        assert!(AtomicFlashManager::validate_ed25519_flash_token(&valid_token, "STM32F407VG").is_ok());
+
+        // Target chip mismatch
+        assert!(AtomicFlashManager::validate_ed25519_flash_token(&valid_token, "STM32F103").is_err());
+
+        // Empty token rejected
+        assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
+
+        // Malformed token rejected
+        assert!(AtomicFlashManager::validate_ed25519_flash_token("short", "STM32F407VG").is_err());
+
+        // Length >= 32 fake string without cryptographic signature is strictly rejected
         assert!(
             AtomicFlashManager::validate_ed25519_flash_token(
-                "ed25519-sig-auth-stm32f407-valid-tok",
+                "ed25519-sig-auth-stm32f407-valid-tok-not-real",
                 "STM32F407VG"
             )
-            .is_ok()
+            .is_err()
         );
-        assert!(AtomicFlashManager::validate_ed25519_flash_token("", "STM32F407VG").is_err());
-        assert!(AtomicFlashManager::validate_ed25519_flash_token("short", "STM32F407VG").is_err());
     }
 
     #[test]
     fn atomic_flash_in_memory_test() {
         let raw_firmware = vec![0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02, 0x03, 0x04];
-        let auth_token = "ed25519-sig-auth-stm32f407-valid-tok";
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(&[99u8; 32]);
         let target_chip = "STM32F407VG";
+        let auth_token =
+            AtomicFlashManager::sign_chip_authorization(&signing_key, target_chip, None);
 
         let verified =
-            VerifiedFirmwarePayload::new(raw_firmware.clone(), target_chip, auth_token).unwrap();
+            VerifiedFirmwarePayload::new(raw_firmware.clone(), target_chip, auth_token.clone())
+                .unwrap();
         assert_eq!(verified.binary_bytes, raw_firmware);
         assert_eq!(verified.target_chip, target_chip);
         assert_eq!(verified.auth_token, auth_token);

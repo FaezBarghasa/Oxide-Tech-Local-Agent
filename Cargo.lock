@@ -6025,6 +6025,8 @@ dependencies = [
  "blake3",
  "chrono",
  "config-loader",
+ "ed25519-dalek",
+ "hex",
  "rmcp 3.2.0",
  "sandbox",
  "schemars 1.2.1",
